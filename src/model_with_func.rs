@@ -12,12 +12,12 @@ use crate::util::residuals;
 ///     x*x
 /// }
 ///
-/// extern crate root_finder;
-/// use root_finder::model::Model; // trait import required
+/// extern crate newton_rootfinder as nrf;
+/// use nrf::model::Model; // trait import required
 /// extern crate nalgebra;
 ///
 /// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-/// let mut user_model = root_finder::model_with_func::UserModelWithFunc::new(1, square);
+/// let mut user_model = nrf::model_with_func::UserModelWithFunc::new(1, square);
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///

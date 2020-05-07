@@ -64,7 +64,6 @@
 //!
 //! 1. Other algorithms than the Newton-Raphson method.
 
-
 pub mod util;
 
 pub mod solver;

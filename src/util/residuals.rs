@@ -38,22 +38,22 @@ impl fmt::Display for NormalizationMethod {
 /// use float_cmp::*;
 /// use nrf::util::residuals::*;
 ///
-/// let small_values_abs = normalization(0.1, -0.15, &NormalizationMethod::Abs);
+/// let small_values_abs = normalization(0.1, -0.15, NormalizationMethod::Abs);
 /// assert!(approx_eq!(f64, small_values_abs, 0.25, ulps = 2));
 ///
-/// let small_values_rel = normalization(0.1, -0.15, &NormalizationMethod::Rel);
+/// let small_values_rel = normalization(0.1, -0.15, NormalizationMethod::Rel);
 /// assert!(approx_eq!(f64, small_values_rel, 10.0, ulps = 2));
 ///
-/// let small_values_adapt = normalization(0.1, -0.15, &NormalizationMethod::Adapt);
+/// let small_values_adapt = normalization(0.1, -0.15, NormalizationMethod::Adapt);
 /// assert!(approx_eq!(f64, small_values_adapt, 0.24390243902439027, ulps = 2));
 ///
-/// let big_values_abs = normalization(101.1, 101.25, &NormalizationMethod::Abs);
+/// let big_values_abs = normalization(101.1, 101.25, NormalizationMethod::Abs);
 /// assert!(approx_eq!(f64, big_values_abs, -0.15000000000000568, ulps = 2));
 ///
-/// let big_values_rel = normalization(101.1, 101.25, &NormalizationMethod::Rel);
+/// let big_values_rel = normalization(101.1, 101.25, NormalizationMethod::Rel);
 /// assert!(approx_eq!(f64, big_values_rel, -0.0014825796886583217, ulps = 2));
 ///
-/// let big_values_adapt = normalization(101.1, 101.25, &NormalizationMethod::Adapt);
+/// let big_values_adapt = normalization(101.1, 101.25, NormalizationMethod::Adapt);
 /// assert!(approx_eq!(f64, big_values_adapt, -0.0014680694886225172, ulps = 2));
 /// ```
 
