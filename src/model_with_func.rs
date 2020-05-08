@@ -1,30 +1,33 @@
+//! Blanket implementation to easily adapt user function to the `Model` trait required by the solver
+//!
+//! The right side of the equation is a constant and by default zero.
+//! No other outputs are computed
+//!
+//! # Examples
+//! ```
+//! pub fn square(x: &nalgebra::DVector::<f64>) -> nalgebra::DVector::<f64> {
+//!     x*x
+//! }
+//!
+//! extern crate newton_rootfinder as nrf;
+//! use nrf::model::Model; // trait import required
+//! extern crate nalgebra;
+//!
+//! let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
+//! let mut user_model = nrf::model_with_func::UserModelWithFunc::new(1, square);
+//! user_model.set_iteratives(&iteratives);
+//! user_model.evaluate();
+//!
+//! assert_eq!(user_model.len_problem(), 1);
+//! assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
+//! assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+/// ```
+
 use crate::model::Model;
 
 use crate::util::residuals;
 
-/// This struct provide a blanket model
-/// defined by a function.
-/// The right side of the equation is a constant and by default zero
-///
-/// # Examples
-/// ```
-/// pub fn square(x: &nalgebra::DVector::<f64>) -> nalgebra::DVector::<f64> {
-///     x*x
-/// }
-///
-/// extern crate newton_rootfinder as nrf;
-/// use nrf::model::Model; // trait import required
-/// extern crate nalgebra;
-///
-/// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-/// let mut user_model = nrf::model_with_func::UserModelWithFunc::new(1, square);
-/// user_model.set_iteratives(&iteratives);
-/// user_model.evaluate();
-///
-/// assert_eq!(user_model.len_problem(), 1);
-/// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
-/// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
-/// ```
+
 pub struct UserModelWithFunc {
     pub inputs: nalgebra::DVector<f64>,
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,

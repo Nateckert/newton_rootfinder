@@ -1,3 +1,34 @@
+//! Advanced solver
+//!
+//! ## Examples
+//!
+//! ```
+//! extern crate newton_rootfinder as nrf;
+//! use nrf::model::Model;
+//!
+//! extern crate nalgebra;
+//!
+//! /// Equation : x**2 - 2 = 0
+//! fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
+//!     let mut y = x * x;
+//!     y[0] -= 2.0;
+//!     y
+//! }
+//!
+//! fn main() {
+//!   let problem_size = 1;
+//!   let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
+//!   let rf = nrf::solver::RootFinderFD::default_with_guess(init_guess);
+//!   let mut user_model =
+//!       nrf::model_with_func::UserModelWithFunc::new(problem_size, square2);
+//!
+//!   rf.solve(&mut user_model);
+//!
+//!   println!("{}", user_model.get_iteratives()[0]);
+//!   // print 1.4142135623747443
+//! }
+//! ```
+
 extern crate nalgebra;
 
 use crate::model;

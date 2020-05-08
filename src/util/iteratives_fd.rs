@@ -1,5 +1,26 @@
-//! IterativesFD stands for Iterative Finite-Difference
-//! This struct extends the IterativeParams struct
+//! Extension of iteratives. FD stands for Iterative Finite-Difference
+//!
+//! In addition to the already defined parameters of an iteratives,
+//! The fact that the jacobian is going to be evaluated with finite-differences
+//! leads to the necessity to parametrize the way the perturbation on the iteratives are made.
+//!
+//! Hence if x is an iterative variable, (x + dx) is used for the jacobian evaluation.
+//!
+//! The parametrization here defines dx with regards to :
+//! - dx_abs: the absolute perturbation step
+//! - dx_rel: the relative perturbation step
+//!
+//! For each case we would have :
+//! - dx = dx_abs
+//! - dx = dx_rel*abs(x)
+//!
+//! The implementation here allows you to choose and combine the formulas:
+//! - dx = max(dx_abs, dx_rel*abs(x))
+//! - dx = dx_abs + dx_rel*abs(x)
+//!
+//! It is also possible to get one of the two basic cases by setting the other to 0:
+//! - dx_abs = 0 implies dx = dx_rel*abs(x)
+//! - dx_rel = 0 implies dx = dx_abs
 
 use crate::util::iteratives;
 use crate::util::iteratives::Iterative;
