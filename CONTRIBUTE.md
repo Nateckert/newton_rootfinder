@@ -1,4 +1,4 @@
-# Contributes
+# Contribute
 
 ## How to contribute
 
@@ -6,13 +6,14 @@ Classic Github workflow by performing a fork:
 
 1. Do not work on master branch directly.
 2. Use features/<features_to_improve> branch mainly.
-3. Test before push. cargo test
-4. Use cargo fmt.
+3. Pull requests should target the `dev` branch
+4. Test before push: `cargo test`
+5. Use `cargo fmt`.
 
 ## Commit naming
 
-For commit updating documentation, it is best if the name of the commit starts with [doc].
-For commit updating tests, it is best if the name of the commit starts with [test].
+For commit updating documentation, it is best if the name of the commit starts with `[doc]`.
+For commit updating tests, it is best if the name of the commit starts with `[test]`.
 
 ## Call for real world test cases
 
