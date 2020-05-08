@@ -1,10 +1,10 @@
 //! Minimal 1d solver
-//! 
+//!
 //! Two functions are provided for the cases where the derivative is provided or not :
 //! - solver1d
 //! - solver1d_fd (fd stands for finite differences)
 //!
-//! #Examples
+//! # Examples
 //! ```
 //! extern crate newton_rootfinder as nrf;
 //! use nrf::solver_minimal::*;
@@ -14,7 +14,7 @@
 //!     x.powi(2)-2.0
 //! }
 //! pub fn dsquare(x: f64) -> f64 {
-//! 2.0*x
+//!     2.0*x
 //! }
 //!
 //! let x1 = solver1d(1.0, square2, dsquare, 50, 1e-6);
