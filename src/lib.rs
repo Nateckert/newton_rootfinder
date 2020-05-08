@@ -4,18 +4,38 @@
 //! This crate allows you to use [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) for rootfinding.
 //!
 //! It aims to implement several Newton based methods (Broyden, ...), whether the jacobian function is provided or not.
+//!
 //! It also aims to work on a complex model, limiting the number of model calls to a minimum.
+//!
 //! A minimal solver is also provided for basic usages and benchmarking purposes.
 //!
-//! ## Key features
+//! # Minimal solver
 //!
-//!  1. **Minimal solver** available for basic 1D functions. The speed of the advanced solver will be benchmarked against this one to estimate the overhead.
-//!  2. **Advanced solver** for n-dimension problems including advanced stopping, update criteria, step limitation and more.
-//!      It is designed to work with the jacobian provided or not, evaluating it with finite-differentiation.
-//!  3. **Model interaction**: The advanced solver is designed to interact with a complex model computing other outputs and having memory effects.
+//! A minimal solver is provided for basic usages in the `solver_minimal` module.
+//! Don't hesitate to check in this module documentation for examples.
+//!
+//! This minimal solver works only on basic 1D functions.
+//!
+//! The speed of the advanced solver will be benchmarked against this one to estimate the overhead.
+//!
+//!
+//! # Advanced solver
+//!
+//! An advanced solver is available for n-dimension problems.
+//!
+//! It is made available in the `solver` module.
+//! Don't hesitate to check in this module documentation for examples.
+//!
+//! The focus of this crate is the development of this solver.
+//!
+//! ## Key features
+//!  1. Works whether the jacobian is provided or not (evaluating it with finite-differentiation).
+//!  2. In-details parametrization of iteratives variables, residuals and stopping criteria.
+//!  3. Several Newton based method will be made available (not yet)
+//!  4. The advanced solver is designed to interact with a complex model computing other outputs and having memory effects.
 //!      A definition of such a model is given through the `Model` trait.
 //!      The struct `UserModelWithFunc` is provided to easily adapt a given function to the required trait.
-//!  4. **Extended test examples**: Real world use cases and an extensive function database are included in the crate for integration testing and benchmarking.
+//!  5. Testing: Real world use cases and an extensive function database are included in the crate for integration testing and benchmarking. (work in progress)
 //!
 //! ## Current limitations
 //!
@@ -23,34 +43,6 @@
 //! 2. Only the finite-difference version is currently available.
 //! 3. Benchmarking vs the minimal-solver is not yet in place.
 //!
-//! ## Examples
-//!
-//! ```rust
-//! extern crate newton_rootfinder as nrf;
-//! use nrf::model::Model;
-//!
-//! extern crate nalgebra;
-//!
-//! /// Equation : x**2 - 2 = 0
-//! fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
-//!     let mut y = x * x;
-//!     y[0] -= 2.0;
-//!     y
-//! }
-//!
-//! fn main() {
-//!   let problem_size = 1;
-//!   let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
-//!   let rf = nrf::solver::RootFinderFD::default_with_guess(init_guess);
-//!   let mut user_model =
-//!       nrf::model_with_func::UserModelWithFunc::new(problem_size, square2);
-//!
-//!   rf.solve(&mut user_model);
-//!
-//!   println!("{}", user_model.get_iteratives()[0]);
-//!   // print 1.4142135623747443
-//! }
-//! ```
 //!
 //!
 //! # Comparison with other rust crates

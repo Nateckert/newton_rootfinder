@@ -1,3 +1,6 @@
+//! Jacobian evaluation per finite-differences
+//!
+
 extern crate nalgebra;
 use nalgebra::linalg;
 

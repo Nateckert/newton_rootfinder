@@ -1,4 +1,7 @@
-use std::f64;
+//! Definition of residuals
+//!
+//! It is splitted in-between the left and right terms of the equation
+
 use std::fmt;
 
 #[derive(Debug, Copy, Clone)]

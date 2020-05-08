@@ -1,3 +1,12 @@
+//! Iteratives definition
+//!
+//! The iteratives variables are the inputs variables X in f(X) = 0
+//!
+//! It is not only a float value, that changes during the iterative resolution process.
+//! One might want to limit the update steps, by either:
+//!     -limiting the range of values to avoid non-sense values
+//!     -limiting the size of an update step
+
 pub trait Iterative {
     fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64);
     fn set_max_values(&mut self, min_value: f64, max_value: f64);
