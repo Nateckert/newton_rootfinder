@@ -22,7 +22,8 @@ The more the merrier.
 
 ## I want to contribute but I don't know what there is to do ?
 
-Don't hesitate to read TODO.md to see the current developments
+Don't hesitate to read TODO.md to see the current developments.
+Also, if you didn't find the documentation clear enough, don't hesitate to point at the parts on which you struggled.
 
 
 Thanks for all contributions!

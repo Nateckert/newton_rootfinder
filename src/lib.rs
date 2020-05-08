@@ -23,19 +23,23 @@
 //!
 //! An advanced solver is available for n-dimension problems.
 //!
-//! It is made available in the `solver` module.
+//! To get improved interactions with the user problem (usually a function),
+//! the user is required to implement the `Model` trait in order to use the solver.
+//! This ensures a reduced number of calls to the function and a better debugging experience if needed.
+//!
+//! It is defined in the `solver` module.
 //! Don't hesitate to check in this module documentation for examples.
 //!
 //! The focus of this crate is the development of this solver.
 //!
 //! ## Key features
 //!  1. Works whether the jacobian is provided or not (evaluating it with finite-differentiation).
-//!  2. In-details parametrization of iteratives variables, residuals and stopping criteria.
-//!  3. Several Newton based method will be made available (not yet)
+//!  2. In-detail parametrization of iterative variables, residuals and stopping criteria.
+//!  3. Several Newton-based methods will be made available (not yet)
 //!  4. The advanced solver is designed to interact with a complex model computing other outputs and having memory effects.
-//!      A definition of such a model is given through the `Model` trait.
+//!      The requirements of this model are defined by the `Model` trait.
 //!      The struct `UserModelWithFunc` is provided to easily adapt a given function to the required trait.
-//!  5. Testing: Real world use cases and an extensive function database are included in the crate for integration testing and benchmarking. (work in progress)
+//!  5. Real world use cases and an extensive function database are included in the crate for integration testing and benchmarking. (work in progress)
 //!
 //! ## Current limitations
 //!

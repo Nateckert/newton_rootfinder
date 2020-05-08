@@ -1,16 +1,17 @@
 //! The rootfinder is operating on a `Model`
 //!
-//! An usual rootfinding algorithm operates on a function f(X) -> Y.
-//! The solver attempts to find X such as norm(f(X)) < tolerance.
-//! However, in real life cases, the model computes other quantities that are the mainly focus of the user of the solver.
-//! In fact, the Y paremeters (the residuals) have often few signification,
+//! A usual rootfinding algorithm operates on a function f(X) -> Y.
+//! The solver attempts to find X such that norm(f(X)) < tolerance.
+//!
+//! However, in real life cases, the model computes other quantities that are the main focus of the end-user of the solver.
+//! In fact, the Y paremeters (the residuals) have often few significations,
 //! the user being mostly interested by other quantities.
 //!
-//! With most of the available solver, computing the other quantities requires another function call to extract them.
+//! With most available solvers, computing the other quantities requires another function call to extract them.
 //! This extra function call being made with the X values found by the solver.
 //!
 //! The `Model` trait is centered around the `evaluate` method.
-//! This method implement the calculations wanted by the user.
+//! This method implements the calculations wanted by the user.
 //! The requirements is that it should mutate a field of the model that correspond to the residuals values (the outputs of our function)
 //!
 //! The solver is able to access to the residuals values thanks to the `get_residuals()` method
@@ -21,9 +22,9 @@
 //! In addition the user must provide the `len_problem` methods for determining the size.
 //!
 //! Four other methods have an default blanket implementation :
-//! -init() : to be called once before the first function call and the start of the algorithm.
+//! - init() : to be called once before the first function call and the start of the algorithm.
 //!           It allows the user to implement a logic such as loading some data to setup its model.
-//! -three functions to interact with memory effects of a model : `len_memory()`, `set_memory()`, `get_memory()`
+//! - three functions to interact with memory effects of a model : `len_memory()`, `set_memory()`, `get_memory()`
 //!          Such memory effects can occure in complex model in interaction with the finite-difference evaluation of the jacobian.
 //!          For example, one can use some global variables to approximate some expression.
 //!          These global variables are updated after each model evaluation.

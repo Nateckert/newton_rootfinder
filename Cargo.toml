@@ -1,6 +1,6 @@
 [package]
 name = "newton_rootfinder"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["nathan.eckert <nathan.eckert@polytechnique.edu>"]
 edition = "2018"
 description = "Newton based methods for root finding"
