@@ -19,7 +19,7 @@ pub enum StoppingCriteria {
 
 impl fmt::Display for NormalizationMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        //        let mut result = String::new();
+
         let result = match self {
             NormalizationMethod::Abs => &"Absolute Normalization Method",
             NormalizationMethod::Rel => &"Relative Normalization Method",
@@ -80,6 +80,20 @@ impl ResidualsValues {
 
     pub fn get_values(&self, index: usize) -> (f64, f64) {
         (self.left[index], self.right[index])
+    }
+}
+
+impl fmt::Display for ResidualsValues {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+
+        let mut result = String::from("Residuals values :\n\n");
+
+        for (i, elt) in self.left.iter().enumerate() {
+            let res = format!("Eq {} : {} = {}\n", i, elt, self.right[i]);
+            result.push_str(&res);
+        }
+
+        write!(f, "{}", result)
     }
 }
 
