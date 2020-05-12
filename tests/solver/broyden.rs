@@ -4,11 +4,10 @@ extern crate newton_rootfinder as nrf;
 extern crate nalgebra;
 use nrf::model::Model;
 
-
 #[test]
 fn broyden_case5() {
     let problem_size = 5;
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_broyden1965_case5());
+    let rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case5());
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case5);
 
@@ -16,7 +15,6 @@ fn broyden_case5() {
 
     let solution = solution_broyden1965_case5();
 
-
     for i in 0..problem_size {
         assert!(float_cmp::approx_eq!(
             f64,
@@ -25,13 +23,12 @@ fn broyden_case5() {
             epsilon = 1e-6
         ));
     }
-
 }
 
 #[test]
 fn broyden_case6() {
     let problem_size = 5;
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_broyden1965_case6());
+    let rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case6());
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case6);
 
@@ -39,7 +36,6 @@ fn broyden_case6() {
 
     let solution = solution_broyden1965_case6();
 
-
     for i in 0..problem_size {
         assert!(float_cmp::approx_eq!(
             f64,
@@ -48,14 +44,12 @@ fn broyden_case6() {
             epsilon = 1e-6
         ));
     }
-
-
 }
 
 #[test]
 fn broyden_case7() {
     let problem_size = 10;
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_broyden1965_case7());
+    let rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case7());
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case7);
 
@@ -71,14 +65,12 @@ fn broyden_case7() {
             epsilon = 1e-6
         ));
     }
-
-
 }
 
 #[test]
 fn broyden_case8() {
     let problem_size = 20;
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_broyden1965_case8());
+    let rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case8());
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case8);
 
@@ -94,14 +86,12 @@ fn broyden_case8() {
             epsilon = 1e-6
         ));
     }
-
-
 }
 
 #[test]
 fn broyden_case9() {
     let problem_size = 2;
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_broyden1965_case9());
+    let rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case9());
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case9);
 
@@ -117,21 +107,18 @@ fn broyden_case9() {
             epsilon = 1e-6
         ));
     }
-
-
 }
 
 #[test]
 fn broyden_case10() {
     let problem_size = 2;
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_broyden1965_case10());
+    let rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case10());
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case10);
 
     rf.solve(&mut user_model);
 
     let solution = solution_broyden1965_case10();
-
 
     for i in 0..problem_size {
         assert!(float_cmp::approx_eq!(
@@ -141,6 +128,4 @@ fn broyden_case10() {
             epsilon = 1e-6
         ));
     }
-
-
 }

@@ -72,10 +72,3 @@ pub fn newton_raw_step_size(
 
     -inv_jac * residuals_values
 }
-
-pub fn newton_limited_step_size(
-    iter_values: &nalgebra::DVector<f64>,
-    raw_step: nalgebra::DVector<f64>,
-) -> nalgebra::DVector<f64> {
-    raw_step + iter_values - iter_values
-}

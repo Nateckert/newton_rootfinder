@@ -18,7 +18,7 @@
 //! fn main() {
 //!   let problem_size = 1;
 //!   let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
-//!   let rf = nrf::solver::RootFinderFD::default_with_guess(init_guess);
+//!   let rf = nrf::solver::RootFinder::default_with_guess(init_guess);
 //!   let mut user_model =
 //!       nrf::model_with_func::UserModelWithFunc::new(problem_size, square2);
 //!
@@ -37,7 +37,7 @@ use crate::util::iteratives_fd;
 use crate::util::jacobian;
 use crate::util::residuals;
 
-pub struct RootFinderFD {
+pub struct RootFinder {
     initial_guess: nalgebra::DVector<f64>,
     iteratives_params: Vec<iteratives_fd::IterativeParamsFD>,
     residuals_config: residuals::ResidualsConfig,
@@ -47,7 +47,7 @@ pub struct RootFinderFD {
     damping: bool,
 }
 
-impl RootFinderFD {
+impl RootFinder {
     pub fn new(
         initial_guess: nalgebra::DVector<f64>,
         iteratives_params: Vec<iteratives_fd::IterativeParamsFD>,
@@ -58,7 +58,7 @@ impl RootFinderFD {
     ) -> Self {
         let damping = false;
 
-        RootFinderFD {
+        RootFinder {
             initial_guess,
             iteratives_params,
             residuals_config,
@@ -128,7 +128,10 @@ impl RootFinderFD {
         max_error_next
     }
 
-    pub fn solve<T: model::Model>(&self, model: &mut T) {
+    pub fn solve<T>(&self, model: &mut T)
+    where
+        T: model::Model,
+    {
         model.init();
         model.set_iteratives(&self.initial_guess);
         model.evaluate();
@@ -152,7 +155,7 @@ impl RootFinderFD {
         let max_iter: usize = 50;
         let damping: bool = false;
 
-        RootFinderFD {
+        RootFinder {
             initial_guess,
             iteratives_params,
             residuals_config,

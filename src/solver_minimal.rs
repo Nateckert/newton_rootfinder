@@ -25,7 +25,6 @@
 //! assert!(float_cmp::approx_eq!(f64, x_sol, x1, epsilon = 1e-5));
 //! assert!(float_cmp::approx_eq!(f64, x_sol, x2, epsilon = 1e-5));
 
-
 pub fn solver1d(
     init_guess: f64,
     func: fn(f64) -> f64,

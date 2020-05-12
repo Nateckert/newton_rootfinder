@@ -11,7 +11,7 @@ extern crate float_cmp;
 fn square() {
     let problem_size = 1;
     let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_guess);
+    let rf = nrf::solver::RootFinder::default_with_guess(init_guess);
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, polynom::square2);
 
@@ -29,7 +29,7 @@ fn square() {
 fn root_with_high_derivative() {
     let problem_size = 1;
     let init_guess = nalgebra::DVector::from_vec(vec![0.15]);
-    let rf = nrf::solver::RootFinderFD::default_with_guess(init_guess);
+    let rf = nrf::solver::RootFinder::default_with_guess(init_guess);
     let mut user_model = nrf::model_with_func::UserModelWithFunc::new(
         problem_size,
         polynom::root_with_high_derivative,

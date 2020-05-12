@@ -31,13 +31,12 @@ pub fn init_broyden1965_case5() -> nalgebra::DVector<f64> {
 pub fn solution_broyden1965_case5() -> nalgebra::DVector<f64> {
     let mut solution = nalgebra::DVector::zeros(5);
     solution[4] = 15.0 - 235.0_f64.sqrt(); // approx -0.32970971675589134
-    solution[3] = 15.0 - (235.0-20.0*solution[4]).sqrt(); // approx -0.5433006255144477
-    solution[2] = 15.0 - (235.0-20.0*solution[3]).sqrt(); // approx -0.6801151944202548
-    solution[1] = 15.0 - (235.0-20.0*solution[2]).sqrt(); // approx -0.5433006255144477
-    solution[0] = 15.0 - (235.0-20.0*solution[1]).sqrt(); // approx -0.32970971675589134
+    solution[3] = 15.0 - (235.0 - 20.0 * solution[4]).sqrt(); // approx -0.5433006255144477
+    solution[2] = 15.0 - (235.0 - 20.0 * solution[3]).sqrt(); // approx -0.6801151944202548
+    solution[1] = 15.0 - (235.0 - 20.0 * solution[2]).sqrt(); // approx -0.5433006255144477
+    solution[0] = 15.0 - (235.0 - 20.0 * solution[1]).sqrt(); // approx -0.32970971675589134
     solution
 }
-
 
 pub fn init_broyden1965_case6() -> nalgebra::DVector<f64> {
     nalgebra::DVector::from_vec(vec![-1.0; 5])
@@ -45,10 +44,10 @@ pub fn init_broyden1965_case6() -> nalgebra::DVector<f64> {
 pub fn solution_broyden1965_case6() -> nalgebra::DVector<f64> {
     let mut solution = nalgebra::DVector::zeros(5);
     solution[4] = 3.0 - 11_f64.sqrt(); // approx -0.3166247903553998
-    solution[3] = 3.0 - (11.0 - 4.0*solution[4]).sqrt(); // approx -0.5023562299431505
-    solution[2] = 3.0 - (11.0 - 4.0*solution[3]).sqrt(); // approx -0.606858039869687
-    solution[1] = 3.0 - (11.0 - 4.0*solution[2]).sqrt(); // approx -0.6643460752880244
-    solution[0] = 3.0 - (11.0 - 4.0*solution[1]).sqrt(); // approx -0.6955898448220816
+    solution[3] = 3.0 - (11.0 - 4.0 * solution[4]).sqrt(); // approx -0.5023562299431505
+    solution[2] = 3.0 - (11.0 - 4.0 * solution[3]).sqrt(); // approx -0.606858039869687
+    solution[1] = 3.0 - (11.0 - 4.0 * solution[2]).sqrt(); // approx -0.6643460752880244
+    solution[0] = 3.0 - (11.0 - 4.0 * solution[1]).sqrt(); // approx -0.6955898448220816
     solution
 }
 
@@ -58,15 +57,15 @@ pub fn init_broyden1965_case7() -> nalgebra::DVector<f64> {
 pub fn solution_broyden1965_case7() -> nalgebra::DVector<f64> {
     let mut solution = nalgebra::DVector::zeros(10);
     solution[9] = 3.0 - 11_f64.sqrt(); // approx -0.3166247903553998
-    solution[8] = 3.0 - (11.0 - 4.0*solution[9]).sqrt(); // approx -0.5023562299431505
-    solution[7] = 3.0 - (11.0 - 4.0*solution[8]).sqrt(); // approx -0.606858039869687
-    solution[6] = 3.0 - (11.0 - 4.0*solution[7]).sqrt(); // approx -0.6643460752880244
-    solution[5] = 3.0 - (11.0 - 4.0*solution[6]).sqrt(); // approx -0.6955898448220816
-    solution[4] = 3.0 - (11.0 - 4.0*solution[5]).sqrt(); // approx -0.7124600171972664
-    solution[3] = 3.0 - (11.0 - 4.0*solution[4]).sqrt(); // approx -0.7215373259970219
-    solution[2] = 3.0 - (11.0 - 4.0*solution[3]).sqrt(); // approx -0.726412390488751
-    solution[1] = 3.0 - (11.0 - 4.0*solution[2]).sqrt(); // approx -0.7290279647590476
-    solution[0] = 3.0 - (11.0 - 4.0*solution[1]).sqrt(); // approx -0.7304305192613079
+    solution[8] = 3.0 - (11.0 - 4.0 * solution[9]).sqrt(); // approx -0.5023562299431505
+    solution[7] = 3.0 - (11.0 - 4.0 * solution[8]).sqrt(); // approx -0.606858039869687
+    solution[6] = 3.0 - (11.0 - 4.0 * solution[7]).sqrt(); // approx -0.6643460752880244
+    solution[5] = 3.0 - (11.0 - 4.0 * solution[6]).sqrt(); // approx -0.6955898448220816
+    solution[4] = 3.0 - (11.0 - 4.0 * solution[5]).sqrt(); // approx -0.7124600171972664
+    solution[3] = 3.0 - (11.0 - 4.0 * solution[4]).sqrt(); // approx -0.7215373259970219
+    solution[2] = 3.0 - (11.0 - 4.0 * solution[3]).sqrt(); // approx -0.726412390488751
+    solution[1] = 3.0 - (11.0 - 4.0 * solution[2]).sqrt(); // approx -0.7290279647590476
+    solution[0] = 3.0 - (11.0 - 4.0 * solution[1]).sqrt(); // approx -0.7304305192613079
     solution
 }
 
@@ -76,25 +75,25 @@ pub fn init_broyden1965_case8() -> nalgebra::DVector<f64> {
 pub fn solution_broyden1965_case8() -> nalgebra::DVector<f64> {
     let mut solution = nalgebra::DVector::zeros(20);
     solution[19] = 3.0 - 11_f64.sqrt(); // approx -0.3166247903553998
-    solution[18] = 3.0 - (11.0 - 4.0*solution[19]).sqrt(); // approx -0.5023562299431505
-    solution[17] = 3.0 - (11.0 - 4.0*solution[18]).sqrt(); // approx -0.606858039869687
-    solution[16] = 3.0 - (11.0 - 4.0*solution[17]).sqrt(); // approx -0.6643460752880244
-    solution[15] = 3.0 - (11.0 - 4.0*solution[16]).sqrt(); // approx -0.6955898448220816
-    solution[14] = 3.0 - (11.0 - 4.0*solution[15]).sqrt(); // approx -0.7124600171972664
-    solution[13] = 3.0 - (11.0 - 4.0*solution[14]).sqrt(); // approx -0.7215373259970219
-    solution[12] = 3.0 - (11.0 - 4.0*solution[13]).sqrt(); // approx -0.726412390488751
-    solution[11] = 3.0 - (11.0 - 4.0*solution[12]).sqrt(); // approx -0.7290279647590476
-    solution[10] = 3.0 - (11.0 - 4.0*solution[11]).sqrt(); // approx -0.7304305192613079
-    solution[9]  = 3.0 - (11.0 - 4.0*solution[10]).sqrt(); // approx -0.7311823966465685
-    solution[8]  = 3.0 - (11.0 - 4.0*solution[9]).sqrt();  // approx -0.7315853985385723
-    solution[7]  = 3.0 - (11.0 - 4.0*solution[8]).sqrt();  // approx -0.7318013872866129
-    solution[6]  = 3.0 - (11.0 - 4.0*solution[7]).sqrt();  // approx -0.7319171412487782
-    solution[5]  = 3.0 - (11.0 - 4.0*solution[6]).sqrt();  // approx -0.7319791753163778
-    solution[4]  = 3.0 - (11.0 - 4.0*solution[5]).sqrt();  // approx -0.7320124197630307
-    solution[3]  = 3.0 - (11.0 - 4.0*solution[4]).sqrt();  // approx -0.7320302355490265
-    solution[2]  = 3.0 - (11.0 - 4.0*solution[3]).sqrt();  // approx -0.7320397830403826
-    solution[1]  = 3.0 - (11.0 - 4.0*solution[2]).sqrt();  // approx -0.7320448995371867
-    solution[0]  = 3.0 - (11.0 - 4.0*solution[1]).sqrt();  // approx -0.7320476414628936
+    solution[18] = 3.0 - (11.0 - 4.0 * solution[19]).sqrt(); // approx -0.5023562299431505
+    solution[17] = 3.0 - (11.0 - 4.0 * solution[18]).sqrt(); // approx -0.606858039869687
+    solution[16] = 3.0 - (11.0 - 4.0 * solution[17]).sqrt(); // approx -0.6643460752880244
+    solution[15] = 3.0 - (11.0 - 4.0 * solution[16]).sqrt(); // approx -0.6955898448220816
+    solution[14] = 3.0 - (11.0 - 4.0 * solution[15]).sqrt(); // approx -0.7124600171972664
+    solution[13] = 3.0 - (11.0 - 4.0 * solution[14]).sqrt(); // approx -0.7215373259970219
+    solution[12] = 3.0 - (11.0 - 4.0 * solution[13]).sqrt(); // approx -0.726412390488751
+    solution[11] = 3.0 - (11.0 - 4.0 * solution[12]).sqrt(); // approx -0.7290279647590476
+    solution[10] = 3.0 - (11.0 - 4.0 * solution[11]).sqrt(); // approx -0.7304305192613079
+    solution[9] = 3.0 - (11.0 - 4.0 * solution[10]).sqrt(); // approx -0.7311823966465685
+    solution[8] = 3.0 - (11.0 - 4.0 * solution[9]).sqrt(); // approx -0.7315853985385723
+    solution[7] = 3.0 - (11.0 - 4.0 * solution[8]).sqrt(); // approx -0.7318013872866129
+    solution[6] = 3.0 - (11.0 - 4.0 * solution[7]).sqrt(); // approx -0.7319171412487782
+    solution[5] = 3.0 - (11.0 - 4.0 * solution[6]).sqrt(); // approx -0.7319791753163778
+    solution[4] = 3.0 - (11.0 - 4.0 * solution[5]).sqrt(); // approx -0.7320124197630307
+    solution[3] = 3.0 - (11.0 - 4.0 * solution[4]).sqrt(); // approx -0.7320302355490265
+    solution[2] = 3.0 - (11.0 - 4.0 * solution[3]).sqrt(); // approx -0.7320397830403826
+    solution[1] = 3.0 - (11.0 - 4.0 * solution[2]).sqrt(); // approx -0.7320448995371867
+    solution[0] = 3.0 - (11.0 - 4.0 * solution[1]).sqrt(); // approx -0.7320476414628936
     solution
 }
 

@@ -19,7 +19,6 @@ pub enum StoppingCriteria {
 
 impl fmt::Display for NormalizationMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
         let result = match self {
             NormalizationMethod::Abs => &"Absolute Normalization Method",
             NormalizationMethod::Rel => &"Relative Normalization Method",
@@ -68,11 +67,42 @@ pub fn normalization(x: f64, y: f64, normalization_method: NormalizationMethod) 
     }
 }
 
+pub fn deriv_normalization(
+    x: f64,
+    y: f64,
+    dx: f64,
+    dy: f64,
+    normalization_method: NormalizationMethod,
+) -> f64 {
+    match normalization_method {
+        NormalizationMethod::Abs => dx - dy,
+        NormalizationMethod::Rel => {
+            let diff = x - y;
+            let deriv_diff = dx - dy;
+            let sum = x + y;
+            let deriv_sum = dx + dy;
+
+            2.0 * ((deriv_diff) * sum.abs() - deriv_sum * diff * sum.signum()) / (sum.powi(2))
+        }
+        NormalizationMethod::Adapt => {
+            let diff = x - y;
+            let deriv_diff = dx - dy;
+            let avg = (x + y) / 2.0;
+            let deriv_avg = (dx + dy) / 2.0;
+            let denominator = 1.0 + avg.abs();
+            let deriv_denominator = deriv_avg * avg.signum();
+
+            (deriv_diff * denominator - deriv_denominator * diff) / (denominator.powi(2))
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ResidualsValues {
     left: nalgebra::DVector<f64>,
     right: nalgebra::DVector<f64>,
 }
+
 impl ResidualsValues {
     pub fn new(left: nalgebra::DVector<f64>, right: nalgebra::DVector<f64>) -> Self {
         ResidualsValues { left, right }
@@ -83,9 +113,45 @@ impl ResidualsValues {
     }
 }
 
+#[derive(Debug)]
+pub struct JacobianValues {
+    left: nalgebra::DMatrix<f64>,
+    right: nalgebra::DMatrix<f64>,
+}
+
+impl JacobianValues {
+    pub fn new(left: nalgebra::DMatrix<f64>, right: nalgebra::DMatrix<f64>) -> Self {
+        JacobianValues { left, right }
+    }
+
+    pub fn normalize(
+        &self,
+        res_values: &ResidualsValues,
+        norm_methods: &Vec<NormalizationMethod>,
+    ) -> nalgebra::DMatrix<f64> {
+        let problem_size = self.left.len();
+        let mut jac: nalgebra::DMatrix<f64> = nalgebra::DMatrix::zeros(problem_size, problem_size);
+
+        // iterate over rows
+        for i in 0..problem_size {
+            let (left_value, right_value) = res_values.get_values(i);
+            // iterate over columns
+            for j in 0..problem_size {
+                jac[(i, j)] = deriv_normalization(
+                    left_value,
+                    right_value,
+                    self.left[(i, j)],
+                    self.right[(i, j)],
+                    norm_methods[i],
+                );
+            }
+        }
+        jac
+    }
+}
+
 impl fmt::Display for ResidualsValues {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
         let mut result = String::from("Residuals values :\n\n");
 
         for (i, elt) in self.left.iter().enumerate() {
