@@ -36,6 +36,7 @@ use crate::util::iteratives;
 use crate::util::iteratives_fd;
 use crate::util::jacobian;
 use crate::util::residuals;
+use crate::log;
 
 pub struct RootFinder {
     initial_guess: nalgebra::DVector<f64>,
@@ -45,6 +46,8 @@ pub struct RootFinder {
     tolerance: f64,
     max_iter: usize,
     damping: bool,
+    debug: bool,
+    pub solver_log: log::SolverLog,
 }
 
 impl RootFinder {
@@ -57,6 +60,8 @@ impl RootFinder {
         max_iter: usize,
     ) -> Self {
         let damping = false;
+        let debug = false;
+        let solver_log = log::SolverLog::new();
 
         RootFinder {
             initial_guess,
@@ -66,7 +71,23 @@ impl RootFinder {
             tolerance,
             max_iter,
             damping,
+            debug,
+            solver_log
         }
+    }
+
+    pub fn parameters_to_log(&mut self) {
+        let mut str_parameters = String::from("Solver parameters\n");
+        str_parameters.push_str("=================\n\n");
+        str_parameters.push_str("Max iteration: ");
+        str_parameters.push_str(&self.max_iter.to_string());
+        str_parameters.push_str("\n");
+        str_parameters.push_str("Tolerance: ");
+        str_parameters.push_str(&self.tolerance.to_string());
+        str_parameters.push_str("\n");
+        str_parameters.push_str(&self.residuals_config.to_string());
+        str_parameters.push_str("\n");
+        self.solver_log.add_content(&str_parameters);
     }
 
     pub fn set_damping(&mut self, damping: bool) {
@@ -81,15 +102,12 @@ impl RootFinder {
         stopping_residuals.amax()
     }
 
-
     fn compute_jac_func<T: model::Model>(&self, model: &mut T) -> nalgebra::DMatrix<f64> {
-
         let residuals_values = model.get_residuals();
 
         let jacobians = model.get_jacobian();
         let normalization_method = self.residuals_config.get_update_method();
         jacobians.normalize(&residuals_values, &normalization_method)
-
     }
 
     fn compute_jac_fd<T: model::Model>(&self, model: &mut T) -> nalgebra::DMatrix<f64> {
@@ -98,14 +116,13 @@ impl RootFinder {
         let perturbations = iteratives_fd::compute_perturbation(
             &self.iteratives_params,
             &iteratives,
-            self.problem_size);
+            self.problem_size,
+        );
 
         jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config))
-
     }
 
     fn compute_next<T: model::Model>(&self, model: &mut T) -> nalgebra::DVector<f64> {
-
         let jac = if model.jacobian_provided() {
             self.compute_jac_func(model)
         } else {
@@ -126,7 +143,6 @@ impl RootFinder {
             &raw_step,
             self.problem_size,
         )
-
     }
 
     fn update_model<T: model::Model>(
@@ -136,7 +152,6 @@ impl RootFinder {
     ) -> f64 {
         let max_error = self.evaluate_max_error(model);
         let current_guess = model.get_iteratives();
-        println!("Current guess : {}", current_guess);
 
         model.set_iteratives(proposed_guess);
         model.evaluate();
@@ -169,7 +184,6 @@ impl RootFinder {
         while max_error > self.tolerance && iter < self.max_iter {
             iter += 1;
             let proposed_guess = self.compute_next(model);
-            println!("Iteration : {}", iter);
             max_error = self.update_model(model, &proposed_guess);
         }
     }
@@ -181,6 +195,8 @@ impl RootFinder {
         let tolerance: f64 = 1e-6;
         let max_iter: usize = 50;
         let damping: bool = false;
+        let debug: bool = false;
+        let solver_log = log::SolverLog::new();
 
         RootFinder {
             initial_guess,
@@ -190,6 +206,8 @@ impl RootFinder {
             tolerance,
             max_iter,
             damping,
+            debug,
+            solver_log
         }
     }
 }

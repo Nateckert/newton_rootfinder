@@ -1,0 +1,12 @@
+Solver log
+Solver parameters
+=================
+
+Max iteration: 50
+Tolerance: 0.000001
+Residuals configuration:
+Residual number | Stopping criteria | Update method
+
+0 | Absolute Normalization Method | Absolute Normalization Method
+
+

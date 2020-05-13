@@ -224,3 +224,20 @@ impl ResidualsConfig {
         stopping_residuals
     }
 }
+
+impl fmt::Display for ResidualsConfig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut content = String::from("Residuals configuration:\n");
+        content.push_str("Residual number | Stopping criteria | Update method\n\n");
+        for i in 0..self.problem_size {
+            content.push_str(&i.to_string());
+            content.push_str(" | ");
+            content.push_str(&self.stopping_critera[i].to_string());
+            content.push_str(" | ");
+            content.push_str(&self.iteration_update_method[i].to_string());
+            content.push_str("\n");
+        }
+        content.push_str("\n");
+        write!(f, "{}", content)
+    }
+}

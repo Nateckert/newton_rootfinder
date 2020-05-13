@@ -72,3 +72,5 @@ pub mod solver_minimal;
 pub mod model;
 
 pub mod model_with_func;
+
+pub mod log;

@@ -163,6 +163,7 @@ pub fn solution_broyden1965_case10() -> nalgebra::DVector<f64> {
     solution
 }
 
+// This problem is ill-conditioned (see jacobian comment with regards to init)
 pub fn broyden1965_case10(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut outputs = nalgebra::DVector::zeros(2);
     outputs[0] = -13.0 + x[0] + ((-x[1] + 5.0) * x[1] - 2.0) * x[1];
@@ -170,12 +171,15 @@ pub fn broyden1965_case10(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> 
     outputs
 }
 
+/// The jacobian is non invertible for jac[(0,1)] = jac[(1,1)]
+/// e.g if -3*(x1**2) + 4*x1 + 6 = 0
+/// e.g if x1 approx 2.23 or -0.8968
 pub fn broyden1965_case10_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
     let mut jac = nalgebra::DMatrix::zeros(2, 2);
-    jac[(0,0)] = 1.0;
-    jac[(0,1)] = -2.0 + 10.0 * x[1] - 3.0 * (x[1].powi(2));
-    jac[(1,0)] = 1.0;
-    jac[(1,1)] = -14.0 + 2.0 * x[1] + 3.0 * (x[1].powi(2));
+    jac[(0, 0)] = 1.0;
+    jac[(0, 1)] = -2.0 + 10.0 * x[1] - 3.0 * (x[1].powi(2));
+    jac[(1, 0)] = 1.0;
+    jac[(1, 1)] = -14.0 + 2.0 * x[1] + 3.0 * (x[1].powi(2));
 
     jac
 }

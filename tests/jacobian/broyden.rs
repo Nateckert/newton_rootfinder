@@ -1,7 +1,7 @@
 extern crate newton_rootfinder as nrf;
 use nrf::model::Model;
-use nrf::util::residuals;
 use nrf::util::jacobian;
+use nrf::util::residuals;
 
 use crate::common::broyden1965;
 
@@ -10,7 +10,8 @@ extern crate float_cmp;
 #[test]
 fn jacobian_evaluation_broyden1965_case10() {
     let problem_size = 2;
-    let mut user_model = nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case10);
+    let mut user_model =
+        nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case10);
     let inputs = broyden1965::init_broyden1965_case10();
     user_model.set_iteratives(&inputs);
     user_model.evaluate();
@@ -49,5 +50,4 @@ fn jacobian_evaluation_broyden1965_case10() {
         jac_ref[(1, 1)],
         epsilon = 1e-6
     ));
-
 }
