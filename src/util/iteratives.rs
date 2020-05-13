@@ -107,6 +107,9 @@ impl Iterative for IterativeParams {
     }
 }
 
+/// Compute a limited step
+/// Return the new value after the application of the step limitation (and not the step)
+/// This is required as it can be limited by an interval for the iteratives.
 pub fn step_limitations<T: Iterative>(
     iterative_params: &Vec<T>,
     iterative_values: &nalgebra::DVector<f64>,

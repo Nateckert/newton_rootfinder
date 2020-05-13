@@ -81,21 +81,44 @@ impl RootFinder {
         stopping_residuals.amax()
     }
 
-    fn compute_step<T: model::Model>(&self, model: &mut T) -> nalgebra::DVector<f64> {
+
+    fn compute_jac_func<T: model::Model>(&self, model: &mut T) -> nalgebra::DMatrix<f64> {
+
+        let residuals_values = model.get_residuals();
+
+        let jacobians = model.get_jacobian();
+        let normalization_method = self.residuals_config.get_update_method();
+        jacobians.normalize(&residuals_values, &normalization_method)
+
+    }
+
+    fn compute_jac_fd<T: model::Model>(&self, model: &mut T) -> nalgebra::DMatrix<f64> {
         let iteratives = model.get_iteratives();
-        let residuals = self
-            .residuals_config
-            .evaluate_update_residuals(&model.get_residuals());
 
         let perturbations = iteratives_fd::compute_perturbation(
             &self.iteratives_params,
             &iteratives,
-            self.problem_size,
-        );
+            self.problem_size);
 
-        let jac = jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config));
+        jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config))
+
+    }
+
+    fn compute_next<T: model::Model>(&self, model: &mut T) -> nalgebra::DVector<f64> {
+
+        let jac = if model.jacobian_provided() {
+            self.compute_jac_func(model)
+        } else {
+            self.compute_jac_fd(model)
+        };
+
+        let residuals = self
+            .residuals_config
+            .evaluate_update_residuals(&model.get_residuals());
 
         let raw_step = jacobian::newton_raw_step_size(&residuals, &jac);
+
+        let iteratives = model.get_iteratives();
 
         iteratives::step_limitations(
             &self.iteratives_params,
@@ -103,6 +126,7 @@ impl RootFinder {
             &raw_step,
             self.problem_size,
         )
+
     }
 
     fn update_model<T: model::Model>(
@@ -112,13 +136,15 @@ impl RootFinder {
     ) -> f64 {
         let max_error = self.evaluate_max_error(model);
         let current_guess = model.get_iteratives();
-        model.set_iteratives(&proposed_guess);
+        println!("Current guess : {}", current_guess);
+
+        model.set_iteratives(proposed_guess);
         model.evaluate();
         let mut max_error_next = self.evaluate_max_error(model);
 
         if self.damping {
             if max_error_next > max_error {
-                let damped_guess = (proposed_guess + current_guess) / 2.0;
+                let damped_guess = (proposed_guess + &current_guess) / 2.0;
                 model.set_iteratives(&damped_guess);
                 model.evaluate();
                 max_error_next = self.evaluate_max_error(model);
@@ -142,7 +168,8 @@ impl RootFinder {
 
         while max_error > self.tolerance && iter < self.max_iter {
             iter += 1;
-            let proposed_guess = self.compute_step(model);
+            let proposed_guess = self.compute_next(model);
+            println!("Iteration : {}", iter);
             max_error = self.update_model(model, &proposed_guess);
         }
     }

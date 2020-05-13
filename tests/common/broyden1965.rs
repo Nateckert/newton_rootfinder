@@ -169,3 +169,13 @@ pub fn broyden1965_case10(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> 
     outputs[1] = -29.0 + x[0] + ((x[1] + 1.0) * x[1] - 14.0) * x[1];
     outputs
 }
+
+pub fn broyden1965_case10_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
+    let mut jac = nalgebra::DMatrix::zeros(2, 2);
+    jac[(0,0)] = 1.0;
+    jac[(0,1)] = -2.0 + 10.0 * x[1] - 3.0 * (x[1].powi(2));
+    jac[(1,0)] = 1.0;
+    jac[(1,1)] = -14.0 + 2.0 * x[1] + 3.0 * (x[1].powi(2));
+
+    jac
+}

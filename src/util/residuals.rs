@@ -188,6 +188,10 @@ impl ResidualsConfig {
         }
     }
 
+    pub fn get_update_method(&self) -> &Vec<NormalizationMethod> {
+        &self.iteration_update_method
+    }
+
     pub fn default_with_size(problem_size: usize) -> Self {
         let stopping_critera = vec![NormalizationMethod::Abs; problem_size];
         let iteration_update_method = vec![NormalizationMethod::Abs; problem_size];
