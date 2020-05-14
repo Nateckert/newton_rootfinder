@@ -5,6 +5,7 @@
 //! ```
 //! extern crate newton_rootfinder as nrf;
 //! use nrf::model::Model;
+//! use nrf::iteratives;
 //!
 //! extern crate nalgebra;
 //!
@@ -18,7 +19,9 @@
 //! fn main() {
 //!   let problem_size = 1;
 //!   let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
-//!   let rf = nrf::solver::RootFinder::default_with_guess(init_guess);
+//!   let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
+//!   let iter_params = iteratives::Iteratives::new(&vec_iter_params);
+//!   let rf = nrf::solver::RootFinder::default_with_guess_fd(init_guess, iter_params);
 //!   let mut user_model =
 //!       nrf::model_with_func::UserModelWithFunc::new(problem_size, square2);
 //!
@@ -29,31 +32,40 @@
 //! }
 //! ```
 
+use std::fmt;
+
 extern crate nalgebra;
 
 use crate::model;
-use crate::util::iteratives;
-use crate::util::iteratives_fd;
+use crate::iteratives;
+use crate::iteratives::Iterative;
+
 use crate::util::jacobian;
 use crate::util::residuals;
 use crate::log;
 
-pub struct RootFinder {
+pub struct RootFinder<'a, T>
+where
+    T: Iterative + fmt::Display
+{
     initial_guess: nalgebra::DVector<f64>,
-    iteratives_params: Vec<iteratives_fd::IterativeParamsFD>,
+    iters_params: iteratives::Iteratives<'a, T>,
     residuals_config: residuals::ResidualsConfig,
     problem_size: usize,
     tolerance: f64,
     max_iter: usize,
     damping: bool,
     debug: bool,
-    pub solver_log: log::SolverLog,
+    solver_log: log::SolverLog,
 }
 
-impl RootFinder {
+impl<'a, T> RootFinder<'a, T>
+where
+    T: Iterative + fmt::Display
+{
     pub fn new(
         initial_guess: nalgebra::DVector<f64>,
-        iteratives_params: Vec<iteratives_fd::IterativeParamsFD>,
+        iters_params: iteratives::Iteratives<'a, T>,
         residuals_config: residuals::ResidualsConfig,
         problem_size: usize,
         tolerance: f64,
@@ -65,7 +77,7 @@ impl RootFinder {
 
         RootFinder {
             initial_guess,
-            iteratives_params,
+            iters_params,
             residuals_config,
             problem_size,
             tolerance,
@@ -74,6 +86,10 @@ impl RootFinder {
             debug,
             solver_log
         }
+    }
+
+    pub fn write_log(&self) {
+        self.solver_log.write();
     }
 
     pub fn parameters_to_log(&mut self) {
@@ -87,6 +103,10 @@ impl RootFinder {
         str_parameters.push_str("\n");
         str_parameters.push_str(&self.residuals_config.to_string());
         str_parameters.push_str("\n");
+        str_parameters.push_str(&self.iters_params.to_string());
+        str_parameters.push_str("\n");
+        str_parameters.push_str("Init guess:\n");
+        str_parameters.push_str(&self.initial_guess.to_string());
         self.solver_log.add_content(&str_parameters);
     }
 
@@ -94,7 +114,7 @@ impl RootFinder {
         self.damping = damping;
     }
 
-    fn evaluate_max_error<T: model::Model>(&self, model: &T) -> f64 {
+    fn evaluate_max_error<M: model::Model>(&self, model: &M) -> f64 {
         let residuals_values = model.get_residuals();
         let stopping_residuals = self
             .residuals_config
@@ -102,7 +122,7 @@ impl RootFinder {
         stopping_residuals.amax()
     }
 
-    fn compute_jac_func<T: model::Model>(&self, model: &mut T) -> nalgebra::DMatrix<f64> {
+    fn compute_jac_func<M: model::Model>(&self, model: &mut M) -> nalgebra::DMatrix<f64> {
         let residuals_values = model.get_residuals();
 
         let jacobians = model.get_jacobian();
@@ -110,19 +130,18 @@ impl RootFinder {
         jacobians.normalize(&residuals_values, &normalization_method)
     }
 
-    fn compute_jac_fd<T: model::Model>(&self, model: &mut T) -> nalgebra::DMatrix<f64> {
-        let iteratives = model.get_iteratives();
+    fn compute_jac_fd<M: model::Model>(&self, model: &mut M) -> nalgebra::DMatrix<f64> {
+        let iters_values = model.get_iteratives();
 
-        let perturbations = iteratives_fd::compute_perturbation(
-            &self.iteratives_params,
-            &iteratives,
+        let perturbations = self.iters_params.compute_perturbations(
+            &iters_values,
             self.problem_size,
         );
 
         jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config))
     }
 
-    fn compute_next<T: model::Model>(&self, model: &mut T) -> nalgebra::DVector<f64> {
+    fn compute_next<M: model::Model>(&self, model: &mut M) -> nalgebra::DVector<f64> {
         let jac = if model.jacobian_provided() {
             self.compute_jac_func(model)
         } else {
@@ -135,19 +154,18 @@ impl RootFinder {
 
         let raw_step = jacobian::newton_raw_step_size(&residuals, &jac);
 
-        let iteratives = model.get_iteratives();
+        let iter_values = model.get_iteratives();
 
-        iteratives::step_limitations(
-            &self.iteratives_params,
-            &iteratives,
+        self.iters_params.step_limitations(
+            &iter_values,
             &raw_step,
             self.problem_size,
         )
     }
 
-    fn update_model<T: model::Model>(
+    fn update_model<M: model::Model>(
         &self,
-        model: &mut T,
+        model: &mut M,
         proposed_guess: &nalgebra::DVector<f64>,
     ) -> f64 {
         let max_error = self.evaluate_max_error(model);
@@ -169,9 +187,9 @@ impl RootFinder {
         max_error_next
     }
 
-    pub fn solve<T>(&self, model: &mut T)
+    pub fn solve<M>(&self, model: &mut M)
     where
-        T: model::Model,
+        M: model::Model,
     {
         model.init();
         model.set_iteratives(&self.initial_guess);
@@ -188,9 +206,9 @@ impl RootFinder {
         }
     }
 
-    pub fn default_with_guess(initial_guess: nalgebra::DVector<f64>) -> Self {
+    pub fn default_with_guess_fd(initial_guess: nalgebra::DVector<f64>,
+                                    iters_params: iteratives::Iteratives<'a, T>) -> Self {
         let problem_size = initial_guess.len();
-        let iteratives_params = iteratives_fd::iterativesfd_default_with_size(problem_size);
         let residuals_config = residuals::ResidualsConfig::default_with_size(problem_size);
         let tolerance: f64 = 1e-6;
         let max_iter: usize = 50;
@@ -200,7 +218,7 @@ impl RootFinder {
 
         RootFinder {
             initial_guess,
-            iteratives_params,
+            iters_params,
             residuals_config,
             problem_size,
             tolerance,

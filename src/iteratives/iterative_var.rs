@@ -1,18 +1,5 @@
-//! Iteratives definition
-//!
-//! The iteratives variables are the inputs variables X in f(X) = 0.
-//!
-//! It is not only a float value, that changes during the iterative resolution process.
-//!
-//! One might want to limit the update steps, by either:
-//! - limiting the range of values to avoid non-sense values
-//! - limiting the size of an update step
-
-pub trait Iterative {
-    fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64);
-    fn set_max_values(&mut self, min_value: f64, max_value: f64);
-    fn step_limitation(&self, value_current: f64, raw_step: f64) -> f64;
-}
+use std::fmt;
+use crate::iteratives::Iterative;
 
 #[derive(Debug, Clone)]
 pub struct IterativeParams {
@@ -75,7 +62,7 @@ impl Iterative for IterativeParams {
     /// # Examples
     /// ```
     /// extern crate newton_rootfinder as nrf;
-    /// use nrf::util::iteratives::*;
+    /// use nrf::iteratives::*;
     ///
     /// let mut iterative_var = IterativeParams::new();
     ///
@@ -107,19 +94,21 @@ impl Iterative for IterativeParams {
     }
 }
 
-/// Compute a limited step
-/// Return the new value after the application of the step limitation (and not the step)
-/// This is required as it can be limited by an interval for the iteratives.
-pub fn step_limitations<T: Iterative>(
-    iterative_params: &Vec<T>,
-    iterative_values: &nalgebra::DVector<f64>,
-    raw_step: &nalgebra::DVector<f64>,
-    problem_size: usize,
-) -> nalgebra::DVector<f64> {
-    let mut step_lim: nalgebra::DVector<f64> = nalgebra::DVector::zeros(problem_size);
-
-    for (i, iterative_var) in (iterative_params).iter().enumerate() {
-        step_lim[i] = iterative_var.step_limitation(iterative_values[i], raw_step[i]);
+impl fmt::Display for IterativeParams {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut content = String::from("Iterative parameters:\n");
+        content.push_str("   - max_step_abs = ");
+        content.push_str(&self.max_step_abs.to_string());
+        content.push_str("\n");
+        content.push_str("   - max_step_rel = ");
+        content.push_str(&self.max_step_rel.to_string());
+        content.push_str("\n");
+        content.push_str("   - min_value = ");
+        content.push_str(&self.min_value.to_string());
+        content.push_str("\n");
+        content.push_str("   - max_value = ");
+        content.push_str(&self.max_value.to_string());
+        content.push_str("\n");
+        write!(f, "{}", content)
     }
-    step_lim
 }
