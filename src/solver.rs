@@ -97,16 +97,17 @@ where
         str_parameters.push_str("=================\n\n");
         str_parameters.push_str("Max iteration: ");
         str_parameters.push_str(&self.max_iter.to_string());
-        str_parameters.push_str("\n");
+        str_parameters.push_str("\n----------------------------\n\n");
         str_parameters.push_str("Tolerance: ");
         str_parameters.push_str(&self.tolerance.to_string());
-        str_parameters.push_str("\n");
+        str_parameters.push_str("\n----------------------------\n\n");
         str_parameters.push_str(&self.residuals_config.to_string());
-        str_parameters.push_str("\n");
+        str_parameters.push_str("\n----------------------------\n\n");
         str_parameters.push_str(&self.iters_params.to_string());
-        str_parameters.push_str("\n");
+        str_parameters.push_str("\n----------------------------\n\n");
         str_parameters.push_str("Init guess:\n");
         str_parameters.push_str(&self.initial_guess.to_string());
+        str_parameters.push_str("\n----------------------------\n\n");
         self.solver_log.add_content(&str_parameters);
     }
 

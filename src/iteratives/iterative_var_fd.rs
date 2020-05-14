@@ -35,8 +35,8 @@ pub enum PerturbationMethod {
 impl fmt::Display for PerturbationMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let result = match self {
-            PerturbationMethod::Max => &"Max of Rel and Abs perturbations",
-            PerturbationMethod::Sum => &"Sum of Rel and Abs perturbations",
+            PerturbationMethod::Max => &"Max of perturbations",
+            PerturbationMethod::Sum => &"Sum of perturbations",
         };
 
         write!(f, "{}", result)

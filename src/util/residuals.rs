@@ -20,9 +20,9 @@ pub enum StoppingCriteria {
 impl fmt::Display for NormalizationMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let result = match self {
-            NormalizationMethod::Abs => &"Absolute Normalization Method",
-            NormalizationMethod::Rel => &"Relative Normalization Method",
-            NormalizationMethod::Adapt => &"Adaptative Normalization Method",
+            NormalizationMethod::Abs    => &"Absolute Normalization",
+            NormalizationMethod::Rel    => &"Relative Normalization",
+            NormalizationMethod::Adapt  => &"Adaptative Normalization",
         };
 
         write!(f, "{}", result)
@@ -227,16 +227,29 @@ impl ResidualsConfig {
 
 impl fmt::Display for ResidualsConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut content = String::from("Residuals configuration:\n");
-        content.push_str("Residual number | Stopping criteria | Update method\n\n");
+        let separation_line = String::from("+-------------------+--------------------------+--------------------------+\n");
+
+        let mut content = String::from("Residuals configuration:\n\n");
+        content.push_str(&separation_line);
+        content.push_str("| ");
+        content.push_str(&format!("{:width$}", "Residual number", width = 18));
+        content.push_str("| ");
+        content.push_str(&format!("{:width$}", "Stopping criteria", width = 25));
+        content.push_str("| ");
+        content.push_str(&format!("{:width$}", "Update method", width = 25));
+        content.push_str("|\n");
+
+        content.push_str(&separation_line);
+
         for i in 0..self.problem_size {
-            content.push_str(&i.to_string());
-            content.push_str(" | ");
-            content.push_str(&self.stopping_critera[i].to_string());
-            content.push_str(" | ");
-            content.push_str(&self.iteration_update_method[i].to_string());
+            content.push_str(&format!("| {:width$}", &i.to_string(), width = 18));
+            content.push_str("| ");
+            content.push_str(&format!("{:width$}", &self.stopping_critera[i].to_string(), width = 25));
+            content.push_str("| ");
+            content.push_str(&format!("{:width$}|", &self.iteration_update_method[i].to_string(), width = 25));
             content.push_str("\n");
         }
+        content.push_str(&separation_line);
         content.push_str("\n");
         write!(f, "{}", content)
     }

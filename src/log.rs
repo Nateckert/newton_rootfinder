@@ -9,7 +9,7 @@ pub struct SolverLog {
 
 impl SolverLog {
     pub fn new() -> Self {
-        let content = String::from("Solver log\n");
+        let content = String::new();
         SolverLog { content }
     }
 
