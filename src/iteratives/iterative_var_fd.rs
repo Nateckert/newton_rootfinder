@@ -22,8 +22,9 @@
 //! - dx_abs = 0 implies dx = dx_rel*abs(x)
 //! - dx_rel = 0 implies dx = dx_abs
 
-use crate::util::iteratives;
-use crate::util::iteratives::Iterative;
+use std::fmt;
+use crate::iteratives::Iterative;
+use crate::iteratives::iterative_var;
 
 #[derive(Debug, Clone)]
 pub enum PerturbationMethod {
@@ -31,9 +32,20 @@ pub enum PerturbationMethod {
     Sum,
 }
 
+impl fmt::Display for PerturbationMethod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let result = match self {
+            PerturbationMethod::Max => &"Max of perturbations",
+            PerturbationMethod::Sum => &"Sum of perturbations",
+        };
+
+        write!(f, "{}", result)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct IterativeParamsFD {
-    iterative_params: iteratives::IterativeParams,
+    iterative_params: iterative_var::IterativeParams,
     max_step_method: PerturbationMethod,
     dx_abs: f64,
     dx_rel: f64,
@@ -42,27 +54,11 @@ pub struct IterativeParamsFD {
 impl Default for IterativeParamsFD {
     fn default() -> IterativeParamsFD {
         IterativeParamsFD {
-            iterative_params: iteratives::IterativeParams::default(),
+            iterative_params: iterative_var::IterativeParams::default(),
             max_step_method: PerturbationMethod::Max,
             dx_abs: 5.0e-8,
             dx_rel: 5.0e-8,
         }
-    }
-}
-
-impl Iterative for IterativeParamsFD {
-    fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64) {
-        self.iterative_params
-            .set_max_steps(max_step_abs, max_step_rel)
-    }
-
-    fn set_max_values(&mut self, min_value: f64, max_value: f64) {
-        self.iterative_params.set_max_values(min_value, max_value)
-    }
-
-    fn step_limitation(&self, value_current: f64, value_next: f64) -> f64 {
-        self.iterative_params
-            .step_limitation(value_current, value_next)
     }
 }
 
@@ -88,8 +84,24 @@ impl IterativeParamsFD {
         self.dx_abs = dx_abs;
         self.dx_rel = dx_rel;
     }
+}
 
-    pub fn evaluate_perturbation(&self, x: f64) -> f64 {
+impl Iterative for IterativeParamsFD {
+    fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64) {
+        self.iterative_params
+            .set_max_steps(max_step_abs, max_step_rel)
+    }
+
+    fn set_max_values(&mut self, min_value: f64, max_value: f64) {
+        self.iterative_params.set_max_values(min_value, max_value)
+    }
+
+    fn step_limitation(&self, value_current: f64, value_next: f64) -> f64 {
+        self.iterative_params
+            .step_limitation(value_current, value_next)
+    }
+
+    fn compute_perturbation(&self, x: f64) -> f64 {
         match self.max_step_method {
             PerturbationMethod::Max => (self.dx_abs).max(x.abs() * self.dx_rel),
             PerturbationMethod::Sum => self.dx_abs + x.abs() * self.dx_rel,
@@ -97,19 +109,19 @@ impl IterativeParamsFD {
     }
 }
 
-pub fn iterativesfd_default_with_size(problem_size: usize) -> Vec<IterativeParamsFD> {
-    vec![IterativeParamsFD::default(); problem_size]
-}
+impl fmt::Display for IterativeParamsFD {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut content = self.iterative_params.to_string();
+        content.push_str("   - max_step_method = ");
+        content.push_str(&self.max_step_method.to_string());
+        content.push_str("\n");
+        content.push_str("   - dx_abs = ");
+        content.push_str(&self.dx_abs.to_string());
+        content.push_str("\n");
+        content.push_str("   - dx_rel = ");
+        content.push_str(&self.dx_rel.to_string());
+        content.push_str("\n");
 
-pub fn compute_perturbation(
-    iterative_params: &Vec<IterativeParamsFD>,
-    iterative_values: &nalgebra::DVector<f64>,
-    problem_size: usize,
-) -> nalgebra::DVector<f64> {
-    let mut perturbations: nalgebra::DVector<f64> = nalgebra::DVector::zeros(problem_size);
-
-    for (i, iterative_var) in (iterative_params).iter().enumerate() {
-        perturbations[i] = iterative_var.evaluate_perturbation(iterative_values[i]);
+        write!(f, "{}", content)
     }
-    perturbations
 }

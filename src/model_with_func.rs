@@ -22,11 +22,9 @@
 //! assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
 //! assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 /// ```
-
 use crate::model::Model;
 
 use crate::util::residuals;
-
 
 pub struct UserModelWithFunc {
     pub inputs: nalgebra::DVector<f64>,

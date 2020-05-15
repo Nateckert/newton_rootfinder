@@ -65,6 +65,7 @@
 //! 1. Other algorithms than the Newton-Raphson method.
 
 pub mod util;
+pub mod iteratives;
 
 pub mod solver;
 pub mod solver_minimal;
@@ -72,3 +73,5 @@ pub mod solver_minimal;
 pub mod model;
 
 pub mod model_with_func;
+
+pub mod log;
