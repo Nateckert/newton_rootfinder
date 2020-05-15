@@ -42,7 +42,6 @@ use crate::iteratives::Iterative;
 
 use crate::util::jacobian;
 use crate::util::residuals;
-use crate::log;
 
 pub struct RootFinder<'a, T>
 where
@@ -56,7 +55,7 @@ where
     max_iter: usize,
     damping: bool,
     debug: bool,
-    solver_log: log::SolverLog,
+    solver_log: super::log::SolverLog,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -73,7 +72,7 @@ where
     ) -> Self {
         let damping = false;
         let debug = false;
-        let solver_log = log::SolverLog::new();
+        let solver_log = super::log::SolverLog::new();
 
         RootFinder {
             initial_guess,
@@ -88,39 +87,14 @@ where
         }
     }
 
-    pub fn write_log(&self) {
-        self.solver_log.write();
-    }
-
-    pub fn parameters_to_log(&mut self) {
-        let mut str_parameters = String::from("Solver parameters\n");
-        str_parameters.push_str("=================\n\n");
-        str_parameters.push_str("Max iteration: ");
-        str_parameters.push_str(&self.max_iter.to_string());
-        str_parameters.push_str("\n----------------------------\n\n");
-        str_parameters.push_str("Tolerance: ");
-        str_parameters.push_str(&self.tolerance.to_string());
-        str_parameters.push_str("\n----------------------------\n\n");
-        str_parameters.push_str(&self.residuals_config.to_string());
-        str_parameters.push_str("\n----------------------------\n\n");
-        str_parameters.push_str(&self.iters_params.to_string());
-        str_parameters.push_str("\n----------------------------\n\n");
-        str_parameters.push_str("Init guess:\n");
-        str_parameters.push_str(&self.initial_guess.to_string());
-        str_parameters.push_str("\n----------------------------\n\n");
-        self.solver_log.add_content(&str_parameters);
-    }
-
     pub fn set_damping(&mut self, damping: bool) {
         self.damping = damping;
     }
 
-    fn evaluate_max_error<M: model::Model>(&self, model: &M) -> f64 {
+    fn evaluate_errors<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
         let residuals_values = model.get_residuals();
-        let stopping_residuals = self
-            .residuals_config
-            .evaluate_stopping_residuals(&residuals_values);
-        stopping_residuals.amax()
+        self.residuals_config
+            .evaluate_stopping_residuals(&residuals_values)
     }
 
     fn compute_jac_func<M: model::Model>(&self, model: &mut M) -> nalgebra::DMatrix<f64> {
@@ -168,27 +142,30 @@ where
         &self,
         model: &mut M,
         proposed_guess: &nalgebra::DVector<f64>,
-    ) -> f64 {
-        let max_error = self.evaluate_max_error(model);
+    ) -> nalgebra::DVector<f64> {
+        let errors = self.evaluate_errors(model);
+        let max_error = errors.amax();
         let current_guess = model.get_iteratives();
 
         model.set_iteratives(proposed_guess);
         model.evaluate();
-        let mut max_error_next = self.evaluate_max_error(model);
+        let mut errors_next = self.evaluate_errors(model);
+        let mut max_error_next = errors_next.amax();
 
         if self.damping {
             if max_error_next > max_error {
                 let damped_guess = (proposed_guess + &current_guess) / 2.0;
                 model.set_iteratives(&damped_guess);
                 model.evaluate();
-                max_error_next = self.evaluate_max_error(model);
+                errors_next = self.evaluate_errors(model);
+                max_error_next = errors_next.amax();
             }
         }
 
-        max_error_next
+        errors_next
     }
 
-    pub fn solve<M>(&self, model: &mut M)
+    pub fn solve<M>(&mut self, model: &mut M)
     where
         M: model::Model,
     {
@@ -196,26 +173,31 @@ where
         model.set_iteratives(&self.initial_guess);
         model.evaluate();
 
-        let mut max_error = self.evaluate_max_error(model);
+        let mut errors = self.evaluate_errors(model);
+        let mut max_error = errors.amax();
 
         let mut iter = 0;
+
+        self.iteration_to_log(model, &errors);
 
         while max_error > self.tolerance && iter < self.max_iter {
             iter += 1;
             let proposed_guess = self.compute_next(model);
-            max_error = self.update_model(model, &proposed_guess);
+            errors = self.update_model(model, &proposed_guess);
+            max_error = errors.amax();
+            self.iteration_to_log(model, &errors);
         }
     }
 
-    pub fn default_with_guess_fd(initial_guess: nalgebra::DVector<f64>,
-                                    iters_params: iteratives::Iteratives<'a, T>) -> Self {
+    pub fn default_with_guess(initial_guess: nalgebra::DVector<f64>,
+                                iters_params: iteratives::Iteratives<'a, T>) -> Self {
         let problem_size = initial_guess.len();
         let residuals_config = residuals::ResidualsConfig::default_with_size(problem_size);
         let tolerance: f64 = 1e-6;
         let max_iter: usize = 50;
         let damping: bool = false;
         let debug: bool = false;
-        let solver_log = log::SolverLog::new();
+        let solver_log = super::log::SolverLog::new();
 
         RootFinder {
             initial_guess,
@@ -229,4 +211,33 @@ where
             solver_log
         }
     }
+
+    // Writing of simulation log
+    pub fn parameters_to_log(&mut self) {
+
+        let parameters = super::log::Parameters::new(&self.max_iter.to_string(),
+                                            &self.tolerance.to_string(),
+                                            &self.residuals_config.to_string(),
+                                            &self.iters_params.to_string(),
+                                            &self.initial_guess.to_string());
+
+        self.solver_log.add_parameters(parameters);
+    }
+
+
+    // Writing of simulation log
+    pub fn iteration_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)
+    where
+        M: model::Model,
+    {
+        let iteratives = model.get_iteratives();
+        let residuals = model.get_residuals();
+        self.solver_log.add_iteration(&iteratives, &residuals, errors);
+    }
+
+    // Writing of simulation log
+    pub fn write_log(&self, path: &str) {
+        self.solver_log.write(path);
+    }
+
 }

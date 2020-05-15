@@ -35,8 +35,8 @@ pub enum PerturbationMethod {
 impl fmt::Display for PerturbationMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let result = match self {
-            PerturbationMethod::Max => &"Max of perturbations",
-            PerturbationMethod::Sum => &"Sum of perturbations",
+            PerturbationMethod::Max => &"Max",
+            PerturbationMethod::Sum => &"Sum",
         };
 
         write!(f, "{}", result)
@@ -107,20 +107,20 @@ impl Iterative for IterativeParamsFD {
             PerturbationMethod::Sum => self.dx_abs + x.abs() * self.dx_rel,
         }
     }
+
+    fn with_finite_diff(&self) -> bool {
+        true
+    }
 }
 
 impl fmt::Display for IterativeParamsFD {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let column_float = String::from("--------------+");
+        let width = column_float.len()-2;
         let mut content = self.iterative_params.to_string();
-        content.push_str("   - max_step_method = ");
-        content.push_str(&self.max_step_method.to_string());
-        content.push_str("\n");
-        content.push_str("   - dx_abs = ");
-        content.push_str(&self.dx_abs.to_string());
-        content.push_str("\n");
-        content.push_str("   - dx_rel = ");
-        content.push_str(&self.dx_rel.to_string());
-        content.push_str("\n");
+        content.push_str(&format!(" {:width$}|", &self.max_step_method.to_string(), width = "-----------------+".len()-2));
+        content.push_str(&format!(" {:width$}|", &self.dx_abs.to_string(), width = width));
+        content.push_str(&format!(" {:width$}|", &self.dx_rel.to_string(), width = width));
 
         write!(f, "{}", content)
     }
