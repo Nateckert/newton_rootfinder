@@ -3,15 +3,14 @@ use std::io::Write;
 
 use crate::util::residuals;
 
-const LOG_FILE_PATH: &'static str = "solver_log.txt";
-const SEPRATATION_LINE: &'static str =  "+-------+-------------------------------+----------------------------------------------------------------+---------------------------------+\n";
+const SEPARATION_ITER: &'static str = "=========================\n\n";
+const SEPARATION_LINE: &'static str =  "+-------+-------------------------------+----------------------------------------------------------------+---------------------------------+\n";
 const TITLE_LINE: &'static str =        "| Id    |           Iteratives          |        Left                    =                Right          |         Stopping criteria       |\n";
 const FLOAT_WIDTH: usize = 30;
 const INT_WIDTH: usize = 6;
 
 pub struct SolverLog {
     content: String,
-    iteration: usize
 }
 
 pub struct Parameters  {
@@ -37,8 +36,7 @@ impl Parameters {
 impl SolverLog {
     pub fn new() -> Self {
         let content = String::new();
-        let iteration = 0;
-        SolverLog { content, iteration }
+        SolverLog { content }
     }
 
     fn add_content(&mut self, new_content: &str) {
@@ -64,25 +62,45 @@ impl SolverLog {
         self.add_content(&new_content);
     }
 
-    pub fn add_iteration(&mut self, iteratives: &nalgebra::DVector<f64>, residuals: &residuals::ResidualsValues, errors: &nalgebra::DVector<f64>) {
+    pub fn add_damping(&mut self, iteratives: &nalgebra::DVector<f64>, residuals: &residuals::ResidualsValues, errors: &nalgebra::DVector<f64>) {
         let mut iteration_log_header = String::new();
-        iteration_log_header.push_str(&format!("Iteration: {}\n\n", self.iteration.to_string()));
+        iteration_log_header.push_str(&format!("Damping activated !\n\n"));
         self.add_content(&iteration_log_header);
-        for (i, elt) in iteratives.iter().enumerate() {
+        self.add_iteration(iteratives, residuals, errors);
+
+    }
+    pub fn add_new_iteration(&mut self, iteratives: &nalgebra::DVector<f64>, residuals: &residuals::ResidualsValues, errors: &nalgebra::DVector<f64>, iter: usize) {
+        let mut iteration_log_header = String::new();
+        iteration_log_header.push_str(SEPARATION_ITER);
+        iteration_log_header.push_str(&format!("Iteration: {}\n\n", iter.to_string()));
+        self.add_content(&iteration_log_header);
+        self.add_iteration(iteratives, residuals, errors);
+    }
+
+    fn add_iteration(&mut self, iteratives: &nalgebra::DVector<f64>, residuals: &residuals::ResidualsValues, errors: &nalgebra::DVector<f64>) {
+        let mut iteration_log_header = String::new();
+        iteration_log_header.push_str(&format!("Max error: {}\n\n", errors.amax()));
+        self.add_content(&iteration_log_header);
+        for (i, (iterative, error)) in iteratives.iter().zip(errors.iter()).enumerate() {
             let mut entry = String::new();
-            entry.push_str(&SEPRATATION_LINE);
+            entry.push_str(&SEPARATION_LINE);
             entry.push_str(&TITLE_LINE);
-            entry.push_str(&SEPRATATION_LINE);
+            entry.push_str(&SEPARATION_LINE);
             entry.push_str(&format!("| {:width$}", i.to_string(), width = INT_WIDTH));
-            entry.push_str(&format!("| {:width$}", iteratives[i].to_string(), width = FLOAT_WIDTH));
+            entry.push_str(&format!("| {:width$}", iterative.to_string(), width = FLOAT_WIDTH));
             entry.push_str(&format!("| {:width$}", residuals.get_values_str_eq(i, FLOAT_WIDTH), width = FLOAT_WIDTH));
-            entry.push_str(&format!("| {:width$}  |", errors[i].to_string(), width = FLOAT_WIDTH));
+            entry.push_str(&format!("| {:width$}  |", error.to_string(), width = FLOAT_WIDTH));
             entry.push_str(&"\n");
-            entry.push_str(&SEPRATATION_LINE);
+            entry.push_str(&SEPARATION_LINE);
             self.add_content(&entry);
         }
         self.add_content(&"\n");
-        self.iteration += 1;
+    }
+
+    pub fn add_jac(&mut self, jac: &nalgebra::DMatrix<f64>) {
+        self.add_content(&"Jacobian Matrix:\n");
+        self.add_content(&jac.to_string());
+        self.add_content(&"\n");
     }
 
     pub fn write(&self, path: &str) {

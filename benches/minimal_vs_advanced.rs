@@ -1,3 +1,39 @@
+//! Benchmarking results and history :
+//!
+//! Test 1: evaluate functions evaluation (no changes over time expected)
+//! Results : f64 function is 137 times faster than DVector (expected)
+//! f64 :  [784.26 ps 792.64 ps 802.17 ps]
+//! nalg : [108.38 ns 109.31 ns 110.26 ns]
+//!
+//! Test 2 : evaluate solvers
+//! If the solver speed is driven by the function evaluation,
+//! The time taken for resolution should be in the same proportion
+//! as for the function evaluation test
+//!
+//! Current Results :
+//! Solver 1D :          [37.099 ns 37.350 ns 37.602 ns]
+//! Solver 1D FD :       [60.788 ns 61.595 ns 62.524 ns]
+//! Advanced solver FD : [686.11 ns 691.50 ns 697.20 ns]
+//!
+//! Without derivatives is 1.6 times faster than with
+//! Minimal solver is 11 times faster than advanced solver
+//! Expected times was 137 times
+//! The advanced solver is roughly 10 times faster than the minimal implementation
+//!
+//! Historical results :
+//!
+//! 2020.05.18 : introduction of simulation log
+//! Solver 1D :          [37.099 ns 37.350 ns 37.602 ns]
+//! Solver 1D FD :       [60.788 ns 61.595 ns 62.524 ns]
+//! Advanced solver FD : [686.11 ns 691.50 ns 697.20 ns]
+//!
+//! 2020.05.13: First working version :
+//! Solver 1D :          [37.179 ns 37.587 ns 38.081 ns]
+//! Solver 1D FD :       [59.780 ns 60.267 ns 60.767 ns]
+//! Advanced solver FD : [20.313 us 20.483 us 20.651 us]
+//!
+
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 extern crate nalgebra;
@@ -20,10 +56,6 @@ fn dsquare(x: f64) -> f64 {
 }
 
 fn solvers_comparison(c: &mut Criterion) {
-    // Test 1: evaluate functions evaluation
-    // Results : f64 function is 137 times faster than DVector (expected)
-    // f64 :  [784.26 ps 792.64 ps 802.17 ps]
-    // nalg : [108.38 ns 109.31 ns 110.26 ns]
 
     let init_nalg = nalgebra::DVector::from_vec(vec![2.0]);
 
@@ -34,21 +66,11 @@ fn solvers_comparison(c: &mut Criterion) {
     });
     group_function.finish();
 
-    // Test 2 : evaluate solvers
-    // If the solver speed is driven by the function evaluation,
-    // The time taken for resolution should be in the same proportion
-    // as for the function evaluation test
-    // Results :
-    // Solver 1D :          [37.179 ns 37.587 ns 38.081 ns]
-    // Solver 1D FD :       [59.780 ns 60.267 ns 60.767 ns]
-    // Advanced solver FD : [20.313 us 20.483 us 20.651 us]
-    // Without derivatives is 1.6 times faster than with
-    // Minimal solver is 340 times faster than advanced solver
-    // Expected times was 137 times
-    // The advanced solver is roughly 2.5 times slower than the minimal implementation
     let problem_size = 1;
     let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
-    let nrf = nrf::solver::RootFinderFD::default_with_guess(init_guess);
+    let vec_iter_params = nrf::iteratives::default_vec_iteratives_fd(problem_size);
+    let iter_params = nrf::iteratives::Iteratives::new(&vec_iter_params);
+    let mut nrf = nrf::solver::RootFinder::default_with_guess(init_guess, iter_params);
     let mut user_model = nrf::model_with_func::UserModelWithFunc::new(problem_size, square2_nalg);
 
     let mut group_solver = c.benchmark_group("Solver");
