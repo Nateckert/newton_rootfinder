@@ -14,7 +14,7 @@ fn square() {
     let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_guess, iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_guess, iter_params);
 
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, polynom::square2);
@@ -35,7 +35,7 @@ fn root_with_high_derivative() {
     let init_guess = nalgebra::DVector::from_vec(vec![0.15]);
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_guess, iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_guess, iter_params);
 
     let mut user_model = nrf::model_with_func::UserModelWithFunc::new(
         problem_size,

@@ -10,7 +10,7 @@ fn broyden_case5() {
     let problem_size = 5;
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_broyden1965_case5(), iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case5(), iter_params);
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case5);
 
@@ -33,7 +33,7 @@ fn broyden_case6() {
     let problem_size = 5;
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_broyden1965_case6(), iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case6(), iter_params);
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case6);
 
@@ -56,7 +56,7 @@ fn broyden_case7() {
     let problem_size = 10;
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_broyden1965_case7(), iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case7(), iter_params);
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case7);
 
@@ -79,7 +79,7 @@ fn broyden_case8() {
     let problem_size = 20;
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_broyden1965_case8(), iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case8(), iter_params);
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case8);
 
@@ -102,7 +102,7 @@ fn broyden_case9() {
     let problem_size = 2;
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_broyden1965_case9(), iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case9(), iter_params);
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case9);
 
@@ -126,7 +126,7 @@ fn broyden_case10() {
     let problem_size = 2;
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-    let rf = nrf::solver::RootFinder::default_with_guess_fd(init_broyden1965_case10(), iter_params);
+    let mut rf = nrf::solver::RootFinder::default_with_guess(init_broyden1965_case10(), iter_params);
     let mut user_model =
         nrf::model_with_func::UserModelWithFunc::new(problem_size, broyden1965_case10);
 

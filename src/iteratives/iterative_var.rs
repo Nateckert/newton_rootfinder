@@ -96,19 +96,11 @@ impl Iterative for IterativeParams {
 
 impl fmt::Display for IterativeParams {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut content = String::from("Iterative parameters:\n");
-        content.push_str("   - max_step_abs = ");
-        content.push_str(&self.max_step_abs.to_string());
-        content.push_str("\n");
-        content.push_str("   - max_step_rel = ");
-        content.push_str(&self.max_step_rel.to_string());
-        content.push_str("\n");
-        content.push_str("   - min_value = ");
-        content.push_str(&self.min_value.to_string());
-        content.push_str("\n");
-        content.push_str("   - max_value = ");
-        content.push_str(&self.max_value.to_string());
-        content.push_str("\n");
+        let mut content = String::new();
+        content.push_str(&format!(" {:width$}|", &self.max_step_abs.to_string(), width = 13));
+        content.push_str(&format!(" {:width$}|", &self.max_step_rel.to_string(), width = 13));
+        content.push_str(&format!(" {:width$}|", &self.min_value.to_string(), width = 13));
+        content.push_str(&format!(" {:width$}|", &self.max_value.to_string(), width = 13));
         write!(f, "{}", content)
     }
 }

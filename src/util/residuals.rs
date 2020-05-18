@@ -111,6 +111,12 @@ impl ResidualsValues {
     pub fn get_values(&self, index: usize) -> (f64, f64) {
         (self.left[index], self.right[index])
     }
+
+    pub fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
+        let mut str_eq = String::new();
+        str_eq.push_str(&format!("{:width$} = {:width$}", self.left[index].to_string(), self.right[index], width = float_width));
+        str_eq
+    }
 }
 
 #[derive(Debug)]
