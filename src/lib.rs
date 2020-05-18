@@ -82,7 +82,7 @@
 //!
 //! | crate                 | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
 //! |-----------------------|--------:|:-----------------------------:|:-------------------:|-------------------------------:|
-//! | **newton_rootfinder** |   0.1.0 |       ✔️                      |      ✔️             |  ❌ (not yet)                 |
+//! | **newton_rootfinder** |   0.3.0 |       ✔️                      |      ✔️             |  ❌ (not yet)                 |
 //! | peroxide              |  0.21.7 |       ❌                      |      ❌             |   ❌                          |
 //!
 //!
@@ -94,7 +94,7 @@
 //!
 //! | crate                 | version | Newton-Raphson | Other Iterative methods | Analytical methods  |
 //! |-----------------------|--------:|---------------:|------------------------:|--------------------:|
-//! | **newton_rootfinder** |   0.1.0 |  ✔️            | ❌                     | ❌                  |
+//! | **newton_rootfinder** |   0.3.0 |  ✔️            | ❌                     | ❌                  |
 //! | newton-raphson        |   0.1.0 |  ✔️            | ❌                     | ❌                  |
 //! | nrfind                |   1.0.3 |  ✔️            | ❌                     | ❌                  |
 //! | rootfind              |   0.7.0 |  ✔️            | ✔️                     | ❌                  |
