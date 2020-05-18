@@ -12,7 +12,8 @@
 //!
 //! # Examples
 //! ```
-//! extern crate newton_rootfinder as nrf;
+//! extern crate newton_rootfinder;
+//! use newton_rootfinder::solver_advanced as nrf;
 //! use nrf::iteratives::*;
 //!
 //! let size = 5;
@@ -21,14 +22,14 @@
 //! ```
 //!
 
-pub mod iteratives;
-pub mod iterative_var;
-pub mod iterative_var_fd;
+mod iterative_var;
+mod iterative_var_fd;
+mod iteratives_base;
 
-pub use iteratives::Iterative;  // trait re-export
-pub use iteratives::Iteratives; // struct re-export
 pub use iterative_var::IterativeParams;
 pub use iterative_var_fd::IterativeParamsFD;
+pub use iteratives_base::Iterative; // trait re-export
+pub use iteratives_base::Iteratives; // struct re-export
 
 pub fn default_vec_iteratives(size: usize) -> Vec<IterativeParams> {
     vec![IterativeParams::default(); size]

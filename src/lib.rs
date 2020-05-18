@@ -11,13 +11,37 @@
 //!
 //! # Minimal solver
 //!
-//! A minimal solver is provided for basic usages in the `solver_minimal` module.
-//! Don't hesitate to check in this module documentation for examples.
+//! A minimal solver is provided for basic usages in the `solver` module.
 //!
 //! This minimal solver works only on basic 1D functions.
 //!
 //! The speed of the advanced solver will be benchmarked against this one to estimate the overhead.
 //!
+//! # Examples
+//! ```
+//! extern crate newton_rootfinder as nrf;
+//! use nrf::solver_minimal::{solver1d, solver1d_fd};
+//!
+//! fn square2(x: f64) -> f64 {
+//!     x.powi(2)-2.0
+//! }
+//! fn dsquare(x: f64) -> f64 {
+//!     2.0*x
+//! }
+//!
+//! fn main() {
+//!     let max_iter = 50;
+//!     let tolerance = 1e-6;
+//!     let finite_diff_dx = 1e-8;
+//!
+//!     let x1 = solver1d(1.0, square2, dsquare, max_iter, tolerance);
+//!     let x2 = solver1d_fd(1.0, square2, max_iter, tolerance, finite_diff_dx);
+//!
+//!     println!("{}", x1);                         // 1.4142135623746899
+//!     println!("{}", x2);                         // 1.4142135623746772
+//!     println!("{}", std::f64::consts::SQRT_2);   // 1.4142135623730951
+//! }
+//! ```
 //!
 //! # Advanced solver
 //!
@@ -35,7 +59,7 @@
 //! ## Key features
 //!  1. Works whether the jacobian is provided or not (evaluating it with finite-differentiation).
 //!  2. In-detail parametrization of iterative variables, residuals and stopping criteria.
-//!  3. Several Newton-based methods will be made available (not yet)
+//!  3. Debugging informations available through a .txt log file.
 //!  4. The advanced solver is designed to interact with a complex model computing other outputs and having memory effects.
 //!      The requirements of this model are defined by the `Model` trait.
 //!      The struct `UserModelWithFunc` is provided to easily adapt a given function to the required trait.
@@ -44,8 +68,9 @@
 //! ## Current limitations
 //!
 //! 1. The inputs and outputs of the model are assumed to be `nalgebra` vectors.
-//! 2. Only the finite-difference version is currently available.
-//! 3. Benchmarking vs the minimal-solver is not yet in place.
+//! 2. The test base is still in construction
+//! 3. The documentation is not exhaustive
+//! 4. Other resolution methods (Broyden, ...) are not available
 //!
 //!
 //!
@@ -53,22 +78,29 @@
 //!
 //! Note: Crates may have evolved since this comparison was established.
 //!
-//! | crate                 | version | 1-dimension  | n-dimension | Jacobian not required | Other algorithms¹ |
-//! |-----------------------|--------:|:------------:|:-----------:|----------------------:|------------------:|
-//! | **newton_rootfinder** |   0.1.0 |       ✔️     |      ✔️     |  ✔️                  | ❌ (not yet)      |
-//! | newton-raphson        |   0.1.0 |       ✔️     |      ❌     |  ❌                  | ❌                |
-//! | nrfind                |   1.0.3 |       ✔️     |      ❌     |  ❌                  | ❌                |
-//! | rootfind              |   0.7.0 |       ✔️     |      ❌     |  ❌                  |  ✔️               |
-//! | roots                 |   0.6.0 |       ✔️     |      ❌     |  ❌                  |  ✔️               |
-//! | peroxide              |  0.21.7 |       ✔️     |      ✔️     |  ❌                  | ❌                |
+//! N-dimensional :
 //!
-//! 1. Other algorithms than the Newton-Raphson method.
+//! | crate                 | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
+//! |-----------------------|--------:|:-----------------------------:|:-------------------:|-------------------------------:|
+//! | **newton_rootfinder** |   0.1.0 |       ✔️                      |      ✔️             |  ❌ (not yet)                 |
+//! | peroxide              |  0.21.7 |       ❌                      |      ❌             |   ❌                          |
+//!
+//!
+//!
+//! If you are looking for one dimensional crates, several options are available.
+//! As a reminder, the focus of newton_rootfinder is **NOT** the development of the 1D solver.
+//!
+//! One dimension :
+//!
+//! | crate                 | version | Newton-Raphson | Other Iterative methods | Analytical methods  |
+//! |-----------------------|--------:|---------------:|------------------------:|--------------------:|
+//! | **newton_rootfinder** |   0.1.0 |  ✔️            | ❌                     | ❌                  |
+//! | newton-raphson        |   0.1.0 |  ✔️            | ❌                     | ❌                  |
+//! | nrfind                |   1.0.3 |  ✔️            | ❌                     | ❌                  |
+//! | rootfind              |   0.7.0 |  ✔️            | ✔️                     | ❌                  |
+//! | roots                 |   0.6.0 |  ✔️            | ✔️                     | ✔️                  |
+//! | peroxide              |  0.21.7 |  ✔️            | ❌                     | ❌                  |
+//!
 
-pub mod util;
-pub mod iteratives;
-
-pub mod solver;
+pub mod solver_advanced;
 pub mod solver_minimal;
-
-pub mod model;
-pub mod model_with_func;

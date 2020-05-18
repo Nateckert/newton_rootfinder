@@ -13,7 +13,7 @@
 
 extern crate nalgebra;
 
-use crate::util::residuals;
+use crate::solver_advanced::util::residuals;
 
 /// The `Model` trait is the minimal requirement that ensures the capacity of a given model
 /// to interact with the solver.

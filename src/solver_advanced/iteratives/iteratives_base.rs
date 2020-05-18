@@ -15,7 +15,7 @@ pub trait Iterative {
     fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64);
     fn set_max_values(&mut self, min_value: f64, max_value: f64);
     fn step_limitation(&self, value_current: f64, raw_step: f64) -> f64;
-    fn compute_perturbation(&self, #[allow(unused_variables)] x: f64)  -> f64 {
+    fn compute_perturbation(&self, #[allow(unused_variables)] x: f64) -> f64 {
         unimplemented!();
     }
     fn with_finite_diff(&self) -> bool {
@@ -24,7 +24,7 @@ pub trait Iterative {
 }
 
 pub struct Iteratives<'a, T: Iterative> {
-    iteratives_params: &'a [T]
+    iteratives_params: &'a [T],
 }
 
 impl<'a, T> Iteratives<'a, T>
@@ -32,7 +32,7 @@ where
     T: Iterative,
 {
     pub fn new(iteratives_params: &'a [T]) -> Self {
-        Iteratives {iteratives_params}
+        Iteratives { iteratives_params }
     }
 
     pub fn len(&self) -> usize {
@@ -41,7 +41,8 @@ where
     /// Compute a limited step
     /// Return the new value after the application of the step limitation (and not the step)
     /// This is required as it can be limited by an interval for the iteratives.
-    pub fn step_limitations(&self,
+    pub fn step_limitations(
+        &self,
         values: &nalgebra::DVector<f64>,
         raw_step: &nalgebra::DVector<f64>,
         problem_size: usize,
@@ -54,7 +55,8 @@ where
         step_lim
     }
 
-    pub fn compute_perturbations(&self,
+    pub fn compute_perturbations(
+        &self,
         iterative_values: &nalgebra::DVector<f64>,
         problem_size: usize,
     ) -> nalgebra::DVector<f64> {
@@ -72,9 +74,7 @@ where
     T: Iterative + fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
         let finite_diff = self.iteratives_params[0].with_finite_diff();
-
 
         let mut content = String::from("Iteratives parameters:\n");
         content.push_str("==============\n\n");
@@ -83,26 +83,25 @@ where
 
         let separation_line = if finite_diff {
             "+-----------+".to_owned()
-                                + &column_float
-                                + &column_float
-                                + &column_float
-                                + &column_float
-                                + &"-----------------+"
-                                + &column_float
-                                + &column_float
-                                + &"\n"
+                + &column_float
+                + &column_float
+                + &column_float
+                + &column_float
+                + "-----------------+"
+                + &column_float
+                + &column_float
+                + "\n"
         } else {
             "+-----------+".to_owned()
-                                + &column_float
-                                + &column_float
-                                + &column_float
-                                + &column_float
-                                + &"\n"
+                + &column_float
+                + &column_float
+                + &column_float
+                + &column_float
+                + "\n"
         };
 
-
         content.push_str(&separation_line);
-        let width = column_float.len()-2;
+        let width = column_float.len() - 2;
         content.push_str("| Iterative ");
         content.push_str(&format!("| {:width$}", &"max_step_abs", width = width));
         content.push_str(&format!("| {:width$}", &"max_step_rel", width = width));
@@ -110,7 +109,11 @@ where
         content.push_str(&format!("| {:width$}", &"max_value", width = width));
 
         if finite_diff {
-            content.push_str(&format!("| {:width$}", &"perturbation", width = "-----------------+".len()-2));
+            content.push_str(&format!(
+                "| {:width$}",
+                &"perturbation",
+                width = "-----------------+".len() - 2
+            ));
             content.push_str(&format!("| {:width$}", &"dx_abs", width = width));
             content.push_str(&format!("| {:width$}|", &"dx_rel", width = width));
         } else {

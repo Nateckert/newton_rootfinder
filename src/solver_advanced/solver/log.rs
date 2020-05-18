@@ -1,11 +1,11 @@
 use std::fs::File;
 use std::io::Write;
 
-use crate::util::residuals;
+use crate::solver_advanced::util::residuals;
 
-const SEPARATION_ITER: &'static str = "=========================\n\n";
-const SEPARATION_LINE: &'static str =  "+-------+-------------------------------+----------------------------------------------------------------+---------------------------------+\n";
-const TITLE_LINE: &'static str =        "| Id    |           Iteratives          |        Left                    =                Right          |         Stopping criteria       |\n";
+const SEPARATION_ITER: &str = "=========================\n\n";
+const SEPARATION_LINE: &str =  "+-------+-------------------------------+----------------------------------------------------------------+---------------------------------+\n";
+const TITLE_LINE: &str =       "| Id    |           Iteratives          |        Left                    =                Right          |         Stopping criteria       |\n";
 const FLOAT_WIDTH: usize = 30;
 const INT_WIDTH: usize = 6;
 
@@ -13,7 +13,7 @@ pub struct SolverLog {
     content: String,
 }
 
-pub struct Parameters  {
+pub struct Parameters {
     pub max_iter: String,
     pub tolerance: String,
     pub residuals_config: String,
@@ -22,7 +22,13 @@ pub struct Parameters  {
 }
 
 impl Parameters {
-    pub fn new(max_iter: &str, tolerance: &str, residuals_config: &str, iters_params: &str, init_guess: &str) -> Self {
+    pub fn new(
+        max_iter: &str,
+        tolerance: &str,
+        residuals_config: &str,
+        iters_params: &str,
+        init_guess: &str,
+    ) -> Self {
         Parameters {
             max_iter: max_iter.to_string(),
             tolerance: tolerance.to_string(),
@@ -33,6 +39,9 @@ impl Parameters {
     }
 }
 
+/// Log for debugging information
+///
+/// This object defines the format and concatenate the debugging informations
 impl SolverLog {
     pub fn new() -> Self {
         let content = String::new();
@@ -62,14 +71,24 @@ impl SolverLog {
         self.add_content(&new_content);
     }
 
-    pub fn add_damping(&mut self, iteratives: &nalgebra::DVector<f64>, residuals: &residuals::ResidualsValues, errors: &nalgebra::DVector<f64>) {
+    pub fn add_damping(
+        &mut self,
+        iteratives: &nalgebra::DVector<f64>,
+        residuals: &residuals::ResidualsValues,
+        errors: &nalgebra::DVector<f64>,
+    ) {
         let mut iteration_log_header = String::new();
-        iteration_log_header.push_str(&format!("Damping activated !\n\n"));
+        iteration_log_header.push_str(&"Damping activated !\n\n".to_string());
         self.add_content(&iteration_log_header);
         self.add_iteration(iteratives, residuals, errors);
-
     }
-    pub fn add_new_iteration(&mut self, iteratives: &nalgebra::DVector<f64>, residuals: &residuals::ResidualsValues, errors: &nalgebra::DVector<f64>, iter: usize) {
+    pub fn add_new_iteration(
+        &mut self,
+        iteratives: &nalgebra::DVector<f64>,
+        residuals: &residuals::ResidualsValues,
+        errors: &nalgebra::DVector<f64>,
+        iter: usize,
+    ) {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(SEPARATION_ITER);
         iteration_log_header.push_str(&format!("Iteration: {}\n\n", iter.to_string()));
@@ -77,19 +96,36 @@ impl SolverLog {
         self.add_iteration(iteratives, residuals, errors);
     }
 
-    fn add_iteration(&mut self, iteratives: &nalgebra::DVector<f64>, residuals: &residuals::ResidualsValues, errors: &nalgebra::DVector<f64>) {
+    fn add_iteration(
+        &mut self,
+        iteratives: &nalgebra::DVector<f64>,
+        residuals: &residuals::ResidualsValues,
+        errors: &nalgebra::DVector<f64>,
+    ) {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(&format!("Max error: {}\n\n", errors.amax()));
         self.add_content(&iteration_log_header);
+        self.add_content(&SEPARATION_LINE);
+        self.add_content(&TITLE_LINE);
+        self.add_content(&SEPARATION_LINE);
         for (i, (iterative, error)) in iteratives.iter().zip(errors.iter()).enumerate() {
             let mut entry = String::new();
-            entry.push_str(&SEPARATION_LINE);
-            entry.push_str(&TITLE_LINE);
-            entry.push_str(&SEPARATION_LINE);
             entry.push_str(&format!("| {:width$}", i.to_string(), width = INT_WIDTH));
-            entry.push_str(&format!("| {:width$}", iterative.to_string(), width = FLOAT_WIDTH));
-            entry.push_str(&format!("| {:width$}", residuals.get_values_str_eq(i, FLOAT_WIDTH), width = FLOAT_WIDTH));
-            entry.push_str(&format!("| {:width$}  |", error.to_string(), width = FLOAT_WIDTH));
+            entry.push_str(&format!(
+                "| {:width$}",
+                iterative.to_string(),
+                width = FLOAT_WIDTH
+            ));
+            entry.push_str(&format!(
+                "| {:width$}",
+                residuals.get_values_str_eq(i, FLOAT_WIDTH),
+                width = FLOAT_WIDTH
+            ));
+            entry.push_str(&format!(
+                "| {:width$}  |",
+                error.to_string(),
+                width = FLOAT_WIDTH
+            ));
             entry.push_str(&"\n");
             entry.push_str(&SEPARATION_LINE);
             self.add_content(&entry);

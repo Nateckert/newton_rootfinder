@@ -101,16 +101,32 @@ pub fn broyden1965_case5(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     broyden1965_cases5to8(&x, -0.1, 1.0)
 }
 
+pub fn broyden1965_case5_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
+    broyden1965_cases5to8_jac(&x, -0.1, 1.0)
+}
+
 pub fn broyden1965_case6(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     broyden1965_cases5to8(&x, -0.5, 1.0)
+}
+
+pub fn broyden1965_case6_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
+    broyden1965_cases5to8_jac(&x, -0.5, 1.0)
 }
 
 pub fn broyden1965_case7(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     broyden1965_cases5to8(&x, -0.5, 1.0)
 }
 
+pub fn broyden1965_case7_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
+    broyden1965_cases5to8_jac(&x, -0.5, 1.0)
+}
+
 pub fn broyden1965_case8(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     broyden1965_cases5to8(&x, -0.5, 1.0)
+}
+
+pub fn broyden1965_case8_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
+    broyden1965_cases5to8_jac(&x, -0.5, 1.0)
 }
 
 fn broyden1965_cases5to8(
@@ -126,6 +142,34 @@ fn broyden1965_cases5to8(
         outputs[i] = outputs[i - 1] - (3.0 + alpha * x[i]) * x[i] + 2.0 * x[i + 1] - beta;
     }
     outputs[n - 1] = outputs[n - 2] - (3.0 + alpha * x[n - 1]) * x[n - 1] - beta;
+
+    outputs
+}
+
+fn broyden1965_cases5to8_jac(
+    x: &nalgebra::DVector<f64>,
+    alpha: f64,
+    _beta: f64,
+) -> nalgebra::DMatrix<f64> {
+    let n = x.len();
+    let mut outputs = nalgebra::DMatrix::zeros(n, n);
+
+    // First row of jacobian matrix is null except :
+    outputs[(0, 0)] = -3.0 - 2.0 * alpha * x[0];
+    outputs[(0, 1)] = 2.0;
+
+    for i in 1..n - 1 {
+        outputs[(i, i)] = -3.0 - 2.0 * alpha * x[i];
+        outputs[(i, i + 1)] = 2.0;
+        for j in 0..n {
+            outputs[(i, j)] += outputs[(i - 1, j)];
+        }
+    }
+
+    outputs[(n - 1, n - 1)] = -3.0 - 2.0 * alpha * x[n - 1];
+    for j in 0..n {
+        outputs[(n - 1, j)] += outputs[(n - 2, j)];
+    }
 
     outputs
 }
@@ -147,6 +191,15 @@ pub fn broyden1965_case9(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut outputs = nalgebra::DVector::zeros(2);
     outputs[0] = 10.0 * (x[1] - x[0].powi(2));
     outputs[1] = 1.0 - x[0];
+    outputs
+}
+
+pub fn broyden1965_case9_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
+    let mut outputs = nalgebra::DMatrix::zeros(2, 2);
+    outputs[(0, 0)] = -20.0 * x[0];
+    outputs[(0, 1)] = 10.0;
+    outputs[(1, 0)] = -1.0;
+    outputs[(1, 1)] = 0.0;
     outputs
 }
 

@@ -22,9 +22,9 @@
 //! - dx_abs = 0 implies dx = dx_rel*abs(x)
 //! - dx_rel = 0 implies dx = dx_abs
 
+use super::Iterative;
+use super::IterativeParams;
 use std::fmt;
-use crate::iteratives::Iterative;
-use crate::iteratives::iterative_var;
 
 #[derive(Debug, Clone)]
 pub enum PerturbationMethod {
@@ -45,7 +45,7 @@ impl fmt::Display for PerturbationMethod {
 
 #[derive(Debug, Clone)]
 pub struct IterativeParamsFD {
-    iterative_params: iterative_var::IterativeParams,
+    iterative_params: IterativeParams,
     max_step_method: PerturbationMethod,
     dx_abs: f64,
     dx_rel: f64,
@@ -54,7 +54,7 @@ pub struct IterativeParamsFD {
 impl Default for IterativeParamsFD {
     fn default() -> IterativeParamsFD {
         IterativeParamsFD {
-            iterative_params: iterative_var::IterativeParams::default(),
+            iterative_params: IterativeParams::default(),
             max_step_method: PerturbationMethod::Max,
             dx_abs: 5.0e-8,
             dx_rel: 5.0e-8,
@@ -116,11 +116,23 @@ impl Iterative for IterativeParamsFD {
 impl fmt::Display for IterativeParamsFD {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let column_float = String::from("--------------+");
-        let width = column_float.len()-2;
+        let width = column_float.len() - 2;
         let mut content = self.iterative_params.to_string();
-        content.push_str(&format!(" {:width$}|", &self.max_step_method.to_string(), width = "-----------------+".len()-2));
-        content.push_str(&format!(" {:width$}|", &self.dx_abs.to_string(), width = width));
-        content.push_str(&format!(" {:width$}|", &self.dx_rel.to_string(), width = width));
+        content.push_str(&format!(
+            " {:width$}|",
+            &self.max_step_method.to_string(),
+            width = "-----------------+".len() - 2
+        ));
+        content.push_str(&format!(
+            " {:width$}|",
+            &self.dx_abs.to_string(),
+            width = width
+        ));
+        content.push_str(&format!(
+            " {:width$}|",
+            &self.dx_rel.to_string(),
+            width = width
+        ));
 
         write!(f, "{}", content)
     }

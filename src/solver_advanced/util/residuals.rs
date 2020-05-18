@@ -20,9 +20,9 @@ pub enum StoppingCriteria {
 impl fmt::Display for NormalizationMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let result = match self {
-            NormalizationMethod::Abs    => &"Absolute Normalization",
-            NormalizationMethod::Rel    => &"Relative Normalization",
-            NormalizationMethod::Adapt  => &"Adaptative Normalization",
+            NormalizationMethod::Abs => &"Absolute Normalization",
+            NormalizationMethod::Rel => &"Relative Normalization",
+            NormalizationMethod::Adapt => &"Adaptative Normalization",
         };
 
         write!(f, "{}", result)
@@ -35,7 +35,8 @@ impl fmt::Display for NormalizationMethod {
 /// Adapt (adaptative) is designed to behave like Abs for near zero values and like Rel for big values
 /// # Examples
 /// ```
-/// extern crate newton_rootfinder as nrf;
+/// extern crate newton_rootfinder;
+/// use newton_rootfinder::solver_advanced as nrf;
 /// extern crate float_cmp;
 /// use float_cmp::*;
 /// use nrf::util::residuals::*;
@@ -101,11 +102,30 @@ pub fn deriv_normalization(
 pub struct ResidualsValues {
     left: nalgebra::DVector<f64>,
     right: nalgebra::DVector<f64>,
+    problem_size: usize,
 }
 
 impl ResidualsValues {
     pub fn new(left: nalgebra::DVector<f64>, right: nalgebra::DVector<f64>) -> Self {
-        ResidualsValues { left, right }
+        if left.len() != right.len() {
+            panic!(
+                "Dimension mismatch in the residuals values {} != {} ",
+                left.len(),
+                right.len()
+            );
+        }
+
+        let problem_size = left.len();
+
+        ResidualsValues {
+            left,
+            right,
+            problem_size,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.problem_size
     }
 
     pub fn get_values(&self, index: usize) -> (f64, f64) {
@@ -114,7 +134,12 @@ impl ResidualsValues {
 
     pub fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
         let mut str_eq = String::new();
-        str_eq.push_str(&format!("{:width$} = {:width$}", self.left[index].to_string(), self.right[index], width = float_width));
+        str_eq.push_str(&format!(
+            "{:width$} = {:width$}",
+            self.left[index].to_string(),
+            self.right[index],
+            width = float_width
+        ));
         str_eq
     }
 }
@@ -123,26 +148,43 @@ impl ResidualsValues {
 pub struct JacobianValues {
     left: nalgebra::DMatrix<f64>,
     right: nalgebra::DMatrix<f64>,
+    problem_size: usize,
 }
 
 impl JacobianValues {
     pub fn new(left: nalgebra::DMatrix<f64>, right: nalgebra::DMatrix<f64>) -> Self {
-        JacobianValues { left, right }
+        if left.shape() != right.shape() {
+            panic!(
+                "Dimension mismatch between the jacobians {:?} != {:?}",
+                left.shape(),
+                right.shape()
+            );
+        }
+        let (n, m) = left.shape();
+        if n != m {
+            panic!("Jacobian matrix are not squared {} != {}", n, m);
+        }
+        let problem_size = n;
+        JacobianValues {
+            left,
+            right,
+            problem_size,
+        }
     }
 
     pub fn normalize(
         &self,
         res_values: &ResidualsValues,
-        norm_methods: &Vec<NormalizationMethod>,
+        norm_methods: &[NormalizationMethod],
     ) -> nalgebra::DMatrix<f64> {
-        let problem_size = self.left.len();
-        let mut jac: nalgebra::DMatrix<f64> = nalgebra::DMatrix::zeros(problem_size, problem_size);
+        let mut jac: nalgebra::DMatrix<f64> =
+            nalgebra::DMatrix::zeros(self.problem_size, self.problem_size);
 
         // iterate over rows
-        for i in 0..problem_size {
+        for i in 0..self.problem_size {
             let (left_value, right_value) = res_values.get_values(i);
             // iterate over columns
-            for j in 0..problem_size {
+            for j in 0..self.problem_size {
                 jac[(i, j)] = deriv_normalization(
                     left_value,
                     right_value,
@@ -153,6 +195,10 @@ impl JacobianValues {
             }
         }
         jac
+    }
+
+    pub fn get_jacobians(&self) -> (&nalgebra::DMatrix<f64>, &nalgebra::DMatrix<f64>) {
+        (&self.left, &self.right)
     }
 }
 
@@ -194,6 +240,10 @@ impl ResidualsConfig {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.problem_size
+    }
+
     pub fn get_update_method(&self) -> &Vec<NormalizationMethod> {
         &self.iteration_update_method
     }
@@ -233,7 +283,9 @@ impl ResidualsConfig {
 
 impl fmt::Display for ResidualsConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let separation_line = String::from("+-------------------+--------------------------+--------------------------+\n");
+        let separation_line = String::from(
+            "+-------------------+--------------------------+--------------------------+\n",
+        );
 
         let mut content = String::from("Residuals configuration:\n\n");
         content.push_str(&separation_line);
@@ -250,9 +302,17 @@ impl fmt::Display for ResidualsConfig {
         for i in 0..self.problem_size {
             content.push_str(&format!("| {:width$}", &i.to_string(), width = 18));
             content.push_str("| ");
-            content.push_str(&format!("{:width$}", &self.stopping_critera[i].to_string(), width = 25));
+            content.push_str(&format!(
+                "{:width$}",
+                &self.stopping_critera[i].to_string(),
+                width = 25
+            ));
             content.push_str("| ");
-            content.push_str(&format!("{:width$}|", &self.iteration_update_method[i].to_string(), width = 25));
+            content.push_str(&format!(
+                "{:width$}|",
+                &self.iteration_update_method[i].to_string(),
+                width = 25
+            ));
             content.push_str("\n");
         }
         content.push_str(&separation_line);

@@ -7,7 +7,7 @@
 //! # Examples
 //! ```
 //! extern crate newton_rootfinder as nrf;
-//! use nrf::solver_minimal::*;
+//! use nrf::solver_minimal::{solver1d, solver1d_fd};
 //! extern crate float_cmp;
 //!
 //! pub fn square2(x: f64) -> f64 {
@@ -24,6 +24,7 @@
 //! println!("{}, {}", x1, x2);
 //! assert!(float_cmp::approx_eq!(f64, x_sol, x1, epsilon = 1e-5));
 //! assert!(float_cmp::approx_eq!(f64, x_sol, x2, epsilon = 1e-5));
+//! ```
 
 pub fn solver1d(
     init_guess: f64,

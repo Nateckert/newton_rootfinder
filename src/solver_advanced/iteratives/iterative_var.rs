@@ -1,5 +1,5 @@
+use super::Iterative;
 use std::fmt;
-use crate::iteratives::Iterative;
 
 #[derive(Debug, Clone)]
 pub struct IterativeParams {
@@ -61,7 +61,8 @@ impl Iterative for IterativeParams {
     ///
     /// # Examples
     /// ```
-    /// extern crate newton_rootfinder as nrf;
+    /// extern crate newton_rootfinder;
+    /// use newton_rootfinder::solver_advanced as nrf;
     /// use nrf::iteratives::*;
     ///
     /// let mut iterative_var = IterativeParams::new();
@@ -97,10 +98,26 @@ impl Iterative for IterativeParams {
 impl fmt::Display for IterativeParams {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut content = String::new();
-        content.push_str(&format!(" {:width$}|", &self.max_step_abs.to_string(), width = 13));
-        content.push_str(&format!(" {:width$}|", &self.max_step_rel.to_string(), width = 13));
-        content.push_str(&format!(" {:width$}|", &self.min_value.to_string(), width = 13));
-        content.push_str(&format!(" {:width$}|", &self.max_value.to_string(), width = 13));
+        content.push_str(&format!(
+            " {:width$}|",
+            &self.max_step_abs.to_string(),
+            width = 13
+        ));
+        content.push_str(&format!(
+            " {:width$}|",
+            &self.max_step_rel.to_string(),
+            width = 13
+        ));
+        content.push_str(&format!(
+            " {:width$}|",
+            &self.min_value.to_string(),
+            width = 13
+        ));
+        content.push_str(&format!(
+            " {:width$}|",
+            &self.max_value.to_string(),
+            width = 13
+        ));
         write!(f, "{}", content)
     }
 }
