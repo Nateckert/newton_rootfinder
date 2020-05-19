@@ -6,7 +6,7 @@ use super::RootFinder;
 use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 
-use crate::solver_advanced::util::residuals;
+use crate::solver_advanced::residuals;
 
 /// Default function to create a solver with default parameters such as :
 /// - max_iter = 50
@@ -50,12 +50,12 @@ use crate::solver_advanced::util::residuals;
 pub fn default_with_guess<'a, T>(
     initial_guess: nalgebra::DVector<f64>,
     iters_params: iteratives::Iteratives<'a, T>,
+    residuals_config: residuals::ResidualsConfig<'a>,
 ) -> RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
 {
     let problem_size = initial_guess.len();
-    let residuals_config = residuals::ResidualsConfig::default_with_size(problem_size);
     let tolerance: f64 = 1e-6;
     let max_iter: usize = 50;
 

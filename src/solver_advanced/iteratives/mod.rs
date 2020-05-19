@@ -26,8 +26,9 @@ mod iterative_var;
 mod iterative_var_fd;
 mod iteratives_base;
 
-pub use iterative_var::IterativeParams;
-pub use iterative_var_fd::IterativeParamsFD;
+pub use iterative_var::IterativeParams; // struct re-export
+pub use iterative_var_fd::IterativeParamsFD; // struct re-export
+pub use iterative_var_fd::PerturbationMethod; // enum re-export
 pub use iteratives_base::Iterative; // trait re-export
 pub use iteratives_base::Iteratives; // struct re-export
 

@@ -12,8 +12,6 @@ use std::fmt;
 use std::panic;
 
 pub trait Iterative {
-    fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64);
-    fn set_max_values(&mut self, min_value: f64, max_value: f64);
     fn step_limitation(&self, value_current: f64, raw_step: f64) -> f64;
     fn compute_perturbation(&self, #[allow(unused_variables)] x: f64) -> f64 {
         unimplemented!();

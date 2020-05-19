@@ -1,7 +1,7 @@
 use super::Iterative;
 use std::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IterativeParams {
     max_step_abs: f64,
     max_step_rel: f64,
@@ -10,8 +10,33 @@ pub struct IterativeParams {
 }
 
 impl IterativeParams {
-    pub fn new() -> Self {
-        IterativeParams::default()
+    pub fn new(max_step_abs: f64, max_step_rel: f64, min_value: f64, max_value: f64) -> Self {
+        if max_step_abs <= 0.0 {
+            panic!(
+                "max_step_abs must be strictly positive, provided value was {}",
+                max_step_abs
+            );
+        }
+        if max_step_rel <= 0.0 {
+            panic!(
+                "max_step_rel must be strictly positive, provided value was {}",
+                max_step_rel
+            );
+        }
+
+        if min_value >= max_value {
+            panic!(
+                "min_value must be strictly inferior to max_value, provided values are {} > {}",
+                min_value, max_value
+            );
+        }
+
+        IterativeParams {
+            max_step_abs,
+            max_step_rel,
+            min_value,
+            max_value,
+        }
     }
 }
 
@@ -27,36 +52,6 @@ impl Default for IterativeParams {
 }
 
 impl Iterative for IterativeParams {
-    fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64) {
-        if max_step_abs <= 0.0 {
-            panic!(
-                "maxStepAbs must be strictly positive, provided value was {}",
-                max_step_abs
-            );
-        }
-        if max_step_rel <= 0.0 {
-            panic!(
-                "maxStepRel must be strictly positive, provided value was {}",
-                max_step_rel
-            );
-        }
-
-        self.max_step_abs = max_step_abs;
-        self.max_step_rel = max_step_rel;
-    }
-
-    fn set_max_values(&mut self, min_value: f64, max_value: f64) {
-        if min_value >= max_value {
-            panic!(
-                "minValue must be strictly inferior to maxValue, provided values are {} > {}",
-                min_value, max_value
-            );
-        }
-
-        self.min_value = min_value;
-        self.max_value = max_value;
-    }
-
     /// Compute a limited update step
     ///
     /// # Examples
@@ -65,16 +60,14 @@ impl Iterative for IterativeParams {
     /// use newton_rootfinder::solver_advanced as nrf;
     /// use nrf::iteratives::*;
     ///
-    /// let mut iterative_var = IterativeParams::new();
-    ///
-    /// iterative_var.set_max_steps(1.0, 1.0);
+    /// let (max_step_abs, max_step_rel, min_value, max_value) = (1.0, 1.0, f64::NEG_INFINITY, f64::INFINITY);
+    /// let mut iterative_var = IterativeParams::new(max_step_abs, max_step_rel, min_value, max_value);
     /// assert_eq!(iterative_var.step_limitation(1.0, 1.0), 2.0);
     /// assert_eq!(iterative_var.step_limitation(1.0, 3.0), 2.0);
     ///
-    /// iterative_var.set_max_steps(0.1, 0.5);
+    /// let (max_step_abs, max_step_rel, min_value, max_value) = (0.1, 0.5, f64::NEG_INFINITY, f64::INFINITY);
+    /// let mut iterative_var = IterativeParams::new(max_step_abs, max_step_rel, min_value, max_value);
     /// assert_eq!(iterative_var.step_limitation(1.5, 0.5), 1.6);
-    ///
-    /// iterative_var.set_max_steps(0.1, 0.5);
     /// assert_eq!(iterative_var.step_limitation(0.1, 3.0), 0.15000000000000002);
     /// ```
 

@@ -1,7 +1,2 @@
-//! Definition of the structure of the resolution parameters
-//!
-//!
-//!
-
+mod constructor;
 pub mod jacobian;
-pub mod residuals;

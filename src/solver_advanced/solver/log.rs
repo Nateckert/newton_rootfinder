@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use crate::solver_advanced::util::residuals;
+use crate::solver_advanced::residuals;
 
 const SEPARATION_ITER: &str = "=========================\n\n";
 const SEPARATION_LINE: &str =  "+-------+-------------------------------+----------------------------------------------------------------+---------------------------------+\n";

@@ -25,7 +25,7 @@
 /// ```
 use super::Model;
 
-use crate::solver_advanced::util::residuals;
+use crate::solver_advanced::residuals;
 
 pub struct UserModelWithFunc {
     pub inputs: nalgebra::DVector<f64>,

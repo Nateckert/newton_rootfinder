@@ -1,8 +1,8 @@
 extern crate newton_rootfinder;
 use newton_rootfinder::solver_advanced as nrf;
 use nrf::model::Model;
+use nrf::residuals;
 use nrf::util::jacobian;
-use nrf::util::residuals;
 
 use crate::common::broyden1965;
 use crate::common::float_matrix_comparison;

@@ -2,8 +2,8 @@ extern crate nalgebra;
 extern crate newton_rootfinder;
 use newton_rootfinder::solver_advanced as nrf;
 use nrf::model::Model;
+use nrf::residuals;
 use nrf::util::jacobian;
-use nrf::util::residuals;
 
 pub fn non_linear(inputs: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut outputs = nalgebra::DVector::zeros(2);

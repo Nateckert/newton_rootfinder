@@ -41,8 +41,8 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
+use crate::solver_advanced::residuals;
 use crate::solver_advanced::util::jacobian;
-use crate::solver_advanced::util::residuals;
 
 /// Solver for rootfinding
 ///
@@ -57,7 +57,7 @@ where
 {
     initial_guess: nalgebra::DVector<f64>,
     iters_params: iteratives::Iteratives<'a, T>,
-    residuals_config: residuals::ResidualsConfig,
+    residuals_config: residuals::ResidualsConfig<'a>,
     problem_size: usize,
     tolerance: f64,
     max_iter: usize,
@@ -74,7 +74,7 @@ where
     pub fn new(
         initial_guess: nalgebra::DVector<f64>,
         iters_params: iteratives::Iteratives<'a, T>,
-        residuals_config: residuals::ResidualsConfig,
+        residuals_config: residuals::ResidualsConfig<'a>,
         problem_size: usize,
         tolerance: f64,
         max_iter: usize,

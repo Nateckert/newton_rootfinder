@@ -17,6 +17,7 @@
 //! The implementation here allows you to choose and combine the formulas:
 //! - dx = max(dx_abs, dx_rel*abs(x))
 //! - dx = dx_abs + dx_rel*abs(x)
+//! This is achieved through the `perturbation_method` field.
 //!
 //! It is also possible to get one of the two basic cases by setting the other to 0:
 //! - dx_abs = 0 implies dx = dx_rel*abs(x)
@@ -26,7 +27,7 @@ use super::Iterative;
 use super::IterativeParams;
 use std::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PerturbationMethod {
     Max,
     Sum,
@@ -43,10 +44,10 @@ impl fmt::Display for PerturbationMethod {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IterativeParamsFD {
     iterative_params: IterativeParams,
-    max_step_method: PerturbationMethod,
+    perturbation_method: PerturbationMethod,
     dx_abs: f64,
     dx_rel: f64,
 }
@@ -55,7 +56,7 @@ impl Default for IterativeParamsFD {
     fn default() -> IterativeParamsFD {
         IterativeParamsFD {
             iterative_params: IterativeParams::default(),
-            max_step_method: PerturbationMethod::Max,
+            perturbation_method: PerturbationMethod::Max,
             dx_abs: 5.0e-8,
             dx_rel: 5.0e-8,
         }
@@ -63,11 +64,15 @@ impl Default for IterativeParamsFD {
 }
 
 impl IterativeParamsFD {
-    pub fn set_max_step_method(&mut self, max_step_method: PerturbationMethod) {
-        self.max_step_method = max_step_method;
-    }
-
-    pub fn set_dx_values(&mut self, dx_abs: f64, dx_rel: f64) {
+    pub fn new(
+        max_step_abs: f64,
+        max_step_rel: f64,
+        min_value: f64,
+        max_value: f64,
+        dx_abs: f64,
+        dx_rel: f64,
+        perturbation_method: PerturbationMethod,
+    ) -> Self {
         if dx_abs <= 0.0 {
             panic!(
                 "dx_abs must be strictly positive, provided value was {}",
@@ -81,28 +86,51 @@ impl IterativeParamsFD {
             );
         }
 
-        self.dx_abs = dx_abs;
-        self.dx_rel = dx_rel;
+        IterativeParamsFD {
+            iterative_params: IterativeParams::new(
+                max_step_abs,
+                max_step_rel,
+                min_value,
+                max_value,
+            ),
+            perturbation_method,
+            dx_abs,
+            dx_rel,
+        }
+    }
+
+    /// Transform a IterativeParms and extend it into a IterativeFDParams
+    pub fn extend(iterative_params: IterativeParams, dx_abs: f64, dx_rel: f64, perturbation_method: PerturbationMethod) -> Self {
+        if dx_abs <= 0.0 {
+            panic!(
+                "dx_abs must be strictly positive, provided value was {}",
+                dx_abs
+            );
+        }
+        if dx_rel <= 0.0 {
+            panic!(
+                "dx_rel must be strictly positive, provided value was {}",
+                dx_rel
+            );
+        }
+
+        IterativeParamsFD {
+            iterative_params,
+            perturbation_method,
+            dx_abs,
+            dx_rel,
+        }
     }
 }
 
 impl Iterative for IterativeParamsFD {
-    fn set_max_steps(&mut self, max_step_abs: f64, max_step_rel: f64) {
-        self.iterative_params
-            .set_max_steps(max_step_abs, max_step_rel)
-    }
-
-    fn set_max_values(&mut self, min_value: f64, max_value: f64) {
-        self.iterative_params.set_max_values(min_value, max_value)
-    }
-
     fn step_limitation(&self, value_current: f64, value_next: f64) -> f64 {
         self.iterative_params
             .step_limitation(value_current, value_next)
     }
 
     fn compute_perturbation(&self, x: f64) -> f64 {
-        match self.max_step_method {
+        match self.perturbation_method {
             PerturbationMethod::Max => (self.dx_abs).max(x.abs() * self.dx_rel),
             PerturbationMethod::Sum => self.dx_abs + x.abs() * self.dx_rel,
         }
@@ -120,7 +148,7 @@ impl fmt::Display for IterativeParamsFD {
         let mut content = self.iterative_params.to_string();
         content.push_str(&format!(
             " {:width$}|",
-            &self.max_step_method.to_string(),
+            &self.perturbation_method.to_string(),
             width = "-----------------+".len() - 2
         ));
         content.push_str(&format!(
