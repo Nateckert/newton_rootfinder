@@ -7,6 +7,7 @@
 //! use newton_rootfinder::solver_advanced as nrf;
 //! use nrf::model::Model;
 //! use nrf::iteratives;
+//! use nrf::residuals;
 //!
 //! extern crate nalgebra;
 //!
@@ -22,7 +23,10 @@
 //!   let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
 //!   let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
 //!   let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-//!   let mut rf = nrf::solver::default_with_guess(init_guess, iter_params);
+//!   let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
+//!   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
+//!   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
+//!   let mut rf = nrf::solver::default_with_guess(init_guess, iter_params, res_config);
 //!   let mut user_model =
 //!       nrf::model::UserModelWithFunc::new(problem_size, square2);
 //!
@@ -151,6 +155,7 @@ where
     /// extern crate newton_rootfinder;
     /// use newton_rootfinder::solver_advanced as nrf;
     /// # use nrf::iteratives;
+    /// # use nrf::residuals;
     /// # pub fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     /// #   let mut y = x * x;
     /// #   y[0] -= 2.0;
@@ -160,8 +165,11 @@ where
     /// # let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
     /// # let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     /// # let iter_params = iteratives::Iteratives::new(&vec_iter_params);
+    /// # let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
+    /// # let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
+    /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     /// # let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
-    /// let mut rf = nrf::solver::default_with_guess(init_guess, iter_params);
+    /// let mut rf = nrf::solver::default_with_guess(init_guess, iter_params, res_config);
     /// rf.set_debug(true);
     /// rf.solve(&mut user_model);
     /// rf.write_log(&"solver_log.txt");
@@ -180,7 +188,7 @@ where
         let residuals_values = model.get_residuals();
 
         let jacobians = model.get_jacobian();
-        let normalization_method = self.residuals_config.get_update_method();
+        let normalization_method = self.residuals_config.get_update_methods();
         jacobians.normalize(&residuals_values, &normalization_method)
     }
 

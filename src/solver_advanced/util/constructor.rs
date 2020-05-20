@@ -145,6 +145,10 @@ fn parse_residual_node(residual_node: &Element) -> (usize, residuals::ResidualCo
                 _       => panic!("The attribute \"update_method\" at the iterative node id = {} has an improper values, valid values are \"Abs\", \"Rel\" and \"Adapt\"", id),
             };
 
+    let res_config = residuals::ResidualConfig::new(stopping_critera, update_method);
+
+    (id, res_config)
+
 }
 
 fn parse_int_attribute(node: &Element, attribute: &str, node_info: &str) -> usize {
@@ -208,8 +212,8 @@ mod tests {
     #[test]
     fn parsing_iterative_node_1() {
         const DATA: &'static str = r#"<iterative id="0" max_step_abs="10" max_step_rel="0.4" min_value="-inf", max_value="inf"/>"#;
-        let solver_node: Element = DATA.parse().unwrap();
-        let (id, iterative) = parse_iterative_node(&solver_node);
+        let iterative_node: Element = DATA.parse().unwrap();
+        let (id, iterative) = parse_iterative_node(&iterative_node);
         assert_eq!(id, 0);
 
         let iterative_ref = iteratives::IterativeParams::new(10.0, 0.4, f64::NEG_INFINITY, f64::INFINITY);
@@ -220,19 +224,15 @@ mod tests {
     #[should_panic(expected = "max_step_rel must be strictly positive, provided value was -0.4")]
     fn parsing_iterative_node_2() {
         const DATA: &'static str = r#"<iterative id="0" max_step_abs="10" max_step_rel="-0.4" min_value="-inf", max_value="inf"/>"#;
-        let solver_node: Element = DATA.parse().unwrap();
-        let (id, iterative) = parse_iterative_node(&solver_node);
-        assert_eq!(id, 0);
-
-        let iterative_ref = iteratives::IterativeParams::new(10.0, 0.4, f64::NEG_INFINITY, f64::INFINITY);
-        assert_eq!(iterative, iterative_ref);
+        let iterative_node: Element = DATA.parse().unwrap();
+        let (id, iterative) = parse_iterative_node(&iterative_node);
     }
 
     #[test]
     fn parsing_iterative_fd_node_1() {
         const DATA: &'static str = r#"<iterative id="0" max_step_abs="10" max_step_rel="0.4" min_value="-inf" max_value="inf" dx_abs="0.1" dx_rel="0.2" perturbation_method="Max"/>"#;
-        let solver_node: Element = DATA.parse().unwrap();
-        let (id, iterative) = parse_iterative_fd_node(&solver_node);
+        let iterative_node: Element = DATA.parse().unwrap();
+        let (id, iterative) = parse_iterative_fd_node(&iterative_node);
         assert_eq!(id, 0);
 
         let iterative_ref = iteratives::IterativeParamsFD::new(10.0, 0.4, f64::NEG_INFINITY, f64::INFINITY, 0.1, 0.2, iteratives::PerturbationMethod::Max);
@@ -241,8 +241,8 @@ mod tests {
     #[test]
     fn parsing_iterative_fd_node_2() {
         const DATA: &'static str = r#"<iterative id="0" max_step_abs="10" max_step_rel="0.4" min_value="-inf" max_value="inf" dx_abs="0.1" dx_rel="0.2" perturbation_method="Sum"/>"#;
-        let solver_node: Element = DATA.parse().unwrap();
-        let (id, iterative) = parse_iterative_fd_node(&solver_node);
+        let iterative_node: Element = DATA.parse().unwrap();
+        let (id, iterative) = parse_iterative_fd_node(&iterative_node);
         assert_eq!(id, 0);
 
         let iterative_ref = iteratives::IterativeParamsFD::new(10.0, 0.4, f64::NEG_INFINITY, f64::INFINITY, 0.1, 0.2, iteratives::PerturbationMethod::Sum);
@@ -253,11 +253,19 @@ mod tests {
     #[should_panic(expected = "The attribute \"perturbation_method\" at the iterative node id = 0 has an improper values, valid values are \"Sum\" and \"Max\"")]
     fn parsing_iterative_fd_node_3() {
         const DATA: &'static str = r#"<iterative id="0" max_step_abs="10" max_step_rel="0.4" min_value="-inf" max_value="inf" dx_abs="0.1" dx_rel="0.2" perturbation_method="max"/>"#;
-        let solver_node: Element = DATA.parse().unwrap();
-        let (id, iterative) = parse_iterative_fd_node(&solver_node);
+        let iterative_node: Element = DATA.parse().unwrap();
+        let (id, iterative) = parse_iterative_fd_node(&iterative_node);
+
+    }
+
+    #[test]
+    fn parsing_residual_node_1() {
+        const DATA: &'static str = r#"<residual id="0" stopping_criteria="Adapt" update_method="Abs"/>"#;
+        let residual_node: Element = DATA.parse().unwrap();
+        let (id, residual) = parse_residual_node(&residual_node);
         assert_eq!(id, 0);
 
-        let iterative_ref = iteratives::IterativeParamsFD::new(10.0, 0.4, f64::NEG_INFINITY, f64::INFINITY, 0.1, 0.2, iteratives::PerturbationMethod::Max);
-        assert_eq!(iterative, iterative_ref);
+        let residual_ref = residuals::ResidualConfig::new(residuals::NormalizationMethod::Adapt,residuals::NormalizationMethod::Abs);
+        assert_eq!(residual, residual_ref);
     }
 }

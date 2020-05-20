@@ -22,7 +22,7 @@ fn jacobian_evaluation_non_linear() {
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
-    let res_config = residuals::ResidualsConfig::new(stopping_residuals, update_residuals);
+    let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![0.0001; problem_size]);
     let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
 

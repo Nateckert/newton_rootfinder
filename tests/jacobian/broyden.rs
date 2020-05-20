@@ -21,7 +21,7 @@ fn jacobian_evaluation_broyden1965_case5() {
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
-    let res_config = residuals::ResidualsConfig::new(stopping_residuals, update_residuals);
+    let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
     let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case5_jac(&inputs);
@@ -40,7 +40,7 @@ fn jacobian_evaluation_broyden1965_case6() {
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
-    let res_config = residuals::ResidualsConfig::new(stopping_residuals, update_residuals);
+    let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
     let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case6_jac(&inputs);
@@ -63,7 +63,7 @@ fn jacobian_evaluation_broyden1965_case7() {
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
-    let res_config = residuals::ResidualsConfig::new(stopping_residuals, update_residuals);
+    let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
     let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case7_jac(&inputs);
@@ -83,7 +83,7 @@ fn jacobian_evaluation_broyden1965_case8() {
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
-    let res_config = residuals::ResidualsConfig::new(stopping_residuals, update_residuals);
+    let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
     let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case8_jac(&inputs);
@@ -103,7 +103,7 @@ fn jacobian_evaluation_broyden1965_case9() {
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
-    let res_config = residuals::ResidualsConfig::new(stopping_residuals, update_residuals);
+    let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
     let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case9_jac(&inputs);
@@ -123,7 +123,7 @@ fn jacobian_evaluation_broyden1965_case10() {
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
-    let res_config = residuals::ResidualsConfig::new(stopping_residuals, update_residuals);
+    let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
     let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case10_jac(&inputs);

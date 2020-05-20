@@ -75,12 +75,18 @@ fn solvers_comparison(c: &mut Criterion) {
     let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
     let vec_iter_params = nrf::iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = nrf::iteratives::Iteratives::new(&vec_iter_params);
-    let mut nrf = nrf::solver::default_with_guess(init_guess.clone(), iter_params);
+    let stopping_residuals = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+    let update_methods = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+    let res_config = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
+    let mut nrf = nrf::solver::default_with_guess(init_guess.clone(), iter_params, res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2_nalg);
 
     let vec_iter_params_jac = nrf::iteratives::default_vec_iteratives(problem_size);
     let iter_params_jac = nrf::iteratives::Iteratives::new(&vec_iter_params_jac);
-    let mut nrf_jac = nrf::solver::default_with_guess(init_guess.clone(), iter_params_jac);
+    let stopping_residuals_jac = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+    let update_methods_jac = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+    let res_config_jac = nrf::residuals::ResidualsConfig::new(&stopping_residuals_jac, &update_methods_jac);
+    let mut nrf_jac = nrf::solver::default_with_guess(init_guess.clone(), iter_params_jac, res_config_jac);
     let mut user_model_jac =
         nrf::model::UserModelWithFuncJac::new(problem_size, square2_nalg, dsquare2_nalg);
 
