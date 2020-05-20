@@ -4,8 +4,8 @@ use newton_rootfinder::solver_advanced as nrf;
 
 extern crate nalgebra;
 use nrf::iteratives;
-use nrf::residuals;
 use nrf::model::Model;
+use nrf::residuals;
 
 #[test]
 fn broyden_case5_fd() {
@@ -291,7 +291,8 @@ fn broyden_case10_fd() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case10(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case10(), iter_params, res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case10);
 
     rf.solve(&mut user_model);
@@ -316,7 +317,8 @@ fn broyden_case10_jac() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case10(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case10(), iter_params, res_config);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(
         problem_size,
         broyden1965_case10,

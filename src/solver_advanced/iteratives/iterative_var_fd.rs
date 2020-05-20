@@ -100,7 +100,12 @@ impl IterativeParamsFD {
     }
 
     /// Transform a IterativeParms and extend it into a IterativeFDParams
-    pub fn extend(iterative_params: IterativeParams, dx_abs: f64, dx_rel: f64, perturbation_method: PerturbationMethod) -> Self {
+    pub fn extend(
+        iterative_params: IterativeParams,
+        dx_abs: f64,
+        dx_rel: f64,
+        perturbation_method: PerturbationMethod,
+    ) -> Self {
         if dx_abs <= 0.0 {
             panic!(
                 "dx_abs must be strictly positive, provided value was {}",

@@ -3,8 +3,8 @@ extern crate newton_rootfinder;
 use newton_rootfinder::solver_advanced as nrf;
 
 use nrf::iteratives;
-use nrf::residuals;
-use nrf::model::Model; // trait import
+use nrf::model::Model;
+use nrf::residuals; // trait import
 
 use crate::common::polynom;
 

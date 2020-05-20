@@ -17,11 +17,7 @@ impl Default for ResidualConfig {
 }
 
 impl ResidualConfig {
-    pub fn new(
-        stopping_critera: NormalizationMethod,
-        update_method: NormalizationMethod,
-    ) -> Self {
-
+    pub fn new(stopping_critera: NormalizationMethod, update_method: NormalizationMethod) -> Self {
         ResidualConfig {
             stopping_critera,
             update_method,
@@ -43,18 +39,29 @@ pub struct ResidualsConfig<'a> {
 }
 
 impl<'a> ResidualsConfig<'a> {
-
-    pub fn new(stopping_criterias: &'a [NormalizationMethod], update_methods: &'a [NormalizationMethod]) -> Self {
-
+    pub fn new(
+        stopping_criterias: &'a [NormalizationMethod],
+        update_methods: &'a [NormalizationMethod],
+    ) -> Self {
         let length = stopping_criterias.len();
         if stopping_criterias.len() != update_methods.len() {
-            panic!("Dimension mismatch between stopping_criteras and update_methods {} != {}", stopping_criterias.len(), update_methods.len());
+            panic!(
+                "Dimension mismatch between stopping_criteras and update_methods {} != {}",
+                stopping_criterias.len(),
+                update_methods.len()
+            );
         }
 
-        ResidualsConfig { stopping_criterias, update_methods, length }
+        ResidualsConfig {
+            stopping_criterias,
+            update_methods,
+            length,
+        }
     }
 
-    pub fn convert_vec(residuals_config: Vec<ResidualConfig>) -> (Vec<NormalizationMethod>, Vec<NormalizationMethod>) {
+    pub fn convert_vec(
+        residuals_config: Vec<ResidualConfig>,
+    ) -> (Vec<NormalizationMethod>, Vec<NormalizationMethod>) {
         let length = residuals_config.len();
         let mut stopping_criterias = Vec::with_capacity(length);
         let mut update_methods = Vec::with_capacity(length);
@@ -72,8 +79,7 @@ impl<'a> ResidualsConfig<'a> {
     }
 
     pub fn evaluate_update_residuals(&self, values: &ResidualsValues) -> nalgebra::DVector<f64> {
-        let mut update_residuals: nalgebra::DVector<f64> =
-            nalgebra::DVector::zeros(self.len());
+        let mut update_residuals: nalgebra::DVector<f64> = nalgebra::DVector::zeros(self.len());
 
         for (i, &update_method) in self.update_methods.iter().enumerate() {
             let (left, right) = values.get_values(i);
@@ -83,8 +89,7 @@ impl<'a> ResidualsConfig<'a> {
     }
 
     pub fn evaluate_stopping_residuals(&self, values: &ResidualsValues) -> nalgebra::DVector<f64> {
-        let mut stopping_residuals: nalgebra::DVector<f64> =
-            nalgebra::DVector::zeros(self.len());
+        let mut stopping_residuals: nalgebra::DVector<f64> = nalgebra::DVector::zeros(self.len());
 
         for (i, &stopping_criteria) in self.stopping_criterias.iter().enumerate() {
             let (left, right) = values.get_values(i);
@@ -101,7 +106,6 @@ impl<'a> ResidualsConfig<'a> {
         self.stopping_criterias
     }
 }
-
 
 impl<'a> fmt::Display for ResidualsConfig<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
