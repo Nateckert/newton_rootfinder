@@ -59,7 +59,7 @@ impl<'a> ResidualsConfig<'a> {
         }
     }
 
-    pub fn convert_vec(
+    pub fn convert_into_vecs(
         residuals_config: Vec<ResidualConfig>,
     ) -> (Vec<NormalizationMethod>, Vec<NormalizationMethod>) {
         let length = residuals_config.len();

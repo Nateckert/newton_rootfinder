@@ -27,7 +27,7 @@ use super::Iterative;
 use super::IterativeParams;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PerturbationMethod {
     Max,
     Sum,
@@ -97,6 +97,22 @@ impl IterativeParamsFD {
             dx_abs,
             dx_rel,
         }
+    }
+
+    pub fn get_dx_abs(&self) -> f64 {
+        self.dx_abs
+    }
+
+    pub fn get_dx_rel(&self) -> f64 {
+        self.dx_rel
+    }
+
+    pub fn get_perturbation_method(&self) -> PerturbationMethod {
+        self.perturbation_method
+    }
+
+    pub fn get_iterative_params(&self) -> &IterativeParams {
+        &self.iterative_params
     }
 
     /// Transform a IterativeParms and extend it into a IterativeFDParams

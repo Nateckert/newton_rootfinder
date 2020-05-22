@@ -38,6 +38,22 @@ impl IterativeParams {
             max_value,
         }
     }
+
+    pub fn get_min_value(&self) -> f64 {
+        self.min_value
+    }
+
+    pub fn get_max_value(&self) -> f64 {
+        self.max_value
+    }
+
+    pub fn get_max_step_abs(&self) -> f64 {
+        self.max_step_abs
+    }
+
+    pub fn get_max_step_rel(&self) -> f64 {
+        self.max_step_rel
+    }
 }
 
 impl Default for IterativeParams {
