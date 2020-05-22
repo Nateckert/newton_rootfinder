@@ -48,6 +48,45 @@ use crate::solver_advanced::model;
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::util::jacobian;
 
+// A minimal struct holding the resolution parameters
+pub struct SolverParameters {
+    problem_size: usize,
+    tolerance: f64,
+    max_iter: usize,
+    damping: bool,
+}
+
+impl SolverParameters {
+    pub fn new(problem_size: usize, tolerance: f64, max_iter: usize, damping: bool) -> Self {
+        SolverParameters {
+            problem_size,
+            tolerance,
+            max_iter,
+            damping,
+        }
+    }
+
+    pub fn get_problem_size(&self) -> usize {
+        self.problem_size
+    }
+
+    pub fn get_tolerance(&self) -> f64 {
+        self.tolerance
+    }
+
+    pub fn get_max_iter(&self) -> usize {
+        self.max_iter
+    }
+
+    pub fn get_damping(&self) -> bool {
+        self.damping
+    }
+
+    pub fn set_damping(&mut self, damping: bool) {
+        self.damping = damping;
+    }
+}
+
 /// Solver for rootfinding
 ///
 /// The solver operates on the model and mutate it
@@ -59,14 +98,11 @@ pub struct RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
 {
+    parameters: SolverParameters,
     initial_guess: nalgebra::DVector<f64>,
     iters_params: iteratives::Iteratives<'a, T>,
     residuals_config: residuals::ResidualsConfig<'a>,
-    problem_size: usize,
-    tolerance: f64,
-    max_iter: usize,
     iter: usize,
-    damping: bool,
     debug: bool,
     solver_log: super::log::SolverLog,
 }
@@ -84,6 +120,8 @@ where
         max_iter: usize,
     ) -> Self {
         let damping = false;
+
+        let parameters = SolverParameters::new(problem_size, tolerance, max_iter, damping);
         let debug = false;
         let solver_log = super::log::SolverLog::new();
         let iter = 0;
@@ -111,14 +149,11 @@ where
         }
 
         RootFinder {
+            parameters,
             initial_guess,
             iters_params,
             residuals_config,
-            problem_size,
-            tolerance,
-            max_iter,
             iter,
-            damping,
             debug,
             solver_log,
         }
@@ -141,7 +176,7 @@ where
     /// If it is not the case, a factor is applied
     /// (the value might change according to the versions).
     pub fn set_damping(&mut self, damping: bool) {
-        self.damping = damping;
+        self.parameters.set_damping(damping);
     }
 
     /// Activate the gathering of the log informations
@@ -197,7 +232,7 @@ where
 
         let perturbations = self
             .iters_params
-            .compute_perturbations(&iters_values, self.problem_size);
+            .compute_perturbations(&iters_values, self.parameters.get_problem_size());
 
         jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config))
     }
@@ -222,7 +257,7 @@ where
         let iter_values = model.get_iteratives();
 
         self.iters_params
-            .step_limitations(&iter_values, &raw_step, self.problem_size)
+            .step_limitations(&iter_values, &raw_step, self.parameters.get_problem_size())
     }
 
     fn update_model<M: model::Model>(
@@ -242,7 +277,7 @@ where
             self.iteration_to_log(model, &errors_next);
         }
 
-        if self.damping {
+        if self.parameters.get_damping() {
             let max_error_next = errors_next.amax();
             if max_error_next > max_error {
                 // update formula : X = X - damping_factor*res/jac
@@ -279,7 +314,9 @@ where
             self.iteration_to_log(model, &errors);
         }
 
-        while max_error > self.tolerance && self.iter < self.max_iter {
+        while max_error > self.parameters.get_tolerance()
+            && self.iter < self.parameters.get_max_iter()
+        {
             self.iter += 1;
             let proposed_guess = self.compute_next(model);
             errors = self.update_model(model, &proposed_guess);
@@ -290,8 +327,8 @@ where
     // Writing of simulation log
     fn parameters_to_log(&mut self) {
         let parameters = super::log::Parameters::new(
-            &self.max_iter.to_string(),
-            &self.tolerance.to_string(),
+            &self.parameters.get_max_iter().to_string(),
+            &self.parameters.get_tolerance().to_string(),
             &self.residuals_config.to_string(),
             &self.iters_params.to_string(),
             &self.initial_guess.to_string(),

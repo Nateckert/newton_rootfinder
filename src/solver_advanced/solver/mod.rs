@@ -10,3 +10,4 @@ mod solver_advanced;
 
 pub use default::default_with_guess;
 pub use solver_advanced::RootFinder;
+pub use solver_advanced::SolverParameters;
