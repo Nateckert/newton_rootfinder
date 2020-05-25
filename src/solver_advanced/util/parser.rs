@@ -427,15 +427,19 @@ fn parse_id(node: &Element, expected_id: usize, node_info: &str) -> usize {
 
 fn parse_int_attribute(node: &Element, attribute: &str, node_info: &str) -> usize {
     node.attr(attribute)
-        .unwrap_or_else(|| panic!(
-            "The attribute \"{}\" is missing in the {}",
-            attribute, node_info
-        ))
+        .unwrap_or_else(|| {
+            panic!(
+                "The attribute \"{}\" is missing in the {}",
+                attribute, node_info
+            )
+        })
         .parse::<usize>()
-        .unwrap_or_else(|_| panic!(
-            "The attribute \"{}\" is not a valid positive integer",
-            attribute
-        ))
+        .unwrap_or_else(|_| {
+            panic!(
+                "The attribute \"{}\" is not a valid positive integer",
+                attribute
+            )
+        })
 }
 
 fn parse_float_attribute(node: &Element, attribute: &str, node_info: &str) -> f64 {

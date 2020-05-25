@@ -3,6 +3,7 @@ use std::fmt;
 extern crate nalgebra;
 
 use super::RootFinder;
+use super::SolverParameters;
 use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 
@@ -50,14 +51,14 @@ use crate::solver_advanced::residuals;
 ///   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 ///   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
 ///
-///   let mut rf_fd = nrf::solver::default_with_guess(init_guess_fd, iter_params_fd, res_config_fd);
-///   let mut rf = nrf::solver::default_with_guess(init_guess, iter_params, res_config);
+///   let mut rf_fd = nrf::solver::default_with_guess(init_guess_fd, &iter_params_fd, &res_config_fd);
+///   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
 /// }
 /// ```
 pub fn default_with_guess<'a, T>(
     initial_guess: nalgebra::DVector<f64>,
-    iters_params: iteratives::Iteratives<'a, T>,
-    residuals_config: residuals::ResidualsConfig<'a>,
+    iters_params: &'a iteratives::Iteratives<'a, T>,
+    residuals_config: &'a residuals::ResidualsConfig<'a>,
 ) -> RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
@@ -65,13 +66,8 @@ where
     let problem_size = initial_guess.len();
     let tolerance: f64 = 1e-6;
     let max_iter: usize = 50;
+    let damping = false;
+    let parameters = SolverParameters::new(problem_size, tolerance, max_iter, damping);
 
-    RootFinder::new(
-        initial_guess,
-        iters_params,
-        residuals_config,
-        problem_size,
-        tolerance,
-        max_iter,
-    )
+    RootFinder::new(parameters, initial_guess, iters_params, residuals_config)
 }

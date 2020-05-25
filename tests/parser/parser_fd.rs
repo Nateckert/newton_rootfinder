@@ -7,8 +7,6 @@ use nrf::util;
 
 #[test]
 fn parse_file() {
-    //let path = env::current_dir().unwrap();
-    //println!("The current directory is {}", path.display());
     const FILEPATH: &'static str = "./tests/parser/data_fd.xml";
     let (solver_parameters, iteratives_parsed, stopping_criterias, update_methods) =
         util::from_xml_finite_diff(&FILEPATH);

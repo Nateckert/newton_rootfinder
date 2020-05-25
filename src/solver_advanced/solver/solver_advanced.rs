@@ -26,7 +26,7 @@
 //!   let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-//!   let mut rf = nrf::solver::default_with_guess(init_guess, iter_params, res_config);
+//!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
 //!   let mut user_model =
 //!       nrf::model::UserModelWithFunc::new(problem_size, square2);
 //!
@@ -100,8 +100,8 @@ where
 {
     parameters: SolverParameters,
     initial_guess: nalgebra::DVector<f64>,
-    iters_params: iteratives::Iteratives<'a, T>,
-    residuals_config: residuals::ResidualsConfig<'a>,
+    iters_params: &'a iteratives::Iteratives<'a, T>,
+    residuals_config: &'a residuals::ResidualsConfig<'a>,
     iter: usize,
     debug: bool,
     solver_log: super::log::SolverLog,
@@ -112,39 +112,34 @@ where
     T: Iterative + fmt::Display,
 {
     pub fn new(
+        parameters: SolverParameters,
         initial_guess: nalgebra::DVector<f64>,
-        iters_params: iteratives::Iteratives<'a, T>,
-        residuals_config: residuals::ResidualsConfig<'a>,
-        problem_size: usize,
-        tolerance: f64,
-        max_iter: usize,
+        iters_params: &'a iteratives::Iteratives<'a, T>,
+        residuals_config: &'a residuals::ResidualsConfig<'a>,
     ) -> Self {
-        let damping = false;
-
-        let parameters = SolverParameters::new(problem_size, tolerance, max_iter, damping);
         let debug = false;
         let solver_log = super::log::SolverLog::new();
         let iter = 0;
 
-        if residuals_config.len() != problem_size {
+        if residuals_config.len() != parameters.get_problem_size() {
             panic!(
                 "Dimension mismatch :\n residuals_config.len() = {} and problem_size = {}",
                 residuals_config.len(),
-                problem_size
+                parameters.get_problem_size()
             );
         }
-        if initial_guess.len() != problem_size {
+        if initial_guess.len() != parameters.get_problem_size() {
             panic!(
                 "Dimension mismatch :\n initial_guess.len() = {} and problem_size = {}",
                 initial_guess.len(),
-                problem_size
+                parameters.get_problem_size()
             );
         }
-        if iters_params.len() != problem_size {
+        if iters_params.len() != parameters.get_problem_size() {
             panic!(
                 "Dimension mismatch :\n iters_params.len() = {} and problem_size = {}",
                 iters_params.len(),
-                problem_size
+                parameters.get_problem_size()
             );
         }
 
@@ -204,7 +199,7 @@ where
     /// # let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     /// # let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
-    /// let mut rf = nrf::solver::default_with_guess(init_guess, iter_params, res_config);
+    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
     /// rf.set_debug(true);
     /// rf.solve(&mut user_model);
     /// rf.write_log(&"solver_log.txt");

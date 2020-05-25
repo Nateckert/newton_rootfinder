@@ -15,7 +15,8 @@ fn broyden_case5_fd() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case5(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case5(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case5);
 
     rf.solve(&mut user_model);
@@ -40,7 +41,8 @@ fn broyden_case5_jac() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case5(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case5(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(
         problem_size,
         broyden1965_case5,
@@ -69,7 +71,8 @@ fn broyden_case6_fd() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case6(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case6(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case6);
 
     rf.set_debug(true);
@@ -96,7 +99,8 @@ fn broyden_case6_jac() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case6(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case6(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(
         problem_size,
         broyden1965_case6,
@@ -128,7 +132,8 @@ fn broyden_case7_fd() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case7(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case7(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case7);
 
     rf.solve(&mut user_model);
@@ -153,7 +158,8 @@ fn broyden_case7_jac() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case7(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case7(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(
         problem_size,
         broyden1965_case7,
@@ -182,7 +188,8 @@ fn broyden_case8_fd() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case8(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case8(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
 
     rf.solve(&mut user_model);
@@ -207,7 +214,8 @@ fn broyden_case8_jac() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case8(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case8(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(
         problem_size,
         broyden1965_case8,
@@ -236,7 +244,8 @@ fn broyden_case9_fd() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case9(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case9(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case9);
 
     rf.solve(&mut user_model);
@@ -261,7 +270,8 @@ fn broyden_case9_jac() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_broyden1965_case9(), iter_params, res_config);
+    let mut rf =
+        nrf::solver::default_with_guess(init_broyden1965_case9(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(
         problem_size,
         broyden1965_case9,
@@ -283,7 +293,7 @@ fn broyden_case9_jac() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic] // This panic is unexpected, see file common/broyden1965
 fn broyden_case10_fd() {
     let problem_size = 2;
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
@@ -292,7 +302,7 @@ fn broyden_case10_fd() {
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     let mut rf =
-        nrf::solver::default_with_guess(init_broyden1965_case10(), iter_params, res_config);
+        nrf::solver::default_with_guess(init_broyden1965_case10(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case10);
 
     rf.solve(&mut user_model);
@@ -318,7 +328,7 @@ fn broyden_case10_jac() {
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     let mut rf =
-        nrf::solver::default_with_guess(init_broyden1965_case10(), iter_params, res_config);
+        nrf::solver::default_with_guess(init_broyden1965_case10(), &iter_params, &res_config);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(
         problem_size,
         broyden1965_case10,

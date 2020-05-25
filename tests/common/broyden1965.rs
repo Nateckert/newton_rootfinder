@@ -227,6 +227,8 @@ pub fn broyden1965_case10(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> 
 /// The jacobian is non invertible for jac[(0,1)] = jac[(1,1)]
 /// e.g if -3*(x1**2) + 4*x1 + 6 = 0
 /// e.g if x1 approx 2.23 or -0.8968
+/// | -Inf -0.8968 | -0.8968 2.23 | 2.23 Inf |
+/// |      -       |       +      |     -    |
 pub fn broyden1965_case10_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
     let mut jac = nalgebra::DMatrix::zeros(2, 2);
     jac[(0, 0)] = 1.0;

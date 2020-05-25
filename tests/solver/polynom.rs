@@ -19,7 +19,7 @@ fn square() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_guess, iter_params, res_config);
+    let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
 
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, polynom::square2);
 
@@ -42,7 +42,7 @@ fn root_with_high_derivative() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(init_guess, iter_params, res_config);
+    let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
 
     let mut user_model =
         nrf::model::UserModelWithFunc::new(problem_size, polynom::root_with_high_derivative);
