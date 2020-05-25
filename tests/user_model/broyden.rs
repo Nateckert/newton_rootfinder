@@ -1,6 +1,7 @@
-use crate::common::broyden1965::*;
 extern crate newton_rootfinder;
 use newton_rootfinder::solver_advanced as nrf;
+
+use nrf::test_cases::broyden1965::*;
 
 use crate::common::float_matrix_comparison;
 

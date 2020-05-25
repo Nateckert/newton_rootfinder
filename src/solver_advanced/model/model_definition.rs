@@ -39,7 +39,7 @@ use crate::solver_advanced::residuals;
 ///          Hence, if the jacobian evaluation is made with finite-difference and the memory state not reinitialised in between two evaluation,
 ///          the column order would change the result.
 /// - two functions in case the jacobian is provided by the user.
-///          If the user can compute the jacobian, the evluation will be more efficient than through finite-difference
+///          If the user can compute the jacobian, the evaluation will be more efficient than through finite-difference
 ///          The user must change the `jacobian_provided` method to return true.
 ///          The user must provide the `get_jacobian` method to return the values of the jacobian.
 pub trait Model {

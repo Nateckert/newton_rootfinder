@@ -6,7 +6,7 @@ use nrf::iteratives;
 use nrf::model::Model;
 use nrf::residuals; // trait import
 
-use crate::common::polynom;
+use nrf::test_cases::polynom;
 
 extern crate float_cmp;
 
