@@ -10,6 +10,11 @@ pub struct IterativeParams {
 }
 
 impl IterativeParams {
+    /// The parameters are used by `step_limitation()` method to reduce the size of a step
+    ///
+    /// Both value `max_step_abs` and `max_step_rel` must be positive
+    ///
+    /// The `min_value` must be lower than the `max_value`
     pub fn new(max_step_abs: f64, max_step_rel: f64, min_value: f64, max_value: f64) -> Self {
         if max_step_abs <= 0.0 {
             panic!(
@@ -70,6 +75,17 @@ impl Default for IterativeParams {
 impl Iterative for IterativeParams {
     /// Compute a limited update step
     ///
+    /// The step size is reduced according to the following criteria :
+    ///```ignore
+    /// abs(step_size) < max_step_abs
+    /// abs(step_size) < max_step_rel*abs(iterative_value)
+    ///```
+    /// Also, the step must not violated the constraints on the `min_value` and `max_value` of the iterative variable.
+    ///
+    /// **Warning**:
+    /// setting the parameters max_step_rel to a value different from infinity
+    /// might lead to very reduced step size if the iterative value is near zero.
+    ///
     /// # Examples
     /// ```
     /// extern crate newton_rootfinder;
@@ -86,7 +102,6 @@ impl Iterative for IterativeParams {
     /// assert_eq!(iterative_var.step_limitation(1.5, 0.5), 1.6);
     /// assert_eq!(iterative_var.step_limitation(0.1, 3.0), 0.15000000000000002);
     /// ```
-
     fn step_limitation(&self, value_current: f64, raw_step: f64) -> f64 {
         let max_step = self
             .max_step_abs

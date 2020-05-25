@@ -51,7 +51,7 @@
 //! the user is required to implement the `Model` trait in order to use the solver.
 //! This ensures a reduced number of calls to the function and a better debugging experience if needed.
 //!
-//! It is defined in the `solver` module.
+//! It is defined in the `solver_advanced` module.
 //! Don't hesitate to check in this module documentation for examples.
 //!
 //! The focus of this crate is the development of this solver.

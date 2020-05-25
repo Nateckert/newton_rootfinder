@@ -1,21 +1,27 @@
-//! Iteratives definition
-//!
-//! The iteratives variables are the inputs variables X in f(X) = 0.
-//!
-//! It is not only a float value, that changes during the iterative resolution process.
-//!
-//! One might want to limit the update steps, by either:
-//! - limiting the range of values to avoid non-sense values
-//! - limiting the size of an update step
-
 use std::fmt;
 use std::panic;
 
+/// Iterative definition
+///
+/// One might want to limit the update steps, by either:
+/// - limiting the range of values to avoid non-sense values
+/// - limiting the size of an update step
+///
+/// Two implementations of this trait are provided:
+/// - `IterativeParams`
+/// - `IterativeParamsFD`
 pub trait Iterative {
+    /// Compute the new value based on the current value and the step size proposed
+    ///
+    /// The iteratives variables implement a way to reduce this step according to the parametrization
     fn step_limitation(&self, value_current: f64, raw_step: f64) -> f64;
+    /// Compute the perturbation (only valid if it is working with finite differences)
+    ///
+    /// according to the parametrization
     fn compute_perturbation(&self, #[allow(unused_variables)] x: f64) -> f64 {
         unimplemented!();
     }
+    /// Method to differente without panicking if it is working with finite differences
     fn with_finite_diff(&self) -> bool {
         false
     }
@@ -36,7 +42,8 @@ where
     pub fn len(&self) -> usize {
         self.iteratives_params.len()
     }
-    /// Compute a limited step
+    /// Compute a limited step for several iteratives
+    ///
     /// Return the new value after the application of the step limitation (and not the step)
     /// This is required as it can be limited by an interval for the iteratives.
     pub fn step_limitations(

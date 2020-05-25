@@ -1,14 +1,15 @@
 //! This module defines the iteratives variables
 //!
 //! Iteratives variables are defined through the `Iterative` trait
-//! Two kind of iterative variables are provided :
-//! - IterativeParams
-//! - IterativeParamsFD that extends the previous one to work with finite-difference
 //!
-//! The struct Iteratives (plural) is holding the array or vector of the previous parameters
+//! Two kind of iterative variables are provided :
+//! - `IterativeParams`
+//! - `IterativeParamsFD` that extends the previous one to work with finite-difference
+//!
+//! The struct `Iteratives` (plural) is holding the array or vector of the previous parameters
 //! and is the one that will be used by the solver
 //!
-//! It is possible to create a default Iteratives variables with the following lines:
+//! It is possible to create default iteratives variables with the following lines:
 //!
 //! # Examples
 //! ```

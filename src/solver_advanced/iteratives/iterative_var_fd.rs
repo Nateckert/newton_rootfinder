@@ -1,27 +1,3 @@
-//! Extension of iteratives. FD stands for Iterative Finite-Difference
-//!
-//! In addition to the already defined parameters of an iteratives,
-//! The fact that the jacobian is going to be evaluated with finite-differences
-//! leads to the necessity to parametrize the way the perturbation on the iteratives are made.
-//!
-//! Hence if x is an iterative variable, (x + dx) is used for the jacobian evaluation.
-//!
-//! The parametrization here defines dx with regards to :
-//! - dx_abs: the absolute perturbation step
-//! - dx_rel: the relative perturbation step
-//!
-//! For each case we would have :
-//! - dx = dx_abs
-//! - dx = dx_rel*abs(x)
-//!
-//! The implementation here allows you to choose and combine the formulas:
-//! - dx = max(dx_abs, dx_rel*abs(x))
-//! - dx = dx_abs + dx_rel*abs(x)
-//! This is achieved through the `perturbation_method` field.
-//!
-//! It is also possible to get one of the two basic cases by setting the other to 0:
-//! - dx_abs = 0 implies dx = dx_rel*abs(x)
-//! - dx_rel = 0 implies dx = dx_abs
 
 use super::Iterative;
 use super::IterativeParams;
@@ -44,6 +20,13 @@ impl fmt::Display for PerturbationMethod {
     }
 }
 
+/// Extension of iteratives. FD stands for Finite-Difference
+///
+/// In addition to the already defined parameters of an iteratives,
+/// The fact that the jacobian is going to be evaluated with finite-differences
+/// leads to the necessity to parametrize the way the perturbation on the iteratives are made.
+///
+/// This functionality is provided thourgh the `compute_perturbation()` method
 #[derive(Debug, Clone, PartialEq)]
 pub struct IterativeParamsFD {
     iterative_params: IterativeParams,
@@ -145,11 +128,39 @@ impl IterativeParamsFD {
 }
 
 impl Iterative for IterativeParamsFD {
+    /// Compute a limited update step
+    ///
+    /// This method points is a wrapper around the method of `IterativeParams`.
+    /// Check its documentation for more details
     fn step_limitation(&self, value_current: f64, value_next: f64) -> f64 {
         self.iterative_params
             .step_limitation(value_current, value_next)
     }
 
+    /// Compute the perturbation for finite differences evaluation.
+    ///
+    /// For a given f(x), this method compute the dx to use in the formula:
+    ///```ignore
+    /// df/dx = (f(x+dx)-f(x))/dx
+    ///```
+    ///
+    /// The parametrization here defines dx with regards to :
+    /// - dx_abs: the absolute perturbation step
+    /// - dx_rel: the relative perturbation step
+    ///
+    /// For each case we would have :
+    /// - dx = dx_abs
+    /// - dx = dx_rel*abs(x)
+    ///
+    /// The implementation here allows you to choose and combine the formulas:
+    /// - dx = max(dx_abs, dx_rel*abs(x))
+    /// - dx = dx_abs + dx_rel*abs(x)
+    ///
+    /// This is achieved through the `perturbation_method` field.
+    ///
+    /// It is also possible to get one of the two basic cases by setting the other to 0:
+    /// - dx_abs = 0 implies dx = dx_rel*abs(x)
+    /// - dx_rel = 0 implies dx = dx_abs
     fn compute_perturbation(&self, x: f64) -> f64 {
         match self.perturbation_method {
             PerturbationMethod::Max => (self.dx_abs).max(x.abs() * self.dx_rel),
