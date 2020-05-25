@@ -1,6 +1,15 @@
 use super::{deriv_normalization, NormalizationMethod};
 use std::fmt;
 
+/// Residuals values outputs of the model
+///
+/// This is the expected output of the model in order to be able to interact with the solver
+///
+/// It is containing arrays of:
+/// - the left members of the equations
+/// - the right members of the equations
+///
+/// Once converged, one should have left = right (with a tolerance)
 #[derive(Debug)]
 pub struct ResidualsValues {
     left: nalgebra::DVector<f64>,
@@ -47,6 +56,16 @@ impl ResidualsValues {
     }
 }
 
+/// Residuals jacobian values outputs of the model
+///
+/// This is the expected jacobian output of the model in order to be able to interact with the solver
+///
+/// It is containing arrays of:
+/// - the jacobian left members of the equations
+/// - the jacobian right members of the equations
+///
+/// The jacobian of the left and right members are required,
+/// as the output jacobian value depends of the normalization method and both members are required to compute it
 #[derive(Debug)]
 pub struct JacobianValues {
     left: nalgebra::DMatrix<f64>,

@@ -1,6 +1,11 @@
 use super::{normalization, NormalizationMethod, ResidualsValues};
 use std::fmt;
 
+/// Single residual configuration
+///
+/// A residual is constituded of two elements:
+/// - the way of computing the `stopping_critera` from the left and right part of a residual
+/// - the way of computing the error for the update (`update_method`) used by the rootfinder
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ResidualConfig {
     stopping_critera: NormalizationMethod,
@@ -27,11 +32,23 @@ impl ResidualConfig {
     pub fn get_update_method(self) -> NormalizationMethod {
         self.update_method
     }
-    pub fn get_stopping_critera(self) -> NormalizationMethod {
+    pub fn get_stopping_criteria(self) -> NormalizationMethod {
         self.stopping_critera
     }
 }
 
+/// Residuals configuration used by the solver
+///
+/// The solver is using directly two slices to perform its calculation
+/// - the `update_methods` used for computing the jacobian
+/// - the `stopping_criterias` used to control if another iteration is performed
+///
+/// It is possible to used a `Vec<ResidualConfig>` to create such a struct thanks to the `convert_into_vecs()` method.
+///
+/// However, if the performance is critical for the user,
+/// it should create is own arrays to feed to the `new()` constructor
+/// and not use `ResidualConfig` (singular)
+#[derive(Debug, PartialEq)]
 pub struct ResidualsConfig<'a> {
     stopping_criterias: &'a [NormalizationMethod],
     update_methods: &'a [NormalizationMethod],
@@ -59,6 +76,7 @@ impl<'a> ResidualsConfig<'a> {
         }
     }
 
+    /// Method to generate the vector of `stopping_criteras` and `update_methods` from a vector of `ResidualConfig`
     pub fn convert_into_vecs(
         residuals_config: Vec<ResidualConfig>,
     ) -> (Vec<NormalizationMethod>, Vec<NormalizationMethod>) {
@@ -67,7 +85,7 @@ impl<'a> ResidualsConfig<'a> {
         let mut update_methods = Vec::with_capacity(length);
 
         for elt in residuals_config {
-            stopping_criterias.push(elt.get_stopping_critera());
+            stopping_criterias.push(elt.get_stopping_criteria());
             update_methods.push(elt.get_update_method());
         }
 
@@ -78,6 +96,7 @@ impl<'a> ResidualsConfig<'a> {
         self.length
     }
 
+    /// Evaluation of the value of the update residuals thanks to the `normalization()` function
     pub fn evaluate_update_residuals(&self, values: &ResidualsValues) -> nalgebra::DVector<f64> {
         let mut update_residuals: nalgebra::DVector<f64> = nalgebra::DVector::zeros(self.len());
 
@@ -88,6 +107,7 @@ impl<'a> ResidualsConfig<'a> {
         update_residuals
     }
 
+    /// Evaluation of the value of the stopping residuals thanks to the `normalization()` function
     pub fn evaluate_stopping_residuals(&self, values: &ResidualsValues) -> nalgebra::DVector<f64> {
         let mut stopping_residuals: nalgebra::DVector<f64> = nalgebra::DVector::zeros(self.len());
 

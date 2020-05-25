@@ -1,6 +1,12 @@
 //! Definition of residuals
 //!
-//! It is splitted in-between the left and right terms of the equation
+//! The residuals are splitted between the solver parametrization and the model output:
+//! - `ResidualsConfig` for the solver
+//! - `ResidualsValues` for the model output
+//!
+//! In addition to this two base struct, the following one are introduced:
+//! - `ResidualConfig` to make easier to create the `ResidualsConfig`from a slice of the ladder
+//! - `JacobianValues` to manipulate the jacobian outputs of a model when it is provided (non applicable for finite-differences)
 
 mod config;
 mod values;
@@ -11,6 +17,7 @@ pub use values::ResidualsValues;
 
 use std::fmt;
 
+/// Normalization method used by the `normalization` function.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum NormalizationMethod {
     Abs,
@@ -18,6 +25,7 @@ pub enum NormalizationMethod {
     Adapt,
 }
 
+/// Not used yet
 pub enum StoppingCriteria {
     OutputTol,
     InputTol,
@@ -37,9 +45,21 @@ impl fmt::Display for NormalizationMethod {
 }
 
 /// Compute the residue according to the normalization method
-/// Abs (absolute) is the plain difference evaluation
-/// Rel (relative) is the relative value evaluation
-/// Adapt (adaptative) is designed to behave like Abs for near zero values and like Rel for big values
+///
+/// - Abs (absolute) is the plain difference evaluation
+/// - Rel (relative) is the relative value evaluation
+/// - Adapt (adaptative) is designed to behave like Abs for near zero values and like Rel for big values
+///
+/// The formula are:
+/// - Abs: left - right
+/// - Rel: (left - right)/(abs(left+right)/2)
+/// - Adapt: (left - right)/(1+abs(left+right)/2)
+///
+/// Default of each formula:
+/// - Abs: does not take into account the order of magnitude of the residuals
+/// - Rel: behave poorly if the residual is close to zero
+/// - Adapt: behave poorly if one member of the residual is close to zero and the other one is big, as the value will be close to either -2 or 2.
+///
 /// # Examples
 /// ```
 /// extern crate newton_rootfinder;
@@ -66,7 +86,6 @@ impl fmt::Display for NormalizationMethod {
 /// let big_values_adapt = normalization(101.1, 101.25, NormalizationMethod::Adapt);
 /// assert!(approx_eq!(f64, big_values_adapt, -0.0014680694886225172, ulps = 2));
 /// ```
-
 pub fn normalization(x: f64, y: f64, normalization_method: NormalizationMethod) -> f64 {
     match normalization_method {
         NormalizationMethod::Abs => x - y,
@@ -75,6 +94,9 @@ pub fn normalization(x: f64, y: f64, normalization_method: NormalizationMethod) 
     }
 }
 
+/// Derivation of the normalization method
+///
+/// This method is used when the jacobian is provided by the model and not calculated through finite-difference
 pub fn deriv_normalization(
     x: f64,
     y: f64,
@@ -105,6 +127,24 @@ pub fn deriv_normalization(
     }
 }
 
+/// Default method to construct a residual with Abs values
+///
+/// # Examples
+/// ```
+/// extern crate newton_rootfinder;
+/// use newton_rootfinder::solver_advanced as nrf;
+///
+/// let problem_size = 3;
+/// let stopping_criterias_ref = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+/// let update_methods_ref = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+///
+/// let residuals_default = nrf::residuals::default_vec_residuals(problem_size);
+///
+/// for i in 0..problem_size {
+///     assert_eq!(residuals_default[i].get_stopping_criteria(), stopping_criterias_ref[i]);
+///     assert_eq!(residuals_default[i].get_update_method(), update_methods_ref[i]);
+/// }
+///```
 pub fn default_vec_residuals(size: usize) -> Vec<ResidualConfig> {
     vec![ResidualConfig::default(); size]
 }

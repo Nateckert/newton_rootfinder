@@ -340,7 +340,7 @@ fn parse_residual_node_with_default(
 ) -> residuals::ResidualConfig {
     let stopping_critera = parse_normalization_method_attribute_with_default(
         residual_node,
-        residuals_config_default.get_stopping_critera(),
+        residuals_config_default.get_stopping_criteria(),
         &"stopping_criteria",
         &node_info,
     );

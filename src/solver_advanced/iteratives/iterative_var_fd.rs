@@ -1,4 +1,3 @@
-
 use super::Iterative;
 use super::IterativeParams;
 use std::fmt;
