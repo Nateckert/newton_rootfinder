@@ -1,3 +1,23 @@
+//! Parse a xml configuration file to create a RootFinder
+//! ```xml
+//! <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+//! <nrf>
+//!     <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+//!     <iteratives dx_abs="5e-8" dx_rel="5e-8" min_value="-inf"  max_value="inf" max_step_abs="inf" max_step_rel="inf">
+//!         <iterative id="0" min_value="-inf"  max_value="inf" max_step_abs="100" max_step_rel="0.5"/>
+//!         <iterative id="1" min_value="0"     max_value="inf" max_step_abs="inf" max_step_rel="0.5"/>
+//!         <iterative id="2" min_value="-inf"  max_value="12"  max_step_abs="100" max_step_rel="inf"/>
+//!     </iteratives>
+//!     <residuals stopping_criteria="Abs" update_method="Abs">
+//!         <residual id="0" stopping_criteria="Adapt"     update_method="Abs"/>
+//!         <residual id="1" stopping_criteria="Rel"       update_method="Abs"/>
+//!         <residual id="2" stopping_criteria="Adapt"     update_method="Rel"/>
+//!     </residuals>
+//! </nrf>
+//! ```
+//! The values provided in the iteratives and residuals nodes will act as default values
+//! These values are taken into account only if non are provided for a given iterative or residual
+
 use std::fs;
 extern crate minidom;
 
@@ -7,32 +27,36 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::solver::SolverParameters;
 
-/// Parse a xml configuration file to create a RootFinder
-/// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-/// <nrf>
-///     <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" jacobian_provided="false"/>
-///     <iteratives dx_abs="5e-8" dx_rel="5e-8" min_value="-inf"  max_value="inf" max_step_abs="inf" max_step_rel="inf">
-///         <iterative id="0" min_value="-inf"  max_value="inf" max_step_abs="100" max_step_rel="0.5"/>
-///         <iterative id="1" min_value="0"     max_value="inf" max_step_abs="Inf" max_step_rel="0.5"/>
-///         <iterative id="2" min_value="-inf"  max_value="12"  max_step_abs="100" max_step_rel="inf"/>
-///     </iteratives>
-///     <residuals stopping_criteria="Abs" update_method="Abs">
-///         <residual id="0" stopping_criteria="Adapt"     update_method="Abs"/>
-///         <residual id="1" stopping_criteria="Rel"       update_method="Abs"/>
-///         <residual id="2" stopping_criteria="Adapt"     update_method="Rel"/>
-///     </residuals>
-/// </nrf>
-///
-/// If values are provided in the iteratives and residuals nodes, it will act as default values
-/// These values are taken into account only if non are provided for a given iterative or residual
-///
-pub fn from_xml(filepath: &str) {
-    // -> RootFinder {
+/// Parser for a solver operating with a model with the jacobian provided
+pub fn from_xml_jacobian(
+    filepath: &str,
+) -> (
+    SolverParameters,
+    Vec<iteratives::IterativeParams>,
+    Vec<residuals::NormalizationMethod>,
+    Vec<residuals::NormalizationMethod>,
+) {
     let content = fs::read_to_string(filepath).unwrap();
-    parse_root_node(&content);
+    parse_root_node(&content)
 }
 
-fn parse_root_node(content: &str
+/// Parser for a solver operating with a model with the jacobian not provided
+///
+/// The use of finite difference requires additional parameters for the iteratives variables
+pub fn from_xml_finite_diff(
+    filepath: &str,
+) -> (
+    SolverParameters,
+    Vec<iteratives::IterativeParamsFD>,
+    Vec<residuals::NormalizationMethod>,
+    Vec<residuals::NormalizationMethod>,
+) {
+    let content = fs::read_to_string(filepath).unwrap();
+    parse_root_node_fd(&content)
+}
+
+fn parse_root_node(
+    content: &str,
 ) -> (
     SolverParameters,
     Vec<iteratives::IterativeParams>,
@@ -40,6 +64,10 @@ fn parse_root_node(content: &str
     Vec<residuals::NormalizationMethod>,
 ) {
     let root: Element = content.parse().unwrap();
+    if root.name() != "nrf" {
+        panic!("Expected the first node to be \"nrf\", got {}", root.name());
+    }
+
     let mut tree = root.children();
 
     let solver_node = tree.next().unwrap();
@@ -47,12 +75,25 @@ fn parse_root_node(content: &str
     let parameters = parse_solver_node(solver_node);
 
     let iteratives_node = tree.next().unwrap();
-    check_node_name_and_panic(solver_node, &"iteratives");
-    let iteratives = parse_iteratives_node(solver_node);
+    check_node_name_and_panic(iteratives_node, &"iteratives");
+    let iteratives = parse_iteratives_node(iteratives_node);
 
     let residuals_node = tree.next().unwrap();
     check_node_name_and_panic(residuals_node, &"residuals");
-    let (stopping_criterias, update_methods) = parse_residuals_node(solver_node);
+    let (stopping_criterias, update_methods) = parse_residuals_node(residuals_node);
+
+    if parameters.get_problem_size() != iteratives.len() {
+        panic!("Dimension mismatch, got problem_size = {} and the number of iteratives variables is {}", parameters.get_problem_size(), iteratives.len());
+    }
+
+    if parameters.get_problem_size() != stopping_criterias.len() {
+        panic!(
+            "Dimension mismatch, got problem_size = {} and the number of residuals variables is {}",
+            parameters.get_problem_size(),
+            stopping_criterias.len()
+        );
+    }
+
     (parameters, iteratives, stopping_criterias, update_methods)
 }
 
@@ -64,8 +105,11 @@ fn parse_root_node_fd(
     Vec<residuals::NormalizationMethod>,
     Vec<residuals::NormalizationMethod>,
 ) {
-    //-> RootFinder {
     let root: Element = content.parse().unwrap();
+    if root.name() != "nrf" {
+        panic!("Expected the first node to be \"nrf\", got {}", root.name());
+    }
+
     let mut tree = root.children();
 
     let solver_node = tree.next().unwrap();
@@ -73,12 +117,24 @@ fn parse_root_node_fd(
     let parameters = parse_solver_node(solver_node);
 
     let iteratives_node = tree.next().unwrap();
-    check_node_name_and_panic(solver_node, &"iteratives");
-    let iteratives = parse_iteratives_fd_node(solver_node);
+    check_node_name_and_panic(iteratives_node, &"iteratives");
+    let iteratives = parse_iteratives_fd_node(iteratives_node);
 
     let residuals_node = tree.next().unwrap();
     check_node_name_and_panic(residuals_node, &"residuals");
-    let (stopping_criterias, update_methods) = parse_residuals_node(solver_node);
+    let (stopping_criterias, update_methods) = parse_residuals_node(residuals_node);
+
+    if parameters.get_problem_size() != iteratives.len() {
+        panic!("Dimension mismatch, got problem_size = {} and the number of iteratives variables is {}", parameters.get_problem_size(), iteratives.len());
+    }
+
+    if parameters.get_problem_size() != stopping_criterias.len() {
+        panic!(
+            "Dimension mismatch, got problem_size = {} and the number of residuals variables is {}",
+            parameters.get_problem_size(),
+            stopping_criterias.len()
+        );
+    }
 
     (parameters, iteratives, stopping_criterias, update_methods)
 }
@@ -301,7 +357,7 @@ fn parse_residual_node_with_default(
 fn parse_perturbation_method(node: &Element, node_info: &str) -> iteratives::PerturbationMethod {
     match node
             .attr(&"perturbation_method")
-            .expect(&format!("The attribute \"perturbation_method\" is missing in {}", node_info)) {
+            .unwrap_or_else(|| panic!("The attribute \"perturbation_method\" is missing in {}", node_info)) {
                 "Max" => iteratives::PerturbationMethod::Max,
                 "Sum" => iteratives::PerturbationMethod::Sum,
                 _     => panic!("The attribute \"perturbation_method\" at the {} has an improper values, valid values are \"Sum\" and \"Max\"", node_info),
@@ -331,7 +387,7 @@ fn parse_normalization_method_attribute(
 ) -> residuals::NormalizationMethod {
     match node
             .attr(attribute)
-            .expect(&format!("The attribute \"{}\" is missing in {}", attribute, node_info)) {
+            .unwrap_or_else(|| panic!("The attribute \"{}\" is missing in {}", attribute, node_info)) {
                 "Abs"   => residuals::NormalizationMethod::Abs,
                 "Rel"   => residuals::NormalizationMethod::Rel,
                 "Adapt" => residuals::NormalizationMethod::Adapt,
@@ -371,12 +427,12 @@ fn parse_id(node: &Element, expected_id: usize, node_info: &str) -> usize {
 
 fn parse_int_attribute(node: &Element, attribute: &str, node_info: &str) -> usize {
     node.attr(attribute)
-        .expect(&format!(
+        .unwrap_or_else(|| panic!(
             "The attribute \"{}\" is missing in the {}",
             attribute, node_info
         ))
         .parse::<usize>()
-        .expect(&format!(
+        .unwrap_or_else(|_| panic!(
             "The attribute \"{}\" is not a valid positive integer",
             attribute
         ))
@@ -385,9 +441,9 @@ fn parse_int_attribute(node: &Element, attribute: &str, node_info: &str) -> usiz
 fn parse_float_attribute(node: &Element, attribute: &str, node_info: &str) -> f64 {
     node
         .attr(attribute)
-        .expect(&format!("The attribute \"{}\" is missing in the {}", attribute, node_info))
+        .unwrap_or_else(|| panic!("The attribute \"{}\" is missing in the {}", attribute, node_info))
         .parse::<f64>()
-        .expect(&format!("The attribute \"{}\" is not a valid float, for infinity, the valid values are \"-inf\" and \"inf\" ", attribute))
+        .unwrap_or_else(|_| panic!("The attribute \"{}\" is not a valid float, for infinity, the valid values are \"-inf\" and \"inf\" ", attribute))
 }
 
 fn parse_float_attribute_with_default(
@@ -401,7 +457,7 @@ fn parse_float_attribute_with_default(
                 None => default,
                 Some(value) => value
                             .parse::<f64>()
-                            .expect(&format!("The attribute \"{}\" on node {} is not a valid float, for infinity, the valid values are \"-inf\" and \"inf\" ", attribute, node_info))
+                            .unwrap_or_else(|_| panic!("The attribute \"{}\" on node {} is not a valid float, for infinity, the valid values are \"-inf\" and \"inf\" ", attribute, node_info))
 
             }
 }
@@ -409,7 +465,7 @@ fn parse_float_attribute_with_default(
 fn check_node_name_and_panic(node: &Element, expected_name: &str) {
     if node.name() != expected_name {
         panic!(
-            "The first node is expected to be \"{}\", got {}",
+            "The node is expected to be \"{}\", got {}",
             expected_name,
             node.name()
         );
@@ -428,11 +484,11 @@ mod tests {
         const DATA: &'static str =
             r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let (problem_size, max_iter, tolerance, damping) = parse_solver_node(&solver_node);
-        assert_eq!(problem_size, 3);
-        assert_eq!(max_iter, 60);
-        assert_eq!(tolerance, 1e-6);
-        assert_eq!(damping, true);
+        let solver_parameters = parse_solver_node(&solver_node);
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
     }
     #[test]
     #[should_panic(expected = "The attribute \"problem_size\" is missing in the solver node")]
@@ -440,7 +496,7 @@ mod tests {
         const DATA: &'static str =
             r#"<solver problem_Size="3" max_iter="60" tolerance="1e-6" damping="true"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let (problem_size, max_iter, tolerance, damping) = parse_solver_node(&solver_node);
+        let _solver_parameters = parse_solver_node(&solver_node);
     }
     #[test]
     #[should_panic(expected = "The attribute \"problem_size\" is not a valid positive integer")]
@@ -448,7 +504,7 @@ mod tests {
         const DATA: &'static str =
             r#"<solver problem_size="3.0" max_iter="60" tolerance="1e-6" damping="true"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let (problem_size, max_iter, tolerance, damping) = parse_solver_node(&solver_node);
+        let _solver_parameters = parse_solver_node(&solver_node);
     }
     #[test]
     #[should_panic(expected = "The attribute \"problem_size\" is not a valid positive integer")]
@@ -456,17 +512,17 @@ mod tests {
         const DATA: &'static str =
             r#"<solver problem_size="-3" max_iter="60" tolerance="1e-6" damping="true"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let (problem_size, max_iter, tolerance, damping) = parse_solver_node(&solver_node);
+        let _solver_parameters = parse_solver_node(&solver_node);
     }
     #[test]
     fn parsing_solver_node_5() {
         const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let (problem_size, max_iter, tolerance, damping) = parse_solver_node(&solver_node);
-        assert_eq!(problem_size, 3);
-        assert_eq!(max_iter, 60);
-        assert_eq!(tolerance, 1e-6);
-        assert_eq!(damping, false);
+        let solver_parameters = parse_solver_node(&solver_node);
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), false);
     }
     #[test]
     fn parsing_iterative_node_1() {
@@ -1072,5 +1128,175 @@ mod tests {
             </iteratives>"#;
         let iteratives_node: Element = DATA.parse().unwrap();
         let _iteratives = parse_iteratives_node(&iteratives_node);
+    }
+
+    #[test]
+    fn parsing_root_fd_1() {
+        const DATA: &'static str = r#"
+            <nrf>
+                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+                <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf" dx_abs="5e-8" dx_rel="5e-9" perturbation_method="Max">
+                    <iterative id="0"/>
+                    <iterative id="1"/>
+                    <iterative id="2"/>
+                </iteratives>
+                <residuals stopping_criteria="Abs" update_method="Abs">
+                    <residual id="0" stopping_criteria="Adapt" update_method="Abs"/>
+                    <residual id="1" stopping_criteria="Rel"   update_method="Abs"/>
+                    <residual id="2" stopping_criteria="Adapt" update_method="Rel"/>
+                </residuals>
+            </nrf>"#;
+        let (solver_parameters, iteratives_parsed, stopping_criterias, update_methods) =
+            parse_root_node_fd(&DATA);
+
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
+
+        let iterative_ref = iteratives::IterativeParamsFD::new(
+            f64::INFINITY,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::INFINITY,
+            5e-8,
+            5e-9,
+            iteratives::PerturbationMethod::Max,
+        );
+
+        let iteratives_ref = vec![iterative_ref; 3];
+        assert_eq!(iteratives_parsed, iteratives_ref);
+
+        let stopping_criterias_ref = vec![
+            residuals::NormalizationMethod::Adapt,
+            residuals::NormalizationMethod::Rel,
+            residuals::NormalizationMethod::Adapt,
+        ];
+
+        let update_methods_ref = vec![
+            residuals::NormalizationMethod::Abs,
+            residuals::NormalizationMethod::Abs,
+            residuals::NormalizationMethod::Rel,
+        ];
+
+        assert_eq!(stopping_criterias, stopping_criterias_ref);
+        assert_eq!(update_methods, update_methods_ref);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Dimension mismatch, got problem_size = 4 and the number of iteratives variables is 3"
+    )]
+    fn parsing_root_fd_2() {
+        const DATA: &'static str = r#"
+            <nrf>
+                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true"/>
+                <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf" dx_abs="5e-8" dx_rel="5e-9" perturbation_method="Max">
+                    <iterative id="0"/>
+                    <iterative id="1"/>
+                    <iterative id="2"/>
+                </iteratives>
+                <residuals stopping_criteria="Abs" update_method="Abs">
+                    <residual id="0" stopping_criteria="Adapt" update_method="Abs"/>
+                    <residual id="1" stopping_criteria="Rel"   update_method="Abs"/>
+                    <residual id="2" stopping_criteria="Adapt" update_method="Rel"/>
+                </residuals>
+            </nrf>"#;
+        let (_solver_parameters, _iteratives_parsed, _stopping_criterias, _update_methods) =
+            parse_root_node_fd(&DATA);
+    }
+
+    #[test]
+    fn parsing_root_1() {
+        const DATA: &'static str = r#"
+            <nrf>
+                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+                <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf">
+                    <iterative id="0"/>
+                    <iterative id="1"/>
+                    <iterative id="2"/>
+                </iteratives>
+                <residuals stopping_criteria="Abs" update_method="Abs">
+                    <residual id="0" stopping_criteria="Adapt" update_method="Abs"/>
+                    <residual id="1" stopping_criteria="Rel"   update_method="Abs"/>
+                    <residual id="2" stopping_criteria="Adapt" update_method="Rel"/>
+                </residuals>
+            </nrf>"#;
+        let (solver_parameters, iteratives_parsed, stopping_criterias, update_methods) =
+            parse_root_node(&DATA);
+
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
+
+        let iterative_ref = iteratives::IterativeParams::new(
+            f64::INFINITY,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::INFINITY,
+        );
+
+        let iteratives_ref = vec![iterative_ref; 3];
+        assert_eq!(iteratives_parsed, iteratives_ref);
+
+        let stopping_criterias_ref = vec![
+            residuals::NormalizationMethod::Adapt,
+            residuals::NormalizationMethod::Rel,
+            residuals::NormalizationMethod::Adapt,
+        ];
+
+        let update_methods_ref = vec![
+            residuals::NormalizationMethod::Abs,
+            residuals::NormalizationMethod::Abs,
+            residuals::NormalizationMethod::Rel,
+        ];
+
+        assert_eq!(stopping_criterias, stopping_criterias_ref);
+        assert_eq!(update_methods, update_methods_ref);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Dimension mismatch, got problem_size = 4 and the number of iteratives variables is 3"
+    )]
+    fn parsing_root_2() {
+        const DATA: &'static str = r#"
+            <nrf>
+                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true"/>
+                <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf">
+                    <iterative id="0"/>
+                    <iterative id="1"/>
+                    <iterative id="2"/>
+                </iteratives>
+                <residuals stopping_criteria="Abs" update_method="Abs">
+                    <residual id="0" stopping_criteria="Adapt" update_method="Abs"/>
+                    <residual id="1" stopping_criteria="Rel"   update_method="Abs"/>
+                    <residual id="2" stopping_criteria="Adapt" update_method="Rel"/>
+                </residuals>
+            </nrf>"#;
+        let (_solver_parameters, _iteratives_parsed, _stopping_criterias, _update_methods) =
+            parse_root_node(&DATA);
+    }
+
+    #[test]
+    #[should_panic(expected = "The attribute \"dx_abs\" is missing in the iteratives node")]
+    fn parsing_root_with_root_fd() {
+        const DATA: &'static str = r#"
+            <nrf>
+                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true"/>
+                <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf">
+                    <iterative id="0"/>
+                    <iterative id="1"/>
+                    <iterative id="2"/>
+                </iteratives>
+                <residuals stopping_criteria="Abs" update_method="Abs">
+                    <residual id="0" stopping_criteria="Adapt" update_method="Abs"/>
+                    <residual id="1" stopping_criteria="Rel"   update_method="Abs"/>
+                    <residual id="2" stopping_criteria="Adapt" update_method="Rel"/>
+                </residuals>
+            </nrf>"#;
+        let (_solver_parameters, _iteratives_parsed, _stopping_criterias, _update_methods) =
+            parse_root_node_fd(&DATA);
     }
 }

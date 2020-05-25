@@ -24,10 +24,10 @@ impl ResidualConfig {
         }
     }
 
-    pub fn get_update_method(&self) -> NormalizationMethod {
+    pub fn get_update_method(self) -> NormalizationMethod {
         self.update_method
     }
-    pub fn get_stopping_critera(&self) -> NormalizationMethod {
+    pub fn get_stopping_critera(self) -> NormalizationMethod {
         self.stopping_critera
     }
 }

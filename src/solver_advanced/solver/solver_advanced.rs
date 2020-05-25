@@ -256,8 +256,11 @@ where
 
         let iter_values = model.get_iteratives();
 
-        self.iters_params
-            .step_limitations(&iter_values, &raw_step, self.parameters.get_problem_size())
+        self.iters_params.step_limitations(
+            &iter_values,
+            &raw_step,
+            self.parameters.get_problem_size(),
+        )
     }
 
     fn update_model<M: model::Model>(
