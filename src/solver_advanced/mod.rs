@@ -114,4 +114,5 @@ pub mod iteratives;
 pub mod model;
 pub mod residuals;
 pub mod solver;
+pub mod test_cases;
 pub mod util;

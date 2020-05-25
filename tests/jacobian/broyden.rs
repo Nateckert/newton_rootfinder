@@ -4,8 +4,8 @@ use nrf::model::Model;
 use nrf::residuals;
 use nrf::util::jacobian;
 
-use crate::common::broyden1965;
 use crate::common::float_matrix_comparison;
+use nrf::test_cases::broyden1965;
 
 extern crate float_cmp;
 extern crate nalgebra;

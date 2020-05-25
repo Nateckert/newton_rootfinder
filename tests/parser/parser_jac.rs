@@ -8,7 +8,7 @@ use nrf::residuals;
 fn parse_file() {
     const FILEPATH: &'static str = "./tests/parser/data_jac.xml";
     let (solver_parameters, iteratives_parsed, stopping_criterias, update_methods) =
-        nrf::solver::from_xml_jacobian(&FILEPATH);
+        nrf::util::from_xml_jacobian(&FILEPATH);
 
     assert_eq!(solver_parameters.get_problem_size(), 3);
     assert_eq!(solver_parameters.get_max_iter(), 60);
