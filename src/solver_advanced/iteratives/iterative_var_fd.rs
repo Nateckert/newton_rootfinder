@@ -3,6 +3,7 @@ use super::Iterative;
 use super::IterativeParams;
 use std::fmt;
 
+/// Perturbation method used for the `compute_perturbation()` by the `IterativeParamsFD` struct
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PerturbationMethod {
     Max,
@@ -26,7 +27,7 @@ impl fmt::Display for PerturbationMethod {
 /// The fact that the jacobian is going to be evaluated with finite-differences
 /// leads to the necessity to parametrize the way the perturbation on the iteratives are made.
 ///
-/// This functionality is provided thourgh the `compute_perturbation()` method
+/// This functionality is provided thourgh the `compute_perturbation()` method of the `Iterative` trait
 #[derive(Debug, Clone, PartialEq)]
 pub struct IterativeParamsFD {
     iterative_params: IterativeParams,
@@ -98,7 +99,7 @@ impl IterativeParamsFD {
         &self.iterative_params
     }
 
-    /// Transform a IterativeParms and extend it into a IterativeFDParams
+    /// Transform a IterativeParms and extend it into a IterativeParamsFD
     pub fn extend(
         iterative_params: IterativeParams,
         dx_abs: f64,
