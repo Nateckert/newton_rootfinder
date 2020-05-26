@@ -1,6 +1,9 @@
 use super::Iterative;
 use std::fmt;
 
+/// The parameters of an iterative variable
+///
+/// This parameters are used by the `step_limitation()` method from the `Iterative` trait to reduce the size of a step
 #[derive(Debug, Clone, PartialEq)]
 pub struct IterativeParams {
     max_step_abs: f64,
@@ -10,7 +13,7 @@ pub struct IterativeParams {
 }
 
 impl IterativeParams {
-    /// The parameters are used by `step_limitation()` method to reduce the size of a step
+    /// The parameters are used by the `step_limitation()` method from the `Iterative` trait to reduce the size of a step
     ///
     /// Both value `max_step_abs` and `max_step_rel` must be positive
     ///

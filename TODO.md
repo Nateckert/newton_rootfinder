@@ -18,10 +18,8 @@ Implement others methods : Broyden, ... (see paper in tests/common/spedicato1966
 Make the solver available from Python
 Introduce substitution methods
 Introduce inequalities
-Introduce damping
 Introduce debugging : solver log and others variables computation.
 Make it more generic to avoid enforcing the function having to be nalgebra vectors
-Introduce reading xml configuration files for iteratives and residuals
 
 ## Documentation
 

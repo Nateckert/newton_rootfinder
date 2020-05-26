@@ -2,7 +2,7 @@ use super::Iterative;
 use super::IterativeParams;
 use std::fmt;
 
-/// Perturbation method used for the `compute_perturbation()` by the `IterativeParamsFD` struct
+/// Perturbation method used for the `compute_perturbation()` method from the `Iterative` trait by the `IterativeParamsFD` struct
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PerturbationMethod {
     Max,
@@ -80,6 +80,22 @@ impl IterativeParamsFD {
             dx_abs,
             dx_rel,
         }
+    }
+
+    pub fn get_min_value(&self) -> f64 {
+        self.iterative_params.get_min_value()
+    }
+
+    pub fn get_max_value(&self) -> f64 {
+        self.iterative_params.get_max_value()
+    }
+
+    pub fn get_max_step_abs(&self) -> f64 {
+        self.iterative_params.get_max_step_abs()
+    }
+
+    pub fn get_max_step_rel(&self) -> f64 {
+        self.iterative_params.get_max_step_rel()
     }
 
     pub fn get_dx_abs(&self) -> f64 {

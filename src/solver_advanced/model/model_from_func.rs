@@ -1,32 +1,33 @@
-//! Blanket implementation to easily adapt user function to the `Model` trait required by the solver
-//!
-//! The right side of the equation is a constant and by default zero.
-//! No other outputs are computed
-//!
-//! # Examples
-//! ```
-//! pub fn square(x: &nalgebra::DVector::<f64>) -> nalgebra::DVector::<f64> {
-//!     x*x
-//! }
-//!
-//! extern crate newton_rootfinder;
-//! use newton_rootfinder::solver_advanced as nrf;
-//! use nrf::model::Model; // trait import required
-//! extern crate nalgebra;
-//!
-//! let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-//! let mut user_model = nrf::model::UserModelWithFunc::new(1, square);
-//! user_model.set_iteratives(&iteratives);
-//! user_model.evaluate();
-//!
-//! assert_eq!(user_model.len_problem(), 1);
-//! assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
-//! assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
-/// ```
 use super::Model;
 
 use crate::solver_advanced::residuals;
 
+/// Blanket implementation to easily adapt user function to the `Model` trait required by the solver to work with finite-differences
+///
+/// The right side of the equation is a constant and by default zero.
+/// No other outputs are computed
+///
+/// # Examples
+/// ```
+/// pub fn square(x: &nalgebra::DVector::<f64>) -> nalgebra::DVector::<f64> {
+///     x*x
+/// }
+///
+/// extern crate newton_rootfinder;
+/// use newton_rootfinder::solver_advanced as nrf;
+/// use nrf::model::Model; // trait import required
+/// extern crate nalgebra;
+///
+/// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
+/// let mut user_model = nrf::model::UserModelWithFunc::new(1, square);
+/// user_model.set_iteratives(&iteratives);
+/// user_model.evaluate();
+///
+/// assert_eq!(user_model.len_problem(), 1);
+/// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
+/// assert_eq!(user_model.jacobian_provided(), false);
+/// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+/// ```
 pub struct UserModelWithFunc {
     pub inputs: nalgebra::DVector<f64>,
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
@@ -76,6 +77,42 @@ impl Model for UserModelWithFunc {
     }
 }
 
+/// Blanket implementation to easily adapt user functions to the `Model` trait required by the solver to work with a jacobian provided
+///
+/// The right side of the equation is a constant and by default zero.
+/// No other outputs are computed
+///
+/// # Examples
+/// ```
+/// pub fn square(x: &nalgebra::DVector::<f64>) -> nalgebra::DVector::<f64> {
+///     x*x
+/// }
+/// pub fn dsquare(x: &nalgebra::DVector::<f64>) -> nalgebra::DMatrix::<f64> {
+///     let mut jac = nalgebra::DMatrix::zeros(1,1);
+///     jac[(0,0)] = 2.0*x[0];
+///     jac
+/// }
+///
+/// extern crate newton_rootfinder;
+/// use newton_rootfinder::solver_advanced as nrf;
+/// use nrf::model::Model; // trait import required
+/// extern crate nalgebra;
+///
+/// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
+/// let mut user_model = nrf::model::UserModelWithFuncJac::new(1, square, dsquare);
+/// user_model.set_iteratives(&iteratives);
+/// user_model.evaluate();
+///
+/// assert_eq!(user_model.len_problem(), 1);
+/// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
+/// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+///
+/// assert_eq!(user_model.jacobian_provided(), true);
+/// let jacobians_values = user_model.get_jacobian();
+/// let (jac_left, jac_right) = jacobians_values.get_jacobians();
+/// assert_eq!(jac_left[(0,0)], 4.0);
+/// assert_eq!(jac_right[(0,0)], 0.0);
+/// ```
 pub struct UserModelWithFuncJac {
     pub inputs: nalgebra::DVector<f64>,
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,

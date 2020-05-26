@@ -103,12 +103,20 @@
 //! 3. Solver interaction with through the `Model` trait, check the `model` module
 //! 4. Simulation log: writing of a log to follow the resolution parameters to ease debugging
 //! 5. Configuration parsing: it is possible to define the solver paramters in an external configuration
-//! file, allowing a more ergonomic use (and a parametrization only known at run-time)
+//! file, allowing a more ergonomic use (and a parametrization only known at run-time): check the `util` module
 //! 6. Many solver options : check the `solver_advanced` module
 //!
 //!
-//! # Upcoming features
+//! # Upcoming features by order of priority
+//! 1. Make the solver available through Python
+//! 2. Introduce the possiblity to use inequations as residuals
+//! 3. Implement another resolution method (Secant method)
 //!
+//! # Long term Features
+//! 1. Implement other algorithms (Broyden, Martinez, Huang, Tomas, Greenstadt: see https://doi.org/10.1007/BF02684472)
+//! 2. Implement new test cases
+//! 3. Implement substitution methods
+//! 4. Implement tests cases with Automatic Differentation for benchmarking (https://crates.io/crates/fwd_ad)
 
 pub mod iteratives;
 pub mod model;
