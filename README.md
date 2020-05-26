@@ -51,7 +51,7 @@ To get improved interactions with the user problem (usually a function),
 the user is required to implement the `Model` trait in order to use the solver.
 This ensures a reduced number of calls to the function and a better debugging experience if needed.
 
-It is defined in the `solver` module.
+It is defined in the `solver_advanced` module.
 Don't hesitate to check in this module documentation for examples.
 
 The focus of this crate is the development of this solver.
@@ -61,7 +61,7 @@ The focus of this crate is the development of this solver.
  2. In-detail parametrization of iterative variables, residuals and stopping criteria.
  3. Debugging informations available through a .txt log file.
  4. The advanced solver is designed to interact with a complex model computing other outputs and having memory effects. The requirements of this model are defined by the `Model` trait. The struct `UserModelWithFunc` is provided to easily adapt a given function to the required trait.
- 5. Real world use cases and an extensive function database are included in the crate for integration testing and benchmarkingÓ. (work in progress)
+ 5. Real world use cases and an extensive function database are included in the crate for integration testing and benchmarking. (work in progress)
 
 ## Current limitations
 

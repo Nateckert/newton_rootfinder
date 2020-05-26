@@ -101,6 +101,11 @@ use crate::solver_advanced::solver::SolverParameters;
 ///
 /// ## Examples
 ///```no_run
+/// extern crate nalgebra;
+/// extern crate newton_rootfinder;
+/// use newton_rootfinder::solver_advanced as nrf;
+///
+///
 /// const FILEPATH: &'static str = "./my_path/my_configuration_file.xml";
 /// let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
 ///    nrf::util::from_xml_finite_diff(&FILEPATH);
@@ -110,9 +115,11 @@ use crate::solver_advanced::solver::SolverParameters;
 ///    nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
 /// let problem_size = solver_parameters.get_problem_size();
 ///
+/// let init = nalgebra::DVector::zeros(5);
+///
 /// let mut rf = nrf::solver::RootFinder::new(
 ///    solver_parameters,
-///    init_broyden1965_case10(),
+///    init,
 ///    &iteratives,
 ///    &residuals_config,
 /// );
