@@ -9,29 +9,95 @@ use crate::solver_advanced::solver::SolverParameters;
 
 /// Parser for a solver operating with a model with the jacobian provided
 ///
-/// ## Format
+///
+/// ## XML structure
+///
+/// ### Root
 /// It is expected to be an xml document with a root node called nrf (newton root finder)
+///
 /// Three child nodes are expected:
-/// - <solver>
-/// - <iteratives>
-/// - <residuals>
+///```xml
+/// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+/// <nrf>
+///     <solver>...</solver>
+///     <iteratives>...</iteratives>
+///     <residuals>...</residuals>
+/// </nrf>
+///```
 ///
-/// The <solver> node contains must contains the parameters of the `SolverParameters` struct,
+/// ### Solver node
+/// The \<solver\> node contains must contains the parameters of the `SolverParameters` struct,
 /// i.e :
-/// - max_iter, damping, tolerance and problem_size
-/// - <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+/// - max_iter
+/// - damping
+/// - tolerance
+/// - problem_size
 ///
-/// The <iteratives> node contains all the default values for the parameters of the `IterativeParams` constructor:
-/// - min_value, max_value, max_step_abs, max_step_rel
-/// - <iteratives min_value="-inf"  max_value="inf" max_step_abs="inf" , max_step_rel="inf">
-/// Its childen will be the <iterative> node, each of them having a an id starting at zero.
+///```xml
+/// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+/// <nrf>
+///     <solver problem_size="2" max_iter="60" tolerance="1e-6" damping="true"/>
+///     <iteratives>...</iteratives>
+///     <residuals>...</residuals>
+/// </nrf>
+///```
+///
+/// ### Iteratives node
+/// The \<iteratives\> node contains all the default values for the parameters of the `IterativeParams` constructor:
+/// - min_value
+/// - max_value
+/// - max_step_abs
+/// - max_step_rel
+///
+/// Its childen will be the <iterative> node, each of them having an id starting at zero.
+/// Each children will either take the default values if none are provided, or take any that are redefined for the given id.
+///
+///
+///```xml
+/// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+/// <nrf>
+///     <solver>...</solver>
+///     <iteratives min_value="-inf" max_value="inf" max_step_abs="inf" max_step_rel="inf">
+///         <iterative id="0">
+///         <iterative id="1" max_step_abs="100">
+///     </iteratives>
+///     <residuals>...</residuals>
+/// </nrf>
+///```
+///
+/// The first one will take the default values, the second also except for max_step_abs that will be equal to 100.
+///
+/// ### Residuals node
+///
+/// The \<residuals\> node contains all the default values for the parameters of the `ResidualConfig` constructor:
+/// - stopping_criteria
+/// - update_method
+///
+/// Its childen will be the <residual> node, each of them having an id starting at zero.
+/// Each children will either take the default values if none are provided, or take any that are redefined for the given id.
+///
+///
+///```xml
+/// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+/// <nrf>
+///     <solver>...</solver>
+///     <iteratives>...</iteratives>
+///     <residuals stopping_criteria="Adapt"  update_method="Abs">
+///         <residual id="0">
+///         <residual id="1" stopping_criteria="Abs">
+///     </residuals>
+/// </nrf>
+///```
+///
+/// The first one will take the default values, the second also except for stopping_criteria that will be equal to Abs.
+///
 ///
 /// ## Trick
 /// You can add any attribute that is not used by the parser,
 /// for example if you want to name variables to recognize them:
-///
+///```xml
 /// <iterative id="0" var_name="myVarName">
-///
+///```
 ///
 /// ## Examples
 ///```no_run
@@ -65,7 +131,30 @@ pub fn from_xml_jacobian(
 
 /// Parser for a solver operating with a model with the jacobian not provided
 ///
-/// The use of finite difference requires additional parameters for the iteratives variables
+/// The use of finite difference requires additional parameters for the iteratives variables.
+///
+/// The three additional parameters are:
+/// - `dx_abs`
+/// - `dx_rel`
+/// - `perturbation_method`
+///
+/// Otherwise, it works in exactly the same way as the `from_xml_jacobian` parser.
+/// Refers to this doc for the general explanation. The differences are highlighted here
+///
+/// The \<iteratives\> node takes the 3 extra arguments as default values. This values can be overwritten in the same way
+///
+///```xml
+/// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+/// <nrf>
+///     <solver>...</solver>
+///     <iteratives min_value="-inf" max_value="inf" max_step_abs="inf" max_step_rel="inf" dx_abs="1.5e-6" dx_rel="5e-5" perturbation_method="Max">
+///         <iterative id="0" perturbation_method="Sum">
+///         <iterative id="1" max_step_abs="100">
+///     </iteratives>
+///     <residuals>...</residuals>
+/// </nrf>
+///
+
 pub fn from_xml_finite_diff(
     filepath: &str,
 ) -> (
