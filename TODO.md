@@ -18,12 +18,19 @@ Implement others methods : Broyden, ... (see paper in tests/common/spedicato1966
 Make the solver available from Python
 Introduce substitution methods
 Introduce inequalities
-Introduce damping
 Introduce debugging : solver log and others variables computation.
 Make it more generic to avoid enforcing the function having to be nalgebra vectors
-Introduce reading xml configuration files for iteratives and residuals
 
 ## Documentation
 
 Add references to literature
 Document advanced solver usage
+
+## Datastructure
+
+Currently, the residuals are separated in the ResidualsValues (and Jacobian Values)
+and the ResidualsConfig.
+The values are returned by the model and the config are field of the solver.
+However, the functions to compute the residuals are in-between them:
+Computing the residuals is a method of the ResidualsConfig and takes as argument a ResidualsValues.
+Computing the jacobian from the jacobians are a method of JacobianValues and takes as argument a ResidualsConfig.

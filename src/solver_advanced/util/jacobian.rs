@@ -4,8 +4,8 @@
 extern crate nalgebra;
 use nalgebra::linalg;
 
-use crate::model;
-use crate::util::residuals;
+use crate::solver_advanced::model;
+use crate::solver_advanced::residuals;
 
 /// Evaluate a jacobian per forward finite difference when perturbation step eps is provided
 pub fn jacobian_evaluation<T>(

@@ -1,5 +1,3 @@
-pub mod broyden1965;
+mod matrix;
 
-pub mod polynom;
-
-pub mod spedicato1996;
+pub use matrix::float_matrix_comparison;
