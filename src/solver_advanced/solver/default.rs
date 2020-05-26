@@ -9,10 +9,11 @@ use crate::solver_advanced::iteratives::Iterative;
 
 use crate::solver_advanced::residuals;
 
-/// Default function to create a solver with default parameters such as :
+/// Default function to create a solver with default parameters
+///
+/// The default parameters are:
 /// - max_iter = 50
 /// - tolerance = 1e-6
-/// - default residuals configuration thanks to `ResidualsConfig::default_with_size()`
 ///
 /// This function works either for finite difference or not.
 /// The difference between the two cases comes

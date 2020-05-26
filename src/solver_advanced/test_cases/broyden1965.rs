@@ -1,28 +1,57 @@
-//! Test cases taken from the following references :
+//! Test cases taken from Broyden and Powell:
 //!
-//! Broyden, C.G. [1965] :
+//! ### Broyden, C.G. [1965] :
+//!
 //! A class of methods for solving nonlinear simultaneous equations,
+//!
 //! Mathematics of Computation 19, p 577-593
+//!
 //! https://doi.org/10.1090/S0025-5718-1965-0198670-6
-
-//! Powell, M. J. D. [1964]
+//!
+//! ### Powell, M. J. D. [1964]
+//!
 //! A method for minimizing a sum of squares of non-linear functions without calculating derivatives,
+//!
 //! Comput. J., v. 7, 1965, pp. 303-307.
+//!
 //! https://doi.org/10.1093/comjnl/7.4.303
 //!
+//! ## Test cases
+//!
+//! ### Cases 5-8
 //! Case 5-8 are to be found in [1965] p. 587 and the parameters p. 590 :
-//! +------------+-------------+--------------+------------+
+//!
 //! |   Case     | Dimension   |   alpha      |    beta    |
-//! +============+=============+==============+============+
+//! |------------|-------------|--------------|------------|
 //! |      5     |    n = 5    |   - 0.1      |    1.0     |
-//! +------------+-------------+--------------+------------+
 //! |      6     |    n = 5    |   - 0.5      |    1.0     |
-//! +------------+-------------+--------------+------------+
 //! |      7     |    n = 10   |   - 0.5      |    1.0     |
-//! +------------+-------------+--------------+------------+
 //! |      8     |    n = 20   |   - 0.5      |    1.0     |
-//! +------------+-------------+--------------+------------+
+//!
 //! Init to be taken is (-1, -1, ..., -1)
+//!
+//! ### Cases 9
+//! Case 9 is found in [1965] p. 587 and adapted from a minimization of [1964]
+//!
+//! Dimension is 2
+//!
+//! ### Cases 10
+//! Case 10 is found in [1965] p. 587
+//!
+//! Dimension is 2
+//!
+//! This problem is ill-conditioned
+//!
+//! The jacobian is non invertible for jac[(0,1)] = jac[(1,1)]
+//!
+//! e.g if -3*(x1**2) + 4*x1 + 6 = 0
+//!
+//! e.g if x1 approx 2.23 or -0.8968
+//!
+//! | [-Inf, -0.8968] | [-0.8968, 2.23] | [2.23, Inf] |
+//! |-----------------|-----------------|-------------|
+//! |    Negative     |    Positive     |  Negative  |
+//!
 
 extern crate nalgebra;
 
@@ -175,8 +204,6 @@ fn broyden1965_cases5to8_jac(
     outputs
 }
 
-/// Case 9 is found in [1965] p. 587 and adapted from a minimization of [1964]
-/// Dimension is 2
 pub fn init_broyden1965_case9() -> nalgebra::DVector<f64> {
     nalgebra::DVector::from_vec(vec![-1.2, 1.0])
 }
@@ -203,8 +230,6 @@ pub fn broyden1965_case9_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f6
     outputs
 }
 
-/// Case 10 is found in [1965] p. 587
-/// Dimension is 2
 pub fn init_broyden1965_case10() -> nalgebra::DVector<f64> {
     nalgebra::DVector::from_vec(vec![15.0, -2.0])
 }
@@ -215,7 +240,6 @@ pub fn solution_broyden1965_case10() -> nalgebra::DVector<f64> {
     solution
 }
 
-/// This problem is ill-conditioned (see jacobian comment with regards to init)
 pub fn broyden1965_case10(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut outputs = nalgebra::DVector::zeros(2);
     outputs[0] = -13.0 + x[0] + ((-x[1] + 5.0) * x[1] - 2.0) * x[1];
@@ -223,11 +247,6 @@ pub fn broyden1965_case10(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> 
     outputs
 }
 
-/// The jacobian is non invertible for jac[(0,1)] = jac[(1,1)]
-/// e.g if -3*(x1**2) + 4*x1 + 6 = 0
-/// e.g if x1 approx 2.23 or -0.8968
-/// | -Inf -0.8968 | -0.8968 2.23 | 2.23 Inf |
-/// |      -       |       +      |     -    |
 pub fn broyden1965_case10_jac(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
     let mut jac = nalgebra::DMatrix::zeros(2, 2);
     jac[(0, 0)] = 1.0;

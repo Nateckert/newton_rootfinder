@@ -1,23 +1,3 @@
-//! Parse a xml configuration file to create a RootFinder
-//! ```xml
-//! <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-//! <nrf>
-//!     <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
-//!     <iteratives dx_abs="5e-8" dx_rel="5e-8" min_value="-inf"  max_value="inf" max_step_abs="inf" max_step_rel="inf">
-//!         <iterative id="0" min_value="-inf"  max_value="inf" max_step_abs="100" max_step_rel="0.5"/>
-//!         <iterative id="1" min_value="0"     max_value="inf" max_step_abs="inf" max_step_rel="0.5"/>
-//!         <iterative id="2" min_value="-inf"  max_value="12"  max_step_abs="100" max_step_rel="inf"/>
-//!     </iteratives>
-//!     <residuals stopping_criteria="Abs" update_method="Abs">
-//!         <residual id="0" stopping_criteria="Adapt"     update_method="Abs"/>
-//!         <residual id="1" stopping_criteria="Rel"       update_method="Abs"/>
-//!         <residual id="2" stopping_criteria="Adapt"     update_method="Rel"/>
-//!     </residuals>
-//! </nrf>
-//! ```
-//! The values provided in the iteratives and residuals nodes will act as default values
-//! These values are taken into account only if non are provided for a given iterative or residual
-
 use std::fs;
 extern crate minidom;
 
@@ -28,6 +8,49 @@ use crate::solver_advanced::residuals;
 use crate::solver_advanced::solver::SolverParameters;
 
 /// Parser for a solver operating with a model with the jacobian provided
+///
+/// ## Format
+/// It is expected to be an xml document with a root node called nrf (newton root finder)
+/// Three child nodes are expected:
+/// - <solver>
+/// - <iteratives>
+/// - <residuals>
+///
+/// The <solver> node contains must contains the parameters of the `SolverParameters` struct,
+/// i.e :
+/// - max_iter, damping, tolerance and problem_size
+/// - <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+///
+/// The <iteratives> node contains all the default values for the parameters of the `IterativeParams` constructor:
+/// - min_value, max_value, max_step_abs, max_step_rel
+/// - <iteratives min_value="-inf"  max_value="inf" max_step_abs="inf" , max_step_rel="inf">
+/// Its childen will be the <iterative> node, each of them having a an id starting at zero.
+///
+/// ## Trick
+/// You can add any attribute that is not used by the parser,
+/// for example if you want to name variables to recognize them:
+///
+/// <iterative id="0" var_name="myVarName">
+///
+///
+/// ## Examples
+///```no_run
+/// const FILEPATH: &'static str = "./my_path/my_configuration_file.xml";
+/// let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
+///    nrf::util::from_xml_finite_diff(&FILEPATH);
+///
+/// let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
+/// let residuals_config =
+///    nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
+/// let problem_size = solver_parameters.get_problem_size();
+///
+/// let mut rf = nrf::solver::RootFinder::new(
+///    solver_parameters,
+///    init_broyden1965_case10(),
+///    &iteratives,
+///    &residuals_config,
+/// );
+///```
 pub fn from_xml_jacobian(
     filepath: &str,
 ) -> (

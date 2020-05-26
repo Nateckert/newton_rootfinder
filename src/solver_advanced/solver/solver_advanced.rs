@@ -1,42 +1,3 @@
-//! Advanced solver
-//!
-//! ## Examples
-//!
-//! ```
-//! extern crate newton_rootfinder;
-//! use newton_rootfinder::solver_advanced as nrf;
-//! use nrf::model::Model;
-//! use nrf::iteratives;
-//! use nrf::residuals;
-//!
-//! extern crate nalgebra;
-//!
-//! /// Equation : x**2 - 2 = 0
-//! fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
-//!     let mut y = x * x;
-//!     y[0] -= 2.0;
-//!     y
-//! }
-//!
-//! fn main() {
-//!   let problem_size = 1;
-//!   let init_guess = nalgebra::DVector::from_vec(vec![1.0]);
-//!   let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
-//!   let iter_params = iteratives::Iteratives::new(&vec_iter_params);
-//!   let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
-//!   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
-//!   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-//!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
-//!   let mut user_model =
-//!       nrf::model::UserModelWithFunc::new(problem_size, square2);
-//!
-//!   rf.solve(&mut user_model);
-//!
-//!   println!("{}", user_model.get_iteratives()[0]);
-//!   // print 1.4142135623747443
-//! }
-//! ```
-
 use std::fmt;
 
 extern crate nalgebra;
@@ -48,7 +9,39 @@ use crate::solver_advanced::model;
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::util::jacobian;
 
-// A minimal struct holding the resolution parameters
+/// A minimal struct holding the resolution parameters
+///
+/// # Parameters
+/// ## Damping
+/// Activate the damping to improve convergence
+///
+/// Plain resolution according to Newton is made through the formula
+/// X = X - J^-1*F(X)
+///
+/// However, if the proposed update is not performing (deterioriating the solution)
+/// it is likely it is due to a much to step-size too important.
+/// Reducing the step-size might be the solution
+///
+/// The damping formula is then :
+/// X = X - damping_factor*J^-1*F(X)
+/// with 0 < damping_factor <= 1
+///
+/// As long as the error is reduced damping_factor = 1.
+/// If it is not the case, a factor is applied
+/// (the value might change according to the versions).
+///
+/// ## Tolerance
+/// The tolerance values used by the solver to check for convergence.
+///
+/// Each residuals must be below this threshold
+///
+/// ## Max iteration
+/// The maximum number of iterations the solver is allowed to make
+///
+/// This is required to avoid to have an infinte loop
+///
+/// ## Problem size
+/// The dimension of the problem for the resolution
 pub struct SolverParameters {
     problem_size: usize,
     tolerance: f64,
@@ -81,19 +74,15 @@ impl SolverParameters {
     pub fn get_damping(&self) -> bool {
         self.damping
     }
-
-    pub fn set_damping(&mut self, damping: bool) {
-        self.damping = damping;
-    }
 }
 
 /// Solver for rootfinding
 ///
 /// The solver operates on the model and mutate it
 ///
-/// The only fields of the solver that can change during the resolution are:
-/// - iter : it holds the current iteration number
-/// - solver_log : it holds the simulation log information for debugging
+/// The core functionnality is the `solve()` method
+///
+/// The user can activate the debugging before the resolution thanks to the `set_debug()` method
 pub struct RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
@@ -152,26 +141,6 @@ where
             debug,
             solver_log,
         }
-    }
-
-    /// Activate the damping to improve convergence
-    ///
-    /// Plain resolution according to Newton is made through the formula
-    /// X = X - J^-1*F(X)
-    ///
-    /// However, if the proposed update is not performing (deterioriating the solution)
-    /// it is likely it is due to a much to step-size too important.
-    /// Reducing the step-size might be the solution
-    ///
-    /// The damping formula is then :
-    /// X = X - damping_factor*J^-1*F(X)
-    /// with 0 < damping_factor <= 1
-    ///
-    /// As long as the error is reduced damping_factor = 1.
-    /// If it is not the case, a factor is applied
-    /// (the value might change according to the versions).
-    pub fn set_damping(&mut self, damping: bool) {
-        self.parameters.set_damping(damping);
     }
 
     /// Activate the gathering of the log informations
@@ -296,6 +265,7 @@ where
         errors_next
     }
 
+    /// The core function performing the resolution on a given `Model`
     pub fn solve<M>(&mut self, model: &mut M)
     where
         M: model::Model,
@@ -322,7 +292,6 @@ where
         }
     }
 
-    // Writing of simulation log
     fn parameters_to_log(&mut self) {
         let parameters = super::log::Parameters::new(
             &self.parameters.get_max_iter().to_string(),
@@ -335,7 +304,6 @@ where
         self.solver_log.add_parameters(parameters);
     }
 
-    // Writing of simulation log
     fn iteration_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)
     where
         M: model::Model,
@@ -360,6 +328,7 @@ where
     }
 
     /// Writing of simulation log
+    ///
     /// The debug field of the solver must be activated
     /// during the simulation in order to be able to write it.
     /// This can be achived thanks to the `set_debug()` method
