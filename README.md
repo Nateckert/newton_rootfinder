@@ -11,7 +11,7 @@ A minimal solver is also provided for basic usages and benchmarking purposes.
 
 # Minimal solver
 
-A minimal solver is provided for basic usages in the `solver` module.
+A minimal solver is provided for basic usages in the `solver_minimal` module.
 
 This minimal solver works only on basic 1D functions.
 
