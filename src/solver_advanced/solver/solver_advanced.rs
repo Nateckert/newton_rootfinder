@@ -8,73 +8,7 @@ use crate::solver_advanced::model;
 
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::util::jacobian;
-
-/// A minimal struct holding the resolution parameters
-///
-/// # Parameters
-/// ## Damping
-/// Activate the damping to improve convergence
-///
-/// Plain resolution according to Newton is made through the formula
-/// X = X - J^-1*F(X)
-///
-/// However, if the proposed update is not performing (deterioriating the solution)
-/// it is likely it is due to a much to step-size too important.
-/// Reducing the step-size might be the solution
-///
-/// The damping formula is then :
-/// X = X - damping_factor*J^-1*F(X)
-/// with 0 < damping_factor <= 1
-///
-/// As long as the error is reduced damping_factor = 1.
-/// If it is not the case, a factor is applied
-/// (the value might change according to the versions).
-///
-/// ## Tolerance
-/// The tolerance values used by the solver to check for convergence.
-///
-/// Each residuals must be below this threshold
-///
-/// ## Max iteration
-/// The maximum number of iterations the solver is allowed to make
-///
-/// This is required to avoid to have an infinte loop
-///
-/// ## Problem size
-/// The dimension of the problem for the resolution
-pub struct SolverParameters {
-    problem_size: usize,
-    tolerance: f64,
-    max_iter: usize,
-    damping: bool,
-}
-
-impl SolverParameters {
-    pub fn new(problem_size: usize, tolerance: f64, max_iter: usize, damping: bool) -> Self {
-        SolverParameters {
-            problem_size,
-            tolerance,
-            max_iter,
-            damping,
-        }
-    }
-
-    pub fn get_problem_size(&self) -> usize {
-        self.problem_size
-    }
-
-    pub fn get_tolerance(&self) -> f64 {
-        self.tolerance
-    }
-
-    pub fn get_max_iter(&self) -> usize {
-        self.max_iter
-    }
-
-    pub fn get_damping(&self) -> bool {
-        self.damping
-    }
-}
+use super::SolverParameters;
 
 /// Solver for rootfinding
 ///

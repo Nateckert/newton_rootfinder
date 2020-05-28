@@ -53,7 +53,8 @@
 mod default;
 mod log;
 mod solver_advanced;
+mod parameters;
 
 pub use default::default_with_guess;
 pub use solver_advanced::RootFinder;
-pub use solver_advanced::SolverParameters;
+pub use parameters::SolverParameters;
