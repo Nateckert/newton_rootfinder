@@ -41,6 +41,7 @@
 /// SIAM Journal on Numerical Analysis, 4(2), p 222–232.
 ///
 /// doi:10.1137/0704021
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ResolutionMethod {
     NewtonRaphson,
     StationaryNewton,
@@ -77,21 +78,32 @@ pub enum ResolutionMethod {
 ///
 /// This is required to avoid to have an infinte loop
 ///
+/// ## Resolution Method
+/// See the enum `ResolutionMethod` for the options available
+///
 /// ## Problem size
 /// The dimension of the problem for the resolution
 pub struct SolverParameters {
     problem_size: usize,
     tolerance: f64,
     max_iter: usize,
+    resolution_method: ResolutionMethod,
     damping: bool,
 }
 
 impl SolverParameters {
-    pub fn new(problem_size: usize, tolerance: f64, max_iter: usize, damping: bool) -> Self {
+    pub fn new(
+        problem_size: usize,
+        tolerance: f64,
+        max_iter: usize,
+        resolution_method: ResolutionMethod,
+        damping: bool,
+    ) -> Self {
         SolverParameters {
             problem_size,
             tolerance,
             max_iter,
+            resolution_method,
             damping,
         }
     }
@@ -106,6 +118,10 @@ impl SolverParameters {
 
     pub fn get_max_iter(&self) -> usize {
         self.max_iter
+    }
+
+    pub fn get_resolution_method(&self) -> ResolutionMethod {
+        self.resolution_method
     }
 
     pub fn get_damping(&self) -> bool {

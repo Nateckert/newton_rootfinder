@@ -21,6 +21,7 @@
 //! use nrf::model::Model;
 //! use nrf::iteratives;
 //! use nrf::residuals;
+//! use nrf::solver::ResolutionMethod;
 //!
 //! extern crate nalgebra;
 //!
@@ -39,7 +40,7 @@
 //!   let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-//!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
+//!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
 //!   let mut user_model =
 //!       nrf::model::UserModelWithFunc::new(problem_size, square2);
 //!
@@ -52,9 +53,10 @@
 
 mod default;
 mod log;
-mod solver_advanced;
 mod parameters;
+mod solver_advanced;
 
 pub use default::default_with_guess;
-pub use solver_advanced::RootFinder;
+pub use parameters::ResolutionMethod;
 pub use parameters::SolverParameters;
+pub use solver_advanced::RootFinder;

@@ -6,9 +6,10 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
+use super::ResolutionMethod;
+use super::SolverParameters;
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::util::jacobian;
-use super::SolverParameters;
 
 /// Solver for rootfinding
 ///
@@ -21,13 +22,18 @@ pub struct RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
 {
+    // user inputs
     parameters: SolverParameters,
     initial_guess: nalgebra::DVector<f64>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
-    iter: usize,
     debug: bool,
+
+    // solver placeholder
+    iter: usize,
     solver_log: super::log::SolverLog,
+    jacobian: nalgebra::DMatrix<f64>,
+    jacobian_up_to_date: bool,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -66,14 +72,20 @@ where
             );
         }
 
+        let jacobian =
+            nalgebra::DMatrix::zeros(parameters.get_problem_size(), parameters.get_problem_size());
+        let jacobian_up_to_date = false;
+
         RootFinder {
             parameters,
             initial_guess,
             iters_params,
             residuals_config,
-            iter,
             debug,
+            iter,
             solver_log,
+            jacobian,
+            jacobian_up_to_date,
         }
     }
 
@@ -89,6 +101,7 @@ where
     /// use newton_rootfinder::solver_advanced as nrf;
     /// # use nrf::iteratives;
     /// # use nrf::residuals;
+    /// # use nrf::solver::ResolutionMethod;
     /// # pub fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     /// #   let mut y = x * x;
     /// #   y[0] -= 2.0;
@@ -102,7 +115,7 @@ where
     /// # let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     /// # let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
-    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
+    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
     /// rf.set_debug(true);
     /// rf.solve(&mut user_model);
     /// rf.write_log(&"solver_log.txt");
@@ -117,40 +130,54 @@ where
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    fn compute_jac_func<M: model::Model>(&self, model: &mut M) -> nalgebra::DMatrix<f64> {
+    fn compute_jac_func<M: model::Model>(&mut self, model: &mut M) {
         let residuals_values = model.get_residuals();
 
         let jacobians = model.get_jacobian();
         let normalization_method = self.residuals_config.get_update_methods();
-        jacobians.normalize(&residuals_values, &normalization_method)
+        self.jacobian = jacobians.normalize(&residuals_values, &normalization_method);
     }
 
-    fn compute_jac_fd<M: model::Model>(&self, model: &mut M) -> nalgebra::DMatrix<f64> {
+    fn compute_jac_fd<M: model::Model>(&mut self, model: &mut M) {
         let iters_values = model.get_iteratives();
 
         let perturbations = self
             .iters_params
             .compute_perturbations(&iters_values, self.parameters.get_problem_size());
 
-        jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config))
+        self.jacobian =
+            jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config));
     }
 
-    fn compute_next<M: model::Model>(&mut self, model: &mut M) -> nalgebra::DVector<f64> {
-        let jac = if model.jacobian_provided() {
+    fn compute_jac<M: model::Model>(&mut self, model: &mut M) {
+        if model.jacobian_provided() {
             self.compute_jac_func(model)
         } else {
             self.compute_jac_fd(model)
         };
 
+        self.jacobian_up_to_date = true;
+
         if self.debug {
-            self.jac_to_log(&jac);
+            self.jac_to_log();
+        }
+    }
+
+    fn compute_next<M: model::Model>(&mut self, model: &mut M) -> nalgebra::DVector<f64> {
+        match self.parameters.get_resolution_method() {
+            ResolutionMethod::NewtonRaphson => self.compute_jac(model),
+            ResolutionMethod::StationaryNewton => {
+                if !(self.jacobian_up_to_date) {
+                    self.compute_jac(model)
+                }
+            }
         }
 
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&model.get_residuals());
 
-        let raw_step = jacobian::newton_raw_step_size(&residuals, &jac);
+        let raw_step = jacobian::newton_raw_step_size(&residuals, &self.jacobian);
 
         let iter_values = model.get_iteratives();
 
@@ -204,6 +231,7 @@ where
     where
         M: model::Model,
     {
+        // Initial state
         model.init();
         model.set_iteratives(&self.initial_guess);
         model.evaluate();
@@ -216,6 +244,7 @@ where
             self.iteration_to_log(model, &errors);
         }
 
+        // Other iterations
         while max_error > self.parameters.get_tolerance()
             && self.iter < self.parameters.get_max_iter()
         {
@@ -257,8 +286,8 @@ where
         self.solver_log.add_damping(&iteratives, &residuals, errors);
     }
 
-    fn jac_to_log(&mut self, jac: &nalgebra::DMatrix<f64>) {
-        self.solver_log.add_jac(jac);
+    fn jac_to_log(&mut self) {
+        self.solver_log.add_jac(&self.jacobian);
     }
 
     /// Writing of simulation log

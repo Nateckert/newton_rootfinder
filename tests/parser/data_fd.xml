@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <nrf>
-  <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+  <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>
   <iteratives min_value="-inf"  max_value="inf" max_step_abs="inf" max_step_rel="inf" dx_abs="5e-8" dx_rel="5e-9" perturbation_method="Sum">
     <iterative id="0" min_value="-inf"  max_value="inf" max_step_abs="100" max_step_rel="0.5"/>
     <iterative id="1" min_value="0"     max_value="inf" max_step_abs="inf" max_step_rel="0.5"/>
