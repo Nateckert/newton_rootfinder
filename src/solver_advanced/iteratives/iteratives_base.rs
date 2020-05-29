@@ -90,8 +90,8 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let finite_diff = self.iteratives_params[0].with_finite_diff();
 
-        let mut content = String::from("Iteratives parameters:\n");
-        content.push_str("==============\n\n");
+        let mut content = String::from("Iteratives parameters\n");
+        content.push_str("=====================\n\n");
 
         let column_float = String::from("--------------+");
 

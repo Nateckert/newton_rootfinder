@@ -2,6 +2,7 @@ use std::fmt;
 
 extern crate nalgebra;
 
+use super::ResolutionMethod;
 use super::RootFinder;
 use super::SolverParameters;
 use crate::solver_advanced::iteratives;
@@ -14,6 +15,8 @@ use crate::solver_advanced::residuals;
 /// The default parameters are:
 /// - max_iter = 50
 /// - tolerance = 1e-6
+/// - resolution_method = NewtonRaphson
+/// - damping = false
 ///
 /// This function works either for finite difference or not.
 /// The difference between the two cases comes
@@ -34,6 +37,7 @@ use crate::solver_advanced::residuals;
 /// use newton_rootfinder::solver_advanced as nrf;
 /// use nrf::iteratives;
 /// use nrf::residuals;
+/// use nrf::solver::ResolutionMethod;
 ///
 ///
 /// fn main() {
@@ -52,14 +56,15 @@ use crate::solver_advanced::residuals;
 ///   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 ///   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
 ///
-///   let mut rf_fd = nrf::solver::default_with_guess(init_guess_fd, &iter_params_fd, &res_config_fd);
-///   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
+///   let mut rf_fd = nrf::solver::default_with_guess(init_guess_fd, &iter_params_fd, &res_config_fd, ResolutionMethod::NewtonRaphson);
+///   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
 /// }
 /// ```
 pub fn default_with_guess<'a, T>(
     initial_guess: nalgebra::DVector<f64>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
+    resolution_method: ResolutionMethod,
 ) -> RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
@@ -68,7 +73,13 @@ where
     let tolerance: f64 = 1e-6;
     let max_iter: usize = 50;
     let damping = false;
-    let parameters = SolverParameters::new(problem_size, tolerance, max_iter, damping);
+    let parameters = SolverParameters::new(
+        problem_size,
+        tolerance,
+        max_iter,
+        resolution_method,
+        damping,
+    );
 
     RootFinder::new(parameters, initial_guess, iters_params, residuals_config)
 }

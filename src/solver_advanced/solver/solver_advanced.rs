@@ -6,75 +6,10 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
+use super::ResolutionMethod;
+use super::SolverParameters;
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::util::jacobian;
-
-/// A minimal struct holding the resolution parameters
-///
-/// # Parameters
-/// ## Damping
-/// Activate the damping to improve convergence
-///
-/// Plain resolution according to Newton is made through the formula
-/// X = X - J^-1*F(X)
-///
-/// However, if the proposed update is not performing (deterioriating the solution)
-/// it is likely it is due to a much to step-size too important.
-/// Reducing the step-size might be the solution
-///
-/// The damping formula is then :
-/// X = X - damping_factor*J^-1*F(X)
-/// with 0 < damping_factor <= 1
-///
-/// As long as the error is reduced damping_factor = 1.
-/// If it is not the case, a factor is applied
-/// (the value might change according to the versions).
-///
-/// ## Tolerance
-/// The tolerance values used by the solver to check for convergence.
-///
-/// Each residuals must be below this threshold
-///
-/// ## Max iteration
-/// The maximum number of iterations the solver is allowed to make
-///
-/// This is required to avoid to have an infinte loop
-///
-/// ## Problem size
-/// The dimension of the problem for the resolution
-pub struct SolverParameters {
-    problem_size: usize,
-    tolerance: f64,
-    max_iter: usize,
-    damping: bool,
-}
-
-impl SolverParameters {
-    pub fn new(problem_size: usize, tolerance: f64, max_iter: usize, damping: bool) -> Self {
-        SolverParameters {
-            problem_size,
-            tolerance,
-            max_iter,
-            damping,
-        }
-    }
-
-    pub fn get_problem_size(&self) -> usize {
-        self.problem_size
-    }
-
-    pub fn get_tolerance(&self) -> f64 {
-        self.tolerance
-    }
-
-    pub fn get_max_iter(&self) -> usize {
-        self.max_iter
-    }
-
-    pub fn get_damping(&self) -> bool {
-        self.damping
-    }
-}
 
 /// Solver for rootfinding
 ///
@@ -87,13 +22,19 @@ pub struct RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
 {
+    // user inputs
     parameters: SolverParameters,
     initial_guess: nalgebra::DVector<f64>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
-    iter: usize,
     debug: bool,
+
+    // solver placeholder
+    iter: usize,
     solver_log: super::log::SolverLog,
+    jacobian: nalgebra::DMatrix<f64>,
+    compute_jac_next_iter: bool,
+    last_iter_with_computed_jacobian: usize,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -132,14 +73,22 @@ where
             );
         }
 
+        let jacobian =
+            nalgebra::DMatrix::zeros(parameters.get_problem_size(), parameters.get_problem_size());
+        let compute_jac_next_iter = true;
+        let last_iter_with_computed_jacobian = 0;
+
         RootFinder {
             parameters,
             initial_guess,
             iters_params,
             residuals_config,
-            iter,
             debug,
+            iter,
             solver_log,
+            jacobian,
+            compute_jac_next_iter,
+            last_iter_with_computed_jacobian,
         }
     }
 
@@ -155,6 +104,7 @@ where
     /// use newton_rootfinder::solver_advanced as nrf;
     /// # use nrf::iteratives;
     /// # use nrf::residuals;
+    /// # use nrf::solver::ResolutionMethod;
     /// # pub fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     /// #   let mut y = x * x;
     /// #   y[0] -= 2.0;
@@ -168,7 +118,7 @@ where
     /// # let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     /// # let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
-    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config);
+    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
     /// rf.set_debug(true);
     /// rf.solve(&mut user_model);
     /// rf.write_log(&"solver_log.txt");
@@ -183,40 +133,55 @@ where
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    fn compute_jac_func<M: model::Model>(&self, model: &mut M) -> nalgebra::DMatrix<f64> {
+    fn compute_jac_func<M: model::Model>(&mut self, model: &mut M) {
         let residuals_values = model.get_residuals();
 
         let jacobians = model.get_jacobian();
         let normalization_method = self.residuals_config.get_update_methods();
-        jacobians.normalize(&residuals_values, &normalization_method)
+        self.jacobian = jacobians.normalize(&residuals_values, &normalization_method);
     }
 
-    fn compute_jac_fd<M: model::Model>(&self, model: &mut M) -> nalgebra::DMatrix<f64> {
+    fn compute_jac_fd<M: model::Model>(&mut self, model: &mut M) {
         let iters_values = model.get_iteratives();
 
         let perturbations = self
             .iters_params
             .compute_perturbations(&iters_values, self.parameters.get_problem_size());
 
-        jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config))
+        self.jacobian =
+            jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config));
     }
 
-    fn compute_next<M: model::Model>(&mut self, model: &mut M) -> nalgebra::DVector<f64> {
-        let jac = if model.jacobian_provided() {
+    fn compute_jac<M: model::Model>(&mut self, model: &mut M) {
+        if model.jacobian_provided() {
             self.compute_jac_func(model)
         } else {
             self.compute_jac_fd(model)
         };
 
+        self.compute_jac_next_iter = false;
+        self.last_iter_with_computed_jacobian = self.iter;
+
         if self.debug {
-            self.jac_to_log(&jac);
+            self.jac_to_log();
+        }
+    }
+
+    fn compute_next<M: model::Model>(&mut self, model: &mut M) -> nalgebra::DVector<f64> {
+        match self.parameters.get_resolution_method() {
+            ResolutionMethod::NewtonRaphson => self.compute_jac(model),
+            ResolutionMethod::StationaryNewton => {
+                if self.compute_jac_next_iter {
+                    self.compute_jac(model)
+                }
+            }
         }
 
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&model.get_residuals());
 
-        let raw_step = jacobian::newton_raw_step_size(&residuals, &jac);
+        let raw_step = jacobian::newton_raw_step_size(&residuals, &self.jacobian);
 
         let iter_values = model.get_iteratives();
 
@@ -225,6 +190,39 @@ where
             &raw_step,
             self.parameters.get_problem_size(),
         )
+    }
+
+    fn damping<M: model::Model>(
+        &mut self,
+        model: &mut M,
+        max_error: f64,
+        current_guess: &nalgebra::DVector<f64>,
+        proposed_guess: &nalgebra::DVector<f64>,
+        errors_next: &mut nalgebra::DVector<f64>,
+    ) {
+        let max_error_next = errors_next.amax();
+        if max_error_next > max_error {
+            // see documentation of the `SolverParameters` struct
+            if self.parameters.get_resolution_method() != ResolutionMethod::NewtonRaphson
+                && self.last_iter_with_computed_jacobian != self.iter - 1
+            {
+                self.compute_jac_next_iter = true;
+                if self.debug {
+                    self.recompute_jacobian_to_log();
+                }
+            } else {
+                let damping_factor = 1.0 / 2.0;
+                let damped_guess =
+                    current_guess * (1.0 - damping_factor) + proposed_guess * damping_factor;
+                model.set_iteratives(&damped_guess);
+                model.evaluate();
+                *errors_next = self.evaluate_errors(model);
+
+                if self.debug {
+                    self.damping_to_log(model, &errors_next);
+                }
+            }
+        }
     }
 
     fn update_model<M: model::Model>(
@@ -245,21 +243,13 @@ where
         }
 
         if self.parameters.get_damping() {
-            let max_error_next = errors_next.amax();
-            if max_error_next > max_error {
-                // update formula : X = X - damping_factor*res/jac
-                // proposed_guess is with damping_factor = 1
-                let damping_factor = 1.0 / 2.0;
-                let damped_guess =
-                    &current_guess * (1.0 - damping_factor) + proposed_guess * damping_factor;
-                model.set_iteratives(&damped_guess);
-                model.evaluate();
-                errors_next = self.evaluate_errors(model);
-
-                if self.debug {
-                    self.damping_to_log(model, &errors_next);
-                }
-            }
+            self.damping(
+                model,
+                max_error,
+                &current_guess,
+                &proposed_guess,
+                &mut errors_next,
+            );
         }
 
         errors_next
@@ -270,6 +260,7 @@ where
     where
         M: model::Model,
     {
+        // Initial state
         model.init();
         model.set_iteratives(&self.initial_guess);
         model.evaluate();
@@ -293,15 +284,11 @@ where
     }
 
     fn parameters_to_log(&mut self) {
-        let parameters = super::log::Parameters::new(
-            &self.parameters.get_max_iter().to_string(),
-            &self.parameters.get_tolerance().to_string(),
-            &self.residuals_config.to_string(),
+        self.solver_log.add_parameters(
+            &self.parameters.to_string(),
             &self.iters_params.to_string(),
-            &self.initial_guess.to_string(),
+            &self.residuals_config.to_string(),
         );
-
-        self.solver_log.add_parameters(parameters);
     }
 
     fn iteration_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)
@@ -314,6 +301,12 @@ where
             .add_new_iteration(&iteratives, &residuals, errors, self.iter);
     }
 
+    fn recompute_jacobian_to_log(&mut self) {
+        self.solver_log.add_content(
+            &"Iteration refused, the jacobian will be recomputed at the next iteration\n\n",
+        );
+    }
+
     fn damping_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)
     where
         M: model::Model,
@@ -323,8 +316,8 @@ where
         self.solver_log.add_damping(&iteratives, &residuals, errors);
     }
 
-    fn jac_to_log(&mut self, jac: &nalgebra::DMatrix<f64>) {
-        self.solver_log.add_jac(jac);
+    fn jac_to_log(&mut self) {
+        self.solver_log.add_jac(&self.jacobian);
     }
 
     /// Writing of simulation log

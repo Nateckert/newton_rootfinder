@@ -5,6 +5,7 @@ use minidom::Element;
 
 use crate::solver_advanced::iteratives;
 use crate::solver_advanced::residuals;
+use crate::solver_advanced::solver::ResolutionMethod;
 use crate::solver_advanced::solver::SolverParameters;
 
 /// Parser for a solver operating with a model with the jacobian provided
@@ -29,14 +30,15 @@ use crate::solver_advanced::solver::SolverParameters;
 /// The \<solver\> node contains must contains the parameters of the `SolverParameters` struct,
 /// i.e :
 /// - max_iter
-/// - damping
+/// - damping (true or false)
 /// - tolerance
 /// - problem_size
+/// - resolution_method (NewtonRaphson or StationaryNewton)
 ///
 ///```xml
 /// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 /// <nrf>
-///     <solver problem_size="2" max_iter="60" tolerance="1e-6" damping="true"/>
+///     <solver problem_size="2" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NewtonRaphson"/>
 ///     <iteratives>...</iteratives>
 ///     <residuals>...</residuals>
 /// </nrf>
@@ -264,13 +266,20 @@ fn parse_solver_node(solver_node: &Element) -> SolverParameters {
     let problem_size = parse_int_attribute(solver_node, &"problem_size", &node_info);
     let max_iter = parse_int_attribute(solver_node, &"max_iter", &node_info);
     let tolerance = parse_float_attribute(solver_node, &"tolerance", &node_info);
+    let resolution_method = parse_resolution_method(solver_node, &node_info);
 
     let damping: bool = match solver_node.attr(&"damping") {
         Some(value) => value.parse().expect("The attribute \"damping\" is not a valid boolean, valid values are \"true\" and \"false\" (case sensitive)"),
         None => false,
     };
 
-    SolverParameters::new(problem_size, tolerance, max_iter, damping)
+    SolverParameters::new(
+        problem_size,
+        tolerance,
+        max_iter,
+        resolution_method,
+        damping,
+    )
 }
 
 fn parse_iteratives_node(iteratives_node: &Element) -> Vec<iteratives::IterativeParams> {
@@ -473,6 +482,16 @@ fn parse_residual_node_with_default(
     residuals::ResidualConfig::new(stopping_critera, update_method)
 }
 
+fn parse_resolution_method(node: &Element, node_info: &str) -> ResolutionMethod {
+    match node
+            .attr(&"resolution_method")
+            .unwrap_or_else(|| panic!("The attribute \"resolution_method\" is missing in {}", node_info)) {
+                "NR" => ResolutionMethod::NewtonRaphson,
+                "SN" => ResolutionMethod::StationaryNewton,
+                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\" and \"SN\"", node_info),
+            }
+}
+
 fn parse_perturbation_method(node: &Element, node_info: &str) -> iteratives::PerturbationMethod {
     match node
             .attr(&"perturbation_method")
@@ -600,51 +619,57 @@ mod tests {
     use super::*;
     extern crate minidom;
     use crate::solver_advanced::iteratives;
+    use crate::solver_advanced::solver::ResolutionMethod;
     use minidom::Element;
 
     #[test]
     fn parsing_solver_node_1() {
-        const DATA: &'static str =
-            r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>"#;
+        const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
         let solver_parameters = parse_solver_node(&solver_node);
         assert_eq!(solver_parameters.get_problem_size(), 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::NewtonRaphson
+        );
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
         assert_eq!(solver_parameters.get_damping(), true);
     }
     #[test]
     #[should_panic(expected = "The attribute \"problem_size\" is missing in the solver node")]
     fn parsing_solver_node_2() {
-        const DATA: &'static str =
-            r#"<solver problem_Size="3" max_iter="60" tolerance="1e-6" damping="true"/>"#;
+        const DATA: &'static str = r#"<solver problem_Size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
         let _solver_parameters = parse_solver_node(&solver_node);
     }
     #[test]
     #[should_panic(expected = "The attribute \"problem_size\" is not a valid positive integer")]
     fn parsing_solver_node_3() {
-        const DATA: &'static str =
-            r#"<solver problem_size="3.0" max_iter="60" tolerance="1e-6" damping="true"/>"#;
+        const DATA: &'static str = r#"<solver problem_size="3.0" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
         let _solver_parameters = parse_solver_node(&solver_node);
     }
     #[test]
     #[should_panic(expected = "The attribute \"problem_size\" is not a valid positive integer")]
     fn parsing_solver_node_4() {
-        const DATA: &'static str =
-            r#"<solver problem_size="-3" max_iter="60" tolerance="1e-6" damping="true"/>"#;
+        const DATA: &'static str = r#"<solver problem_size="-3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
         let _solver_parameters = parse_solver_node(&solver_node);
     }
     #[test]
     fn parsing_solver_node_5() {
-        const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6"/>"#;
+        const DATA: &'static str =
+            r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" resolution_method="SN"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
         let solver_parameters = parse_solver_node(&solver_node);
         assert_eq!(solver_parameters.get_problem_size(), 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::StationaryNewton
+        );
         assert_eq!(solver_parameters.get_damping(), false);
     }
     #[test]
@@ -1257,7 +1282,7 @@ mod tests {
     fn parsing_root_fd_1() {
         const DATA: &'static str = r#"
             <nrf>
-                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>
                 <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf" dx_abs="5e-8" dx_rel="5e-9" perturbation_method="Max">
                     <iterative id="0"/>
                     <iterative id="1"/>
@@ -1275,6 +1300,10 @@ mod tests {
         assert_eq!(solver_parameters.get_problem_size(), 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::NewtonRaphson
+        );
         assert_eq!(solver_parameters.get_damping(), true);
 
         let iterative_ref = iteratives::IterativeParamsFD::new(
@@ -1313,7 +1342,51 @@ mod tests {
     fn parsing_root_fd_2() {
         const DATA: &'static str = r#"
             <nrf>
-                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true"/>
+                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true" resolution_method="SN"/>
+                <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf" dx_abs="5e-8" dx_rel="5e-9" perturbation_method="Max">
+                    <iterative id="0"/>
+                    <iterative id="1"/>
+                    <iterative id="2"/>
+                </iteratives>
+                <residuals stopping_criteria="Abs" update_method="Abs">
+                    <residual id="0" stopping_criteria="Adapt" update_method="Abs"/>
+                    <residual id="1" stopping_criteria="Rel"   update_method="Abs"/>
+                    <residual id="2" stopping_criteria="Adapt" update_method="Rel"/>
+                </residuals>
+            </nrf>"#;
+        let (_solver_parameters, _iteratives_parsed, _stopping_criterias, _update_methods) =
+            parse_root_node_fd(&DATA);
+    }
+
+    #[test]
+    #[should_panic(expected = "The attribute \"resolution_method\" is missing in solver node")]
+    fn parsing_root_fd_3() {
+        const DATA: &'static str = r#"
+            <nrf>
+                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+                <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf" dx_abs="5e-8" dx_rel="5e-9" perturbation_method="Max">
+                    <iterative id="0"/>
+                    <iterative id="1"/>
+                    <iterative id="2"/>
+                </iteratives>
+                <residuals stopping_criteria="Abs" update_method="Abs">
+                    <residual id="0" stopping_criteria="Adapt" update_method="Abs"/>
+                    <residual id="1" stopping_criteria="Rel"   update_method="Abs"/>
+                    <residual id="2" stopping_criteria="Adapt" update_method="Rel"/>
+                </residuals>
+            </nrf>"#;
+        let (_solver_parameters, _iteratives_parsed, _stopping_criterias, _update_methods) =
+            parse_root_node_fd(&DATA);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\" and \"SN\""
+    )]
+    fn parsing_root_fd_4() {
+        const DATA: &'static str = r#"
+            <nrf>
+                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="SR"/>
                 <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf" dx_abs="5e-8" dx_rel="5e-9" perturbation_method="Max">
                     <iterative id="0"/>
                     <iterative id="1"/>
@@ -1333,7 +1406,7 @@ mod tests {
     fn parsing_root_1() {
         const DATA: &'static str = r#"
             <nrf>
-                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+                <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>
                 <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf">
                     <iterative id="0"/>
                     <iterative id="1"/>
@@ -1351,6 +1424,10 @@ mod tests {
         assert_eq!(solver_parameters.get_problem_size(), 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::NewtonRaphson
+        );
         assert_eq!(solver_parameters.get_damping(), true);
 
         let iterative_ref = iteratives::IterativeParams::new(
@@ -1386,7 +1463,7 @@ mod tests {
     fn parsing_root_2() {
         const DATA: &'static str = r#"
             <nrf>
-                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true"/>
+                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>
                 <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf">
                     <iterative id="0"/>
                     <iterative id="1"/>
@@ -1407,7 +1484,7 @@ mod tests {
     fn parsing_root_with_root_fd() {
         const DATA: &'static str = r#"
             <nrf>
-                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true"/>
+                <solver problem_size="4" max_iter="60" tolerance="1e-6" damping="true" resolution_method="SN"/>
                 <iteratives max_step_abs="inf" max_step_rel="inf" min_value="-inf" max_value="inf">
                     <iterative id="0"/>
                     <iterative id="1"/>

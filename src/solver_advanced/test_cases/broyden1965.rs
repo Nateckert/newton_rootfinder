@@ -1,6 +1,6 @@
 //! Test cases taken from Broyden and Powell:
 //!
-//! ### Broyden, C.G. [1965] :
+//! ### Broyden, C.G. \[1965\] :
 //!
 //! A class of methods for solving nonlinear simultaneous equations,
 //!
@@ -8,7 +8,7 @@
 //!
 //! https://doi.org/10.1090/S0025-5718-1965-0198670-6
 //!
-//! ### Powell, M. J. D. [1964]
+//! ### Powell, M. J. D. \[1964\]
 //!
 //! A method for minimizing a sum of squares of non-linear functions without calculating derivatives,
 //!
@@ -19,7 +19,7 @@
 //! ## Test cases
 //!
 //! ### Cases 5-8
-//! Case 5-8 are to be found in [1965] p. 587 and the parameters p. 590 :
+//! Case 5-8 are to be found in \[1965\] p. 587 and the parameters p. 590 :
 //!
 //! |   Case     | Dimension   |   alpha      |    beta    |
 //! |------------|-------------|--------------|------------|
@@ -31,12 +31,12 @@
 //! Init to be taken is (-1, -1, ..., -1)
 //!
 //! ### Cases 9
-//! Case 9 is found in [1965] p. 587 and adapted from a minimization of [1964]
+//! Case 9 is found in \[1965\] p. 587 and adapted from a minimization of \[1964\]
 //!
 //! Dimension is 2
 //!
 //! ### Cases 10
-//! Case 10 is found in [1965] p. 587
+//! Case 10 is found in \[1965\] p. 587
 //!
 //! Dimension is 2
 //!

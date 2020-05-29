@@ -78,7 +78,18 @@ fn solvers_comparison(c: &mut Criterion) {
     let stopping_residuals = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
     let res_config = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut nrf = nrf::solver::default_with_guess(init_guess.clone(), &iter_params, &res_config);
+    let mut nrf = nrf::solver::default_with_guess(
+        init_guess.clone(),
+        &iter_params,
+        &res_config,
+        nrf::solver::ResolutionMethod::NewtonRaphson,
+    );
+    let mut nrf_stationary = nrf::solver::default_with_guess(
+        init_guess.clone(),
+        &iter_params,
+        &res_config,
+        nrf::solver::ResolutionMethod::StationaryNewton,
+    );
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2_nalg);
 
     let vec_iter_params_jac = nrf::iteratives::default_vec_iteratives(problem_size);
@@ -87,8 +98,12 @@ fn solvers_comparison(c: &mut Criterion) {
     let update_methods_jac = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
     let res_config_jac =
         nrf::residuals::ResidualsConfig::new(&stopping_residuals_jac, &update_methods_jac);
-    let mut nrf_jac =
-        nrf::solver::default_with_guess(init_guess.clone(), &iter_params_jac, &res_config_jac);
+    let mut nrf_jac = nrf::solver::default_with_guess(
+        init_guess.clone(),
+        &iter_params_jac,
+        &res_config_jac,
+        nrf::solver::ResolutionMethod::NewtonRaphson,
+    );
     let mut user_model_jac =
         nrf::model::UserModelWithFuncJac::new(problem_size, square2_nalg, dsquare2_nalg);
 
@@ -101,6 +116,9 @@ fn solvers_comparison(c: &mut Criterion) {
     });
     group_solver.bench_function("Advanced solver FD", |b| {
         b.iter(|| nrf.solve(&mut user_model))
+    });
+    group_solver.bench_function("Advanced solver FD Stationary Newton", |b| {
+        b.iter(|| nrf_stationary.solve(&mut user_model))
     });
     group_solver.bench_function("Advanced solver jacobian provided", |b| {
         b.iter(|| nrf_jac.solve(&mut user_model_jac))

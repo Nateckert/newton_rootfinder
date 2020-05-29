@@ -13,6 +13,10 @@ fn parse_file() {
     assert_eq!(solver_parameters.get_problem_size(), 3);
     assert_eq!(solver_parameters.get_max_iter(), 60);
     assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+    assert_eq!(
+        solver_parameters.get_resolution_method(),
+        nrf::solver::ResolutionMethod::StationaryNewton
+    );
     assert_eq!(solver_parameters.get_damping(), true);
 
     let iterative1_ref =

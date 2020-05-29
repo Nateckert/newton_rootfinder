@@ -1,2 +1,2 @@
-mod broyden;
-mod polynom;
+pub mod newton_raphson;
+//pub mod stationary_newton;

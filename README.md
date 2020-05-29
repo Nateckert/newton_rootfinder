@@ -11,7 +11,7 @@ A minimal solver is also provided for basic usages and benchmarking purposes.
 
 # Minimal solver
 
-A minimal solver is provided for basic usages in the `solver` module.
+A minimal solver is provided for basic usages in the `solver_minimal` module.
 
 This minimal solver works only on basic 1D functions.
 
@@ -67,8 +67,7 @@ The focus of this crate is the development of this solver.
 
  1. The inputs and outputs of the model are assumed to be `nalgebra` vectors.
  2. The test base is still in construction
- 3. The documentation is not exhaustive
- 4. Other resolution methods (Broyden, ...) are not available
+ 3. Other resolution methods (Broyden, ...) are not available, only Stationary Newton
 
 
 

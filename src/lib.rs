@@ -11,7 +11,7 @@
 //!
 //! # Minimal solver
 //!
-//! A minimal solver is provided for basic usages in the `solver` module.
+//! A minimal solver is provided for basic usages in the `solver_minimal` module.
 //!
 //! This minimal solver works only on basic 1D functions.
 //!
