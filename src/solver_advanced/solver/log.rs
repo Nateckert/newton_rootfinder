@@ -3,9 +3,9 @@ use std::io::Write;
 
 use crate::solver_advanced::residuals::ResidualsValues;
 
+extern crate chrono;
 extern crate rustc_version_runtime;
 extern crate whoami;
-extern crate chrono;
 use chrono::prelude::*;
 
 const SEPARATION_ITER: &str = "=========================\n\n";
@@ -27,18 +27,18 @@ impl SolverLog {
         content.push_str(&"Runner informations\n");
         content.push_str(&"===================\n\n");
         content.push_str(&"OS: ");
-        content.push_str(&whoami::os().to_string());
+        content.push_str(&whoami::os());
         content.push_str(&"\n");
         content.push_str(&"Host: ");
-        content.push_str(&whoami::host().to_string());
+        content.push_str(&whoami::host());
         content.push_str(&"\n");
         content.push_str(&"Username: ");
-        content.push_str(&whoami::username().to_string());
+        content.push_str(&whoami::username());
         content.push_str(&"\n");
         content.push_str("Rust version: ");
         content.push_str(&rustc_version_runtime::version().to_string());
         content.push_str(&"\n");
-        const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+        const VERSION: &str = env!("CARGO_PKG_VERSION");
         content.push_str("newton_rootfinder version: ");
         content.push_str(VERSION);
         content.push_str(&"\n");

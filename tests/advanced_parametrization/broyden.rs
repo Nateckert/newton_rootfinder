@@ -37,5 +37,4 @@ fn broyden_case10_fd() {
             epsilon = 1e-6
         ));
     }
-
 }
