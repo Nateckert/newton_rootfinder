@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.4.0] - 2020-05-29
 ### Added
 - New resolution method: StationaryNewton. The classical one has been named NewtonRaphson
 - Added dependencies to chrono, whoami and rustc_version_runtime for log file informations
