@@ -133,7 +133,8 @@ impl<'a> fmt::Display for ResidualsConfig<'a> {
             "+-------------------+--------------------------+--------------------------+\n",
         );
 
-        let mut content = String::from("Residuals configuration:\n\n");
+        let mut content = String::from("Residuals configuration\n");
+        content.push_str(&"=======================\n\n");
         content.push_str(&separation_line);
         content.push_str("| ");
         content.push_str(&format!("{:width$}", "Residual number", width = 18));

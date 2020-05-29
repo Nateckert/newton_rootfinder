@@ -256,15 +256,11 @@ where
     }
 
     fn parameters_to_log(&mut self) {
-        let parameters = super::log::Parameters::new(
-            &self.parameters.get_max_iter().to_string(),
-            &self.parameters.get_tolerance().to_string(),
-            &self.residuals_config.to_string(),
+        self.solver_log.add_parameters(
+            &self.parameters.to_string(),
             &self.iters_params.to_string(),
-            &self.initial_guess.to_string(),
+            &self.residuals_config.to_string(),
         );
-
-        self.solver_log.add_parameters(parameters);
     }
 
     fn iteration_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)

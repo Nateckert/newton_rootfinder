@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// Choice of the iterative algorithm for the resolution
 ///
 /// All of them are Newton based methods : (Newton or quasi-Newton)
@@ -45,6 +47,17 @@
 pub enum ResolutionMethod {
     NewtonRaphson,
     StationaryNewton,
+}
+
+impl fmt::Display for ResolutionMethod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let result = match self {
+            ResolutionMethod::NewtonRaphson => &"Newton-Raphson",
+            ResolutionMethod::StationaryNewton => &"Stationary Newton",
+        };
+
+        write!(f, "{}", result)
+    }
 }
 
 /// A minimal struct holding the resolution parameters
@@ -126,5 +139,29 @@ impl SolverParameters {
 
     pub fn get_damping(&self) -> bool {
         self.damping
+    }
+}
+
+
+impl fmt::Display for SolverParameters {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut content = String::from("Solver parameters\n");
+        content.push_str("=================\n\n");
+        let separation_line = &"+----------------+-----------------+-----------------+--------------------+---------------------+\n";
+        let header          = &"|  Problem size  |  Max iteration  |    Tolerance    |  Damping activated |  Resolution Method  |\n";
+
+        content.push_str(separation_line);
+        content.push_str(header);
+        content.push_str(separation_line);
+        content.push_str(&format!("| {:width$}", self.problem_size.to_string(), width = 15));
+        content.push_str(&format!("| {:width$}", self.max_iter.to_string(), width = 17));
+        content.push_str(&format!("| {:width$}", self.tolerance.to_string(), width = 15));
+        content.push_str(&format!("| {:width$}", self.damping.to_string(), width = 19));
+        content.push_str(&format!("| {:width$}", self.resolution_method.to_string(), width = 20));
+        content.push_str(&"|\n");
+        content.push_str(separation_line);
+        content.push_str(&"\n");
+
+        write!(f, "{}", content)
     }
 }
