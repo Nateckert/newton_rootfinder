@@ -33,7 +33,8 @@ where
     iter: usize,
     solver_log: super::log::SolverLog,
     jacobian: nalgebra::DMatrix<f64>,
-    jacobian_up_to_date: bool,
+    compute_jac_next_iter: bool,
+    last_iter_with_computed_jacobian: usize,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -74,7 +75,8 @@ where
 
         let jacobian =
             nalgebra::DMatrix::zeros(parameters.get_problem_size(), parameters.get_problem_size());
-        let jacobian_up_to_date = false;
+        let compute_jac_next_iter = true;
+        let last_iter_with_computed_jacobian = 0;
 
         RootFinder {
             parameters,
@@ -85,7 +87,8 @@ where
             iter,
             solver_log,
             jacobian,
-            jacobian_up_to_date,
+            compute_jac_next_iter,
+            last_iter_with_computed_jacobian,
         }
     }
 
@@ -156,7 +159,8 @@ where
             self.compute_jac_fd(model)
         };
 
-        self.jacobian_up_to_date = true;
+        self.compute_jac_next_iter = false;
+        self.last_iter_with_computed_jacobian = self.iter;
 
         if self.debug {
             self.jac_to_log();
@@ -167,7 +171,7 @@ where
         match self.parameters.get_resolution_method() {
             ResolutionMethod::NewtonRaphson => self.compute_jac(model),
             ResolutionMethod::StationaryNewton => {
-                if !(self.jacobian_up_to_date) {
+                if self.compute_jac_next_iter {
                     self.compute_jac(model)
                 }
             }
@@ -188,6 +192,39 @@ where
         )
     }
 
+    fn damping<M: model::Model>(
+        &mut self,
+        model: &mut M,
+        max_error: f64,
+        current_guess: &nalgebra::DVector<f64>,
+        proposed_guess: &nalgebra::DVector<f64>,
+        errors_next: &mut nalgebra::DVector<f64>,
+    ) {
+        let max_error_next = errors_next.amax();
+        if max_error_next > max_error {
+            // see documentation of the `SolverParameters` struct
+            if self.parameters.get_resolution_method() != ResolutionMethod::NewtonRaphson
+                && self.last_iter_with_computed_jacobian != self.iter - 1
+            {
+                self.compute_jac_next_iter = true;
+                if self.debug {
+                    self.recompute_jacobian_to_log();
+                }
+            } else {
+                let damping_factor = 1.0 / 2.0;
+                let damped_guess =
+                    current_guess * (1.0 - damping_factor) + proposed_guess * damping_factor;
+                model.set_iteratives(&damped_guess);
+                model.evaluate();
+                *errors_next = self.evaluate_errors(model);
+
+                if self.debug {
+                    self.damping_to_log(model, &errors_next);
+                }
+            }
+        }
+    }
+
     fn update_model<M: model::Model>(
         &mut self,
         model: &mut M,
@@ -206,21 +243,13 @@ where
         }
 
         if self.parameters.get_damping() {
-            let max_error_next = errors_next.amax();
-            if max_error_next > max_error {
-                // update formula : X = X - damping_factor*res/jac
-                // proposed_guess is with damping_factor = 1
-                let damping_factor = 1.0 / 2.0;
-                let damped_guess =
-                    &current_guess * (1.0 - damping_factor) + proposed_guess * damping_factor;
-                model.set_iteratives(&damped_guess);
-                model.evaluate();
-                errors_next = self.evaluate_errors(model);
-
-                if self.debug {
-                    self.damping_to_log(model, &errors_next);
-                }
-            }
+            self.damping(
+                model,
+                max_error,
+                &current_guess,
+                &proposed_guess,
+                &mut errors_next,
+            );
         }
 
         errors_next
@@ -244,7 +273,6 @@ where
             self.iteration_to_log(model, &errors);
         }
 
-        // Other iterations
         while max_error > self.parameters.get_tolerance()
             && self.iter < self.parameters.get_max_iter()
         {
@@ -271,6 +299,12 @@ where
         let residuals = model.get_residuals();
         self.solver_log
             .add_new_iteration(&iteratives, &residuals, errors, self.iter);
+    }
+
+    fn recompute_jacobian_to_log(&mut self) {
+        self.solver_log.add_content(
+            &"Iteration refused, the jacobian will be recomputed at the next iteration\n\n",
+        );
     }
 
     fn damping_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)

@@ -81,6 +81,13 @@ impl fmt::Display for ResolutionMethod {
 /// If it is not the case, a factor is applied
 /// (the value might change according to the versions).
 ///
+/// If the used method is a quasi-newton method
+/// and the jacobian has not been recently updated,
+/// damping won't be performed but the jacobian will be recomputed at the next iteration.
+///
+/// In the case of the jacobian has been recomputed at the previous iteration,
+/// damping will be performed
+///
 /// ## Tolerance
 /// The tolerance values used by the solver to check for convergence.
 ///

@@ -58,7 +58,7 @@ impl SolverLog {
         SolverLog { content }
     }
 
-    fn add_content(&mut self, new_content: &str) {
+    pub fn add_content(&mut self, new_content: &str) {
         self.content.push_str(new_content);
     }
 
