@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.4.1] - 2020-06-04
+### Fixed
+Fix documentation upload on doc.rs
+
 ## [0.4.0] - 2020-05-29
 ### Added
 - New resolution method: StationaryNewton. The classical one has been named NewtonRaphson
