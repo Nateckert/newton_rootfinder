@@ -1,6 +1,8 @@
 Newton based methods for rootfinding
 ========================================================
 
+[![Build Status](https://travis-ci.com/Nateckert/newton_rootfinder.svg?branch=master)](https://travis-ci.com/Nateckert/newton_rootfinder)
+
 This crate allows you to use [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) for rootfinding.
 
 It aims to implement several Newton based methods (Broyden, ...), whether the jacobian function is provided or not.

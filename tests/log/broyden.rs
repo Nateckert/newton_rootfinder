@@ -41,27 +41,39 @@ fn broyden_case10_fd() {
     let mut lines_ref = log_ref_reader.lines();
 
     // Parse the runner informations except the time
-    for _i in 0..9 {
+    for _i in 0..3 {
         let line_new = lines_new.next().unwrap();
         let line_ref = lines_ref.next().unwrap();
         assert_eq!(line_new.unwrap(), line_ref.unwrap());
     }
 
-    // ignore the time lines
-    lines_new.next();
+    // ignore the OS line
     lines_new.next();
     lines_ref.next();
+    // ignore the host line
+    lines_new.next();
+    lines_ref.next();
+    // ignore the username line
+    lines_new.next();
+    lines_ref.next();
+    // ignore the rust version line
+    lines_new.next();
+    lines_ref.next();
+    // ignore the crate version line
+    lines_new.next();
+    lines_ref.next();
+    // ignore the time line
+    lines_new.next();
+    lines_ref.next();
+    // ignore the UTC time line
+    lines_new.next();
+    lines_ref.next();
+    // ignore the Local time line
+    lines_new.next();
     lines_ref.next();
 
     for (elt_new, elt_ref) in lines_new.zip(lines_ref) {
         assert_eq!(elt_new.unwrap(), elt_ref.unwrap());
     }
 
-    //let mut log_contents = String::new();
-    //let mut log_ref_contents = String::new();
-    //log_reader.read_to_string(&mut log_contents).unwrap();
-    //log_ref_reader
-    //    .read_to_string(&mut log_ref_contents)
-    //    .unwrap();
-    //assert_eq!(log_contents, log_ref_contents);
 }

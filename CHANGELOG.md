@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [Unreleased]
+### Added
+- Travis CI
+
+### Changed
+- Testing of log generation: the user info are not checked anymore (so TRAVIS or anybody else could run it)
+- Documentation of the `util` module: fixed a typo
+
 ## [0.4.0] - 2020-05-29
 ### Added
 - New resolution method: StationaryNewton. The classical one has been named NewtonRaphson
