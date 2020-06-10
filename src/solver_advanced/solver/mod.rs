@@ -55,8 +55,10 @@ mod default;
 mod log;
 mod parameters;
 mod solver_advanced;
+mod resolution_method;
 
 pub use default::default_with_guess;
-pub use parameters::ResolutionMethod;
+pub use resolution_method::ResolutionMethod;
+pub use resolution_method::QuasiNewtonMethod;
 pub use parameters::SolverParameters;
 pub use solver_advanced::RootFinder;

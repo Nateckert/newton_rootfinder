@@ -105,17 +105,13 @@
 //! 5. Configuration parsing: it is possible to define the solver paramters in an external configuration
 //! file, allowing a more ergonomic use (and a parametrization only known at run-time): check the `util` module
 //! 6. Many solver options : check the `solver_advanced` module
+//! 7. This solver is available through Python: check https://github.com/Nateckert/py_nrf
 //!
 //!
-//! # Upcoming features by order of priority
-//! 1. Make the solver available through Python
-//! 2. Introduce the possiblity to use inequations as residuals
-//! 3. Implement another resolution method (Secant method)
 //!
-//! # Long term Features
+//! # Upcoming Features
 //! 1. Implement other algorithms (Broyden, Martinez, Huang, Tomas, Greenstadt: see https://doi.org/10.1007/BF02684472)
 //! 2. Implement new test cases
-//! 3. Implement substitution methods
 //! 4. Implement tests cases with Automatic Differentation for benchmarking (https://crates.io/crates/fwd_ad)
 
 pub mod iteratives;

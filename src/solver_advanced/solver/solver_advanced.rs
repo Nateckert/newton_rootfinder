@@ -7,6 +7,7 @@ use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
 use super::ResolutionMethod;
+use super::QuasiNewtonMethod;
 use super::SolverParameters;
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::util::jacobian;
@@ -170,10 +171,13 @@ where
     fn compute_next<M: model::Model>(&mut self, model: &mut M) -> nalgebra::DVector<f64> {
         match self.parameters.get_resolution_method() {
             ResolutionMethod::NewtonRaphson => self.compute_jac(model),
-            ResolutionMethod::StationaryNewton => {
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => {
                 if self.compute_jac_next_iter {
                     self.compute_jac(model)
                 }
+            }
+            ResolutionMethod::QuasiNewton(_) => {
+                unimplemented!();
             }
         }
 

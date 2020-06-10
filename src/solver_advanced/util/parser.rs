@@ -6,6 +6,7 @@ use minidom::Element;
 use crate::solver_advanced::iteratives;
 use crate::solver_advanced::residuals;
 use crate::solver_advanced::solver::ResolutionMethod;
+use crate::solver_advanced::solver::QuasiNewtonMethod;
 use crate::solver_advanced::solver::SolverParameters;
 
 /// Parser for a solver operating with a model with the jacobian provided
@@ -487,8 +488,10 @@ fn parse_resolution_method(node: &Element, node_info: &str) -> ResolutionMethod 
             .attr(&"resolution_method")
             .unwrap_or_else(|| panic!("The attribute \"resolution_method\" is missing in {}", node_info)) {
                 "NR" => ResolutionMethod::NewtonRaphson,
-                "SN" => ResolutionMethod::StationaryNewton,
-                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\" and \"SN\"", node_info),
+                "SN" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
+                "BGM" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenGood),
+                "BBM" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenBad),
+                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BGM\" and \"BBM\"", node_info),
             }
 }
 
