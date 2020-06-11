@@ -75,5 +75,4 @@ fn broyden_case10_fd() {
     for (elt_new, elt_ref) in lines_new.zip(lines_ref) {
         assert_eq!(elt_new.unwrap(), elt_ref.unwrap());
     }
-
 }

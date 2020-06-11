@@ -6,11 +6,10 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
-use super::ResolutionMethod;
 use super::QuasiNewtonMethod;
-use super::SolverParameters;
+use super::ResolutionMethod;
+use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
 use crate::solver_advanced::residuals;
-use crate::solver_advanced::util::jacobian;
 
 /// Solver for rootfinding
 ///
@@ -33,7 +32,7 @@ where
     // solver placeholder
     iter: usize,
     solver_log: super::log::SolverLog,
-    jacobian: nalgebra::DMatrix<f64>,
+    jacobian: JacobianMatrix,
     compute_jac_next_iter: bool,
     last_iter_with_computed_jacobian: usize,
 }
@@ -74,8 +73,7 @@ where
             );
         }
 
-        let jacobian =
-            nalgebra::DMatrix::zeros(parameters.get_problem_size(), parameters.get_problem_size());
+        let jacobian = JacobianMatrix::new();
         let compute_jac_next_iter = true;
         let last_iter_with_computed_jacobian = 0;
 
@@ -139,7 +137,8 @@ where
 
         let jacobians = model.get_jacobian();
         let normalization_method = self.residuals_config.get_update_methods();
-        self.jacobian = jacobians.normalize(&residuals_values, &normalization_method);
+        self.jacobian
+            .update_jacobian(jacobians.normalize(&residuals_values, &normalization_method));
     }
 
     fn compute_jac_fd<M: model::Model>(&mut self, model: &mut M) {
@@ -149,8 +148,11 @@ where
             .iters_params
             .compute_perturbations(&iters_values, self.parameters.get_problem_size());
 
-        self.jacobian =
-            jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config));
+        self.jacobian.update_jacobian(jacobian_evaluation(
+            model,
+            &perturbations,
+            &(self.residuals_config),
+        ));
     }
 
     fn compute_jac<M: model::Model>(&mut self, model: &mut M) {
@@ -168,24 +170,33 @@ where
         }
     }
 
-    fn compute_next<M: model::Model>(&mut self, model: &mut M) -> nalgebra::DVector<f64> {
-        match self.parameters.get_resolution_method() {
-            ResolutionMethod::NewtonRaphson => self.compute_jac(model),
-            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => {
-                if self.compute_jac_next_iter {
-                    self.compute_jac(model)
-                }
-            }
-            ResolutionMethod::QuasiNewton(_) => {
-                unimplemented!();
-            }
-        }
+    fn compute_newton_raphson_step<M: model::Model>(
+        &mut self,
+        model: &mut M,
+    ) -> nalgebra::DVector<f64> {
+        self.compute_jac(model);
+        self.compute_next_from_jac(model)
+    }
 
+    fn compute_quasi_newton_step<M: model::Model>(
+        &mut self,
+        model: &mut M,
+        resolution_method: QuasiNewtonMethod,
+    ) -> nalgebra::DVector<f64> {
+        match resolution_method {
+            QuasiNewtonMethod::StationaryNewton => (),
+            _ => unimplemented!("Only StationaryNewton is currently available"),
+        };
+
+        self.compute_next_from_jac(model)
+    }
+
+    fn compute_next_from_jac<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&model.get_residuals());
 
-        let raw_step = jacobian::newton_raw_step_size(&residuals, &self.jacobian);
+        let raw_step = -self.jacobian.get_inverse().as_ref().unwrap() * residuals;
 
         let iter_values = model.get_iteratives();
 
@@ -277,11 +288,26 @@ where
             self.iteration_to_log(model, &errors);
         }
 
+        // first iteration: always a Newton-Raphson step
+        if max_error > self.parameters.get_tolerance() {
+            let proposed_guess = self.compute_newton_raphson_step(model);
+            errors = self.update_model(model, &proposed_guess);
+            max_error = errors.amax();
+        }
+
+        // other iterations
         while max_error > self.parameters.get_tolerance()
             && self.iter < self.parameters.get_max_iter()
         {
             self.iter += 1;
-            let proposed_guess = self.compute_next(model);
+
+            let proposed_guess = match self.parameters.get_resolution_method() {
+                ResolutionMethod::NewtonRaphson => self.compute_newton_raphson_step(model),
+                ResolutionMethod::QuasiNewton(quasi_newton_method) => {
+                    self.compute_quasi_newton_step(model, quasi_newton_method)
+                }
+            };
+
             errors = self.update_model(model, &proposed_guess);
             max_error = errors.amax();
         }
@@ -321,7 +347,7 @@ where
     }
 
     fn jac_to_log(&mut self) {
-        self.solver_log.add_jac(&self.jacobian);
+        self.solver_log.add_content(&self.jacobian.to_string());
     }
 
     /// Writing of simulation log

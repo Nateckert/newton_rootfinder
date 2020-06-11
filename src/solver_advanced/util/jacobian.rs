@@ -1,8 +1,6 @@
 //! Jacobian evaluation per finite-differences
 //!
-
-extern crate nalgebra;
-use nalgebra::linalg;
+use nalgebra;
 
 use crate::solver_advanced::model;
 use crate::solver_advanced::residuals;
@@ -49,26 +47,4 @@ where
     }
 
     jacobian
-}
-
-pub fn newton_raw_step_size(
-    residuals_values: &nalgebra::DVector<f64>,
-    jac: &nalgebra::DMatrix<f64>,
-) -> nalgebra::DVector<f64> {
-    // error management
-    // It is limited to finding a null column, as it is the most common case in practice
-    //
-    // When modeling a physical system, it is extremly rare with floating point arithmeric
-    // to have a determinant that is exactly zero
-    // The most frequent case is having an iterative variable without any influence
-    // Hence, a column of zero in the jacobian matrix
-
-    let lu_jac = linalg::LU::new(jac.clone());
-
-    let inv_jac = match lu_jac.try_inverse() {
-        Some(inv_jac) => inv_jac,
-        None => panic!("The jacobian matrix is non invertible"),
-    };
-
-    -inv_jac * residuals_values
 }

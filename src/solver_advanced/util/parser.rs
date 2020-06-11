@@ -5,8 +5,8 @@ use minidom::Element;
 
 use crate::solver_advanced::iteratives;
 use crate::solver_advanced::residuals;
-use crate::solver_advanced::solver::ResolutionMethod;
 use crate::solver_advanced::solver::QuasiNewtonMethod;
+use crate::solver_advanced::solver::ResolutionMethod;
 use crate::solver_advanced::solver::SolverParameters;
 
 /// Parser for a solver operating with a model with the jacobian provided
@@ -671,7 +671,7 @@ mod tests {
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
         assert_eq!(
             solver_parameters.get_resolution_method(),
-            ResolutionMethod::StationaryNewton
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton)
         );
         assert_eq!(solver_parameters.get_damping(), false);
     }
@@ -1384,7 +1384,7 @@ mod tests {
 
     #[test]
     #[should_panic(
-        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\" and \"SN\""
+        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\", \"SN\", \"BGM\" and \"BBM\""
     )]
     fn parsing_root_fd_4() {
         const DATA: &'static str = r#"

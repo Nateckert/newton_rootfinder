@@ -52,13 +52,16 @@
 //! ```
 
 mod default;
+mod jacobian;
 mod log;
 mod parameters;
-mod solver_advanced;
 mod resolution_method;
+mod solver_advanced;
 
 pub use default::default_with_guess;
-pub use resolution_method::ResolutionMethod;
-pub use resolution_method::QuasiNewtonMethod;
+pub use jacobian::jacobian_evaluation;
+pub use jacobian::JacobianMatrix;
 pub use parameters::SolverParameters;
+pub use resolution_method::QuasiNewtonMethod;
+pub use resolution_method::ResolutionMethod;
 pub use solver_advanced::RootFinder;

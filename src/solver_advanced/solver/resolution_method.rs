@@ -40,7 +40,9 @@ impl fmt::Display for ResolutionMethod {
         let mut content = String::new();
         match self {
             ResolutionMethod::NewtonRaphson => content.push_str("Newton-Raphson"),
-            ResolutionMethod::QuasiNewton(method) => content.push_str(&format!("Quasi Newton: {}", method.to_string())),
+            ResolutionMethod::QuasiNewton(method) => {
+                content.push_str(&format!("Quasi Newton: {}", method.to_string()))
+            }
         };
 
         write!(f, "{}", content)
@@ -118,16 +120,15 @@ impl fmt::Display for ResolutionMethod {
 pub enum QuasiNewtonMethod {
     StationaryNewton,
     BroydenGood,
-    BroydenBad
+    BroydenBad,
 }
-
 
 impl fmt::Display for QuasiNewtonMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let result = match self {
             QuasiNewtonMethod::StationaryNewton => &"Stationary Newton",
             QuasiNewtonMethod::BroydenGood => &"Broyden Good Method",
-            QuasiNewtonMethod::BroydenBad => &"Broyden Good Method",
+            QuasiNewtonMethod::BroydenBad => &"Broyden Bad Method",
         };
 
         write!(f, "{}", result)

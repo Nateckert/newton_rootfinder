@@ -15,7 +15,7 @@ fn parse_file() {
     assert_eq!(solver_parameters.get_tolerance(), 1e-6);
     assert_eq!(
         solver_parameters.get_resolution_method(),
-        nrf::solver::ResolutionMethod::StationaryNewton
+        nrf::solver::ResolutionMethod::QuasiNewton(nrf::solver::QuasiNewtonMethod::StationaryNewton)
     );
     assert_eq!(solver_parameters.get_damping(), true);
 

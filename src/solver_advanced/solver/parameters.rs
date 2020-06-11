@@ -1,5 +1,5 @@
-use std::fmt;
 use super::ResolutionMethod;
+use std::fmt;
 
 /// A minimal struct holding the resolution parameters
 ///

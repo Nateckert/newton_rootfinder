@@ -135,12 +135,6 @@ impl SolverLog {
         self.add_content(&"\n");
     }
 
-    pub fn add_jac(&mut self, jac: &nalgebra::DMatrix<f64>) {
-        self.add_content(&"Jacobian Matrix:\n");
-        self.add_content(&jac.to_string());
-        self.add_content(&"\n");
-    }
-
     pub fn write(&self, path: &str) {
         let mut f = File::create(path).unwrap();
         write!(f, "{}", self.content).unwrap();

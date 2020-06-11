@@ -34,7 +34,6 @@
 //! # Jacobian (for internal use but required to be public for integration testing)
 //! Implementation of the finite difference evaluation
 
-pub mod jacobian;
 mod parser;
 
 pub use parser::from_xml_finite_diff;
