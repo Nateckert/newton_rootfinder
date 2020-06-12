@@ -15,8 +15,8 @@
 //! Resolution speed:
 //! - NewtonRaphson-FD:             [921.32 ns 926.58 ns 932.06 ns]
 //! - StationaryNewton-FD:          [916.82 ns 923.32 ns 929.80 ns]
-//! - BroydenFirstMethod_jac-FD:    [37.099 ns 37.350 ns 37.602 ns]
-//! - BroydenSecondMethod_jac-FD:   [37.099 ns 37.350 ns 37.602 ns]
+//! - BroydenFirstMethod_jac-FD:    [900.14 ns 905.07 ns 909.85 ns]
+//! - BroydenSecondMethod_jac-FD:   [897.66 ns 903.92 ns 910.21 ns]  
 //!
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
@@ -30,8 +30,8 @@ use nrf::test_cases::broyden1965::{broyden1965_case8, init_broyden1965_case8};
 fn solvers_comparison(c: &mut Criterion) {
     const FILEPATH_NR: &'static str = "./benches/data/broyden_case8_NR.xml";
     const FILEPATH_SN: &'static str = "./benches/data/broyden_case8_SN.xml";
-    const FILEPATH_BFM_JAC: &'static str = "./benches/data/broyden_case8_BROY1_jac.xml";
-    const FILEPATH_BSM_JAC: &'static str = "./benches/data/broyden_case8_BROY2_jac.xml";
+    const FILEPATH_BROY1_JAC: &'static str = "./benches/data/broyden_case8_BROY1_jac.xml";
+    const FILEPATH_BROY2_JAC: &'static str = "./benches/data/broyden_case8_BROY2_jac.xml";
 
     let mut group_function = c.benchmark_group("Solver parsing");
     group_function.bench_function("NR", |b| {
@@ -41,10 +41,10 @@ fn solvers_comparison(c: &mut Criterion) {
         b.iter(|| nrf::util::from_xml_finite_diff(&FILEPATH_SN))
     });
     group_function.bench_function("BROY1_jac", |b| {
-        b.iter(|| nrf::util::from_xml_finite_diff(&FILEPATH_BFM_JAC))
+        b.iter(|| nrf::util::from_xml_finite_diff(&FILEPATH_BROY1_JAC))
     });
     group_function.bench_function("BROY2_jac", |b| {
-        b.iter(|| nrf::util::from_xml_finite_diff(&FILEPATH_BSM_JAC))
+        b.iter(|| nrf::util::from_xml_finite_diff(&FILEPATH_BROY2_JAC))
     });
     group_function.finish();
 
@@ -87,6 +87,46 @@ fn solvers_comparison(c: &mut Criterion) {
 
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("SN", |b| b.iter(|| rf.solve(&mut user_model)));
+
+
+    // First Broyden method on jacobian
+    let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
+        nrf::util::from_xml_finite_diff(&FILEPATH_BROY1_JAC);
+
+    let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
+    let residuals_config =
+        nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
+    let problem_size = solver_parameters.get_problem_size();
+
+    let mut rf = nrf::solver::RootFinder::new(
+        solver_parameters,
+        init_broyden1965_case8(),
+        &iteratives,
+        &residuals_config,
+    );
+
+    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    group_function.bench_function("BROY1_jac", |b| b.iter(|| rf.solve(&mut user_model)));
+
+
+    // Second Broyden method on jacobian
+    let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
+        nrf::util::from_xml_finite_diff(&FILEPATH_BROY2_JAC);
+
+    let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
+    let residuals_config =
+        nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
+    let problem_size = solver_parameters.get_problem_size();
+
+    let mut rf = nrf::solver::RootFinder::new(
+        solver_parameters,
+        init_broyden1965_case8(),
+        &iteratives,
+        &residuals_config,
+    );
+
+    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    group_function.bench_function("BROY2_jac", |b| b.iter(|| rf.solve(&mut user_model)));
 
     group_function.finish();
 }
