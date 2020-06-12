@@ -188,6 +188,10 @@ where
             _ => unimplemented!("Only StationaryNewton is currently available"),
         };
 
+        if self.compute_jac_next_iter {
+            self.compute_jac(model);
+        }
+
         self.compute_next_from_inv_jac(model)
     }
 
@@ -289,12 +293,12 @@ where
         }
 
         // first iteration: always a Newton-Raphson step
-        if max_error > self.parameters.get_tolerance() {
-            self.iter += 1;
-            let proposed_guess = self.compute_newton_raphson_step(model);
-            errors = self.update_model(model, &proposed_guess);
-            max_error = errors.amax();
-        }
+        //    if max_error > self.parameters.get_tolerance() {
+        //        self.iter += 1;
+        //        let proposed_guess = self.compute_newton_raphson_step(model);
+        //        errors = self.update_model(model, &proposed_guess);
+        //        max_error = errors.amax();
+        //    }
 
         // other iterations
         while max_error > self.parameters.get_tolerance()
