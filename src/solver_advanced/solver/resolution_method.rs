@@ -49,22 +49,29 @@ impl fmt::Display for ResolutionMethod {
     }
 }
 
-/// A struct to hold the information of which matrix will be approximated
-/// when using a quasi Newton Method with matrix approximation update
-///
+/// Three class of methods:
+/// - no jacobian update: StationaryNewton
+/// - jacobian update
+/// - inverse of jacobian update
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum ApproximatedUpdatedMatrix {
-    Jacobian,
-    InverseJacobian,
+pub enum QuasiNewtonMethod {
+    StationaryNewton,
+    JacobianUpdate(UpdateQuasiNewtonMethod),
+    InverseJacobianUpdate(UpdateQuasiNewtonMethod),
 }
 
-impl fmt::Display for ApproximatedUpdatedMatrix {
+impl fmt::Display for QuasiNewtonMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut content = String::from("Matrix approximated and updated: ");
+        let mut content = String::from("Jacobian matrix behavior: ");
         match self {
-            ApproximatedUpdatedMatrix::Jacobian => content.push_str("Jacobian matrix"),
-            ApproximatedUpdatedMatrix::InverseJacobian => {
-                content.push_str("Inverse Jacobian matrix")
+            QuasiNewtonMethod::StationaryNewton => content.push_str("Frozen Jacobian matrix"),
+            QuasiNewtonMethod::JacobianUpdate(method) => {
+                content.push_str("Jacobian matrix approximated");
+                content.push_str(&method.to_string());
+            }
+            QuasiNewtonMethod::InverseJacobianUpdate(method) => {
+                content.push_str("Jacobian matrix approximated");
+                content.push_str(&method.to_string());
             }
         }
         write!(f, "{}", content)
@@ -138,25 +145,17 @@ impl fmt::Display for ApproximatedUpdatedMatrix {
 ///
 /// doi:10.1007/BF02684472
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum QuasiNewtonMethod {
-    StationaryNewton,
-    BroydenFirstMethod(ApproximatedUpdatedMatrix),
-    BroydenSecondMethod(ApproximatedUpdatedMatrix),
+pub enum UpdateQuasiNewtonMethod {
+    BroydenFirstMethod,
+    BroydenSecondMethod,
 }
 
-impl fmt::Display for QuasiNewtonMethod {
+impl fmt::Display for UpdateQuasiNewtonMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut content = String::new();
         match self {
-            QuasiNewtonMethod::StationaryNewton => content.push_str("Stationary Newton"),
-            QuasiNewtonMethod::BroydenFirstMethod(matrix) => {
-                content.push_str("Broyden First Method");
-                content.push_str(&matrix.to_string());
-            }
-            QuasiNewtonMethod::BroydenSecondMethod(matrix) => {
-                content.push_str("Broyden Second Method");
-                content.push_str(&matrix.to_string());
-            }
+            UpdateQuasiNewtonMethod::BroydenFirstMethod => content.push_str("Broyden First Method"),
+            UpdateQuasiNewtonMethod::BroydenSecondMethod => content.push_str("Broyden Second Method"),
         };
 
         write!(f, "{}", content)

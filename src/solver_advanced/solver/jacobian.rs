@@ -38,10 +38,14 @@ impl JacobianMatrix {
         self.inverse = Some(inverse);
     }
 
-    /// Nécessité d'avoir Some and None for the inverse ?
+    /// Nedd to have Some and None for the inverse ?
     /// it is always valid !
     pub fn get_inverse(&self) -> &Option<nalgebra::DMatrix<f64>> {
         &self.inverse
+    }
+
+    pub fn get_jacobian(&self) -> &Option<nalgebra::DMatrix<f64>> {
+        &self.matrix
     }
 }
 

@@ -6,10 +6,9 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
-use super::QuasiNewtonMethod;
-use super::ResolutionMethod;
-use super::ApproximatedUpdatedMatrix;
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
+use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
+use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use crate::solver_advanced::residuals;
 
 /// Solver for rootfinding
@@ -36,6 +35,8 @@ where
     jacobian: JacobianMatrix,
     compute_jac_next_iter: bool,
     last_iter_with_computed_jacobian: usize,
+    iteratives_step_size: Option<nalgebra::DVector<f64>>,
+    residuals_step_size: Option<nalgebra::DVector<f64>>,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -77,6 +78,8 @@ where
         let jacobian = JacobianMatrix::new();
         let compute_jac_next_iter = true;
         let last_iter_with_computed_jacobian = 0;
+        let iteratives_step_size = None;
+        let residuals_step_size = None;
 
         RootFinder {
             parameters,
@@ -89,6 +92,8 @@ where
             jacobian,
             compute_jac_next_iter,
             last_iter_with_computed_jacobian,
+            iteratives_step_size,
+            residuals_step_size,
         }
     }
 
@@ -158,10 +163,10 @@ where
 
     fn compute_jac<M: model::Model>(&mut self, model: &mut M) {
         if model.jacobian_provided() {
-            self.compute_jac_func(model)
+            self.compute_jac_func(model);
         } else {
-            self.compute_jac_fd(model)
-        };
+            self.compute_jac_fd(model);
+        }
 
         self.compute_jac_next_iter = false;
         self.last_iter_with_computed_jacobian = self.iter;
@@ -179,6 +184,25 @@ where
         self.compute_next_from_inv_jac(model)
     }
 
+    fn approximate_jacobian(&self, method: UpdateQuasiNewtonMethod) {
+        match method {
+            UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_jac(
+                self.jacobian.get_jacobian().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_udpate_jac(
+                self.jacobian.get_jacobian().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+        };
+    }
+
+    fn approximate_inv_jacobian(&self, method: UpdateQuasiNewtonMethod) {
+        unimplemented!();
+    }
+
     fn compute_quasi_newton_step<M: model::Model>(
         &mut self,
         model: &mut M,
@@ -189,18 +213,12 @@ where
         } else {
             match resolution_method {
                 QuasiNewtonMethod::StationaryNewton => (),
-                QuasiNewtonMethod::BroydenFirstMethod(matrix) => {
-                    match matrix {
-                        ApproximatedUpdatedMatrix::Jacobian => unimplemented!(),
-                        ApproximatedUpdatedMatrix::InverseJacobian => unimplemented!(),
-                    }
-                }
-                QuasiNewtonMethod::BroydenSecondMethod(matrix) => {
-                    match matrix {
-                        ApproximatedUpdatedMatrix::Jacobian => unimplemented!(),
-                        ApproximatedUpdatedMatrix::InverseJacobian => unimplemented!(),
-                    }
-                }
+                QuasiNewtonMethod::JacobianUpdate(method) => {
+                    self.approximate_jacobian(method);
+                },
+                QuasiNewtonMethod::InverseJacobianUpdate(method) => {
+                    self.approximate_inv_jacobian(method);
+                },
             };
         }
 
@@ -282,6 +300,15 @@ where
                 &mut errors_next,
             );
         }
+
+        match self.parameters.get_resolution_method() {
+            ResolutionMethod::NewtonRaphson => (),
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => (),
+            _ => {
+                self.iteratives_step_size = Some(model.get_iteratives() - current_guess);
+                self.residuals_step_size = Some(errors_next.clone() - errors);
+            },
+        };
 
         errors_next
     }
