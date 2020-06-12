@@ -76,7 +76,7 @@ Inverse of the jacobian Matrix:
 
 =========================
 
-Iteration: 0
+Iteration: 1
 
 Max error: 24.85714211371714
 
@@ -110,7 +110,7 @@ Inverse of the jacobian Matrix:
 
 =========================
 
-Iteration: 1
+Iteration: 2
 
 Max error: 48.450113151230106
 
@@ -144,7 +144,7 @@ Inverse of the jacobian Matrix:
 
 =========================
 
-Iteration: 2
+Iteration: 3
 
 Max error: 7.074687554008303
 
@@ -178,7 +178,7 @@ Inverse of the jacobian Matrix:
 
 =========================
 
-Iteration: 3
+Iteration: 4
 
 Max error: 0.4723272129726013
 
@@ -212,7 +212,7 @@ Inverse of the jacobian Matrix:
 
 =========================
 
-Iteration: 4
+Iteration: 5
 
 Max error: 0.0025366814743996713
 
@@ -246,7 +246,7 @@ Inverse of the jacobian Matrix:
 
 =========================
 
-Iteration: 5
+Iteration: 6
 
 Max error: 0.00000007350246278292616
 

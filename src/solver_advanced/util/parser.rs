@@ -5,6 +5,7 @@ use minidom::Element;
 
 use crate::solver_advanced::iteratives;
 use crate::solver_advanced::residuals;
+use crate::solver_advanced::solver::ApproximatedUpdatedMatrix;
 use crate::solver_advanced::solver::QuasiNewtonMethod;
 use crate::solver_advanced::solver::ResolutionMethod;
 use crate::solver_advanced::solver::SolverParameters;
@@ -489,9 +490,11 @@ fn parse_resolution_method(node: &Element, node_info: &str) -> ResolutionMethod 
             .unwrap_or_else(|| panic!("The attribute \"resolution_method\" is missing in {}", node_info)) {
                 "NR" => ResolutionMethod::NewtonRaphson,
                 "SN" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
-                "BGM" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenGood),
-                "BBM" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenBad),
-                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BGM\" and \"BBM\"", node_info),
+                "BFM_jac" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenFirstMethod(ApproximatedUpdatedMatrix::Jacobian)),
+                "BFM_inv" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenFirstMethod(ApproximatedUpdatedMatrix::InverseJacobian)),
+                "BSM_jac" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenSecondMethod(ApproximatedUpdatedMatrix::Jacobian)),
+                "BSM_inv" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::BroydenSecondMethod(ApproximatedUpdatedMatrix::InverseJacobian)),
+                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BFM_jac\", \"BFM_inv\", \"BSM_jac\" and \"BSM_inv\"", node_info),
             }
 }
 
@@ -1384,7 +1387,7 @@ mod tests {
 
     #[test]
     #[should_panic(
-        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\", \"SN\", \"BGM\" and \"BBM\""
+        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\", \"SN\", \"BFM_jac\", \"BFM_inv\", \"BSM_jac\" and \"BSM_inv\""
     )]
     fn parsing_root_fd_4() {
         const DATA: &'static str = r#"

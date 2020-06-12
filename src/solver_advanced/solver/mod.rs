@@ -64,4 +64,5 @@ pub use jacobian::JacobianMatrix;
 pub use parameters::SolverParameters;
 pub use resolution_method::QuasiNewtonMethod;
 pub use resolution_method::ResolutionMethod;
+pub use resolution_method::ApproximatedUpdatedMatrix;
 pub use solver_advanced::RootFinder;

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<nrf>
+  <solver problem_size="20" max_iter="60" tolerance="1e-6" damping="false" resolution_method="SN"/>
+  <iteratives min_value="-inf"  max_value="inf" max_step_abs="inf" max_step_rel="inf" dx_abs="5e-8" dx_rel="5e-8" perturbation_method="Max">
+    <iterative id="0"/>
+    <iterative id="1"/>
+    <iterative id="2"/>
+    <iterative id="3"/>
+    <iterative id="4"/>
+    <iterative id="5"/>
+    <iterative id="6"/>
+    <iterative id="7"/>
+    <iterative id="8"/>
+    <iterative id="9"/>
+    <iterative id="10"/>
+    <iterative id="11"/>
+    <iterative id="12"/>
+    <iterative id="13"/>
+    <iterative id="14"/>
+    <iterative id="15"/>
+    <iterative id="16"/>
+    <iterative id="17"/>
+    <iterative id="18"/>
+    <iterative id="19"/>
+  </iteratives>
+  <residuals stopping_criteria="Abs" update_method="Abs">
+    <residual id="0"/>
+    <residual id="1"/>
+    <residual id="2"/>
+    <residual id="3"/>
+    <residual id="4"/>
+    <residual id="5"/>
+    <residual id="6"/>
+    <residual id="7"/>
+    <residual id="8"/>
+    <residual id="9"/>
+    <residual id="10"/>
+    <residual id="11"/>
+    <residual id="12"/>
+    <residual id="13"/>
+    <residual id="14"/>
+    <residual id="15"/>
+    <residual id="16"/>
+    <residual id="17"/>
+    <residual id="18"/>
+    <residual id="19"/>
+  </residuals>
+</nrf>

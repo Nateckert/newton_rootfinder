@@ -20,6 +20,10 @@ criterion = "0.3.2"
 name = "minimal_vs_advanced"
 harness = false
 
+[[bench]]
+name = "broyden_case8"
+harness = false
+
 [dependencies]
 nalgebra = "0.21.0"
 minidom = "0.12.0"

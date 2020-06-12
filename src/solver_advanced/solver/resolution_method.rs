@@ -49,6 +49,28 @@ impl fmt::Display for ResolutionMethod {
     }
 }
 
+/// A struct to hold the information of which matrix will be approximated
+/// when using a quasi Newton Method with matrix approximation update
+///
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum ApproximatedUpdatedMatrix {
+    Jacobian,
+    InverseJacobian,
+}
+
+impl fmt::Display for ApproximatedUpdatedMatrix {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut content = String::from("Matrix approximated and updated: ");
+        match self {
+            ApproximatedUpdatedMatrix::Jacobian => content.push_str("Jacobian matrix"),
+            ApproximatedUpdatedMatrix::InverseJacobian => {
+                content.push_str("Inverse Jacobian matrix")
+            }
+        }
+        write!(f, "{}", content)
+    }
+}
+
 /// This quasi-Newton methods either work on the jacobian or its inverse
 ///
 ///
@@ -115,22 +137,44 @@ impl fmt::Display for ResolutionMethod {
 /// Computing, p 68-89.
 ///
 /// doi:10.1007/BF02684472
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum QuasiNewtonMethod {
     StationaryNewton,
-    BroydenGood,
-    BroydenBad,
+    BroydenFirstMethod(ApproximatedUpdatedMatrix),
+    BroydenSecondMethod(ApproximatedUpdatedMatrix),
 }
 
 impl fmt::Display for QuasiNewtonMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let result = match self {
-            QuasiNewtonMethod::StationaryNewton => &"Stationary Newton",
-            QuasiNewtonMethod::BroydenGood => &"Broyden Good Method",
-            QuasiNewtonMethod::BroydenBad => &"Broyden Bad Method",
+        let mut content = String::new();
+        match self {
+            QuasiNewtonMethod::StationaryNewton => content.push_str("Stationary Newton"),
+            QuasiNewtonMethod::BroydenFirstMethod(matrix) => {
+                content.push_str("Broyden First Method");
+                content.push_str(&matrix.to_string());
+            }
+            QuasiNewtonMethod::BroydenSecondMethod(matrix) => {
+                content.push_str("Broyden Second Method");
+                content.push_str(&matrix.to_string());
+            }
         };
 
-        write!(f, "{}", result)
+        write!(f, "{}", content)
     }
+}
+
+pub fn broyden_first_method_udpate_jac(
+    jac: &nalgebra::DMatrix<f64>,
+    s: &nalgebra::DVector<f64>,
+    y: &nalgebra::DVector<f64>,
+) -> nalgebra::DMatrix<f64> {
+    jac - (jac * s - y) * s.transpose() / (s.norm_squared())
+}
+
+pub fn broyden_second_method_udpate_jac(
+    jac: &nalgebra::DMatrix<f64>,
+    s: &nalgebra::DVector<f64>,
+    y: &nalgebra::DVector<f64>,
+) -> nalgebra::DMatrix<f64> {
+    jac - (jac * s - y) * y.transpose() * jac / ((y.transpose() * jac * s)[(0, 0)])
 }

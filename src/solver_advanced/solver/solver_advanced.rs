@@ -8,6 +8,7 @@ use crate::solver_advanced::model;
 
 use super::QuasiNewtonMethod;
 use super::ResolutionMethod;
+use super::ApproximatedUpdatedMatrix;
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
 use crate::solver_advanced::residuals;
 
@@ -183,13 +184,24 @@ where
         model: &mut M,
         resolution_method: QuasiNewtonMethod,
     ) -> nalgebra::DVector<f64> {
-        match resolution_method {
-            QuasiNewtonMethod::StationaryNewton => (),
-            _ => unimplemented!("Only StationaryNewton is currently available"),
-        };
-
         if self.compute_jac_next_iter {
             self.compute_jac(model);
+        } else {
+            match resolution_method {
+                QuasiNewtonMethod::StationaryNewton => (),
+                QuasiNewtonMethod::BroydenFirstMethod(matrix) => {
+                    match matrix {
+                        ApproximatedUpdatedMatrix::Jacobian => unimplemented!(),
+                        ApproximatedUpdatedMatrix::InverseJacobian => unimplemented!(),
+                    }
+                }
+                QuasiNewtonMethod::BroydenSecondMethod(matrix) => {
+                    match matrix {
+                        ApproximatedUpdatedMatrix::Jacobian => unimplemented!(),
+                        ApproximatedUpdatedMatrix::InverseJacobian => unimplemented!(),
+                    }
+                }
+            };
         }
 
         self.compute_next_from_inv_jac(model)
