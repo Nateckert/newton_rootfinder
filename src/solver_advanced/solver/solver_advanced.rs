@@ -175,7 +175,7 @@ where
         model: &mut M,
     ) -> nalgebra::DVector<f64> {
         self.compute_jac(model);
-        self.compute_next_from_jac(model)
+        self.compute_next_from_inv_jac(model)
     }
 
     fn compute_quasi_newton_step<M: model::Model>(
@@ -188,10 +188,10 @@ where
             _ => unimplemented!("Only StationaryNewton is currently available"),
         };
 
-        self.compute_next_from_jac(model)
+        self.compute_next_from_inv_jac(model)
     }
 
-    fn compute_next_from_jac<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
+    fn compute_next_from_inv_jac<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&model.get_residuals());
@@ -290,6 +290,7 @@ where
 
         // first iteration: always a Newton-Raphson step
         if max_error > self.parameters.get_tolerance() {
+            self.iter += 1;
             let proposed_guess = self.compute_newton_raphson_step(model);
             errors = self.update_model(model, &proposed_guess);
             max_error = errors.amax();

@@ -88,7 +88,9 @@ fn solvers_comparison(c: &mut Criterion) {
         init_guess.clone(),
         &iter_params,
         &res_config,
-        nrf::solver::ResolutionMethod::QuasiNewton(nrf::solver::QuasiNewtonMethod::StationaryNewton),
+        nrf::solver::ResolutionMethod::QuasiNewton(
+            nrf::solver::QuasiNewtonMethod::StationaryNewton,
+        ),
     );
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2_nalg);
 
