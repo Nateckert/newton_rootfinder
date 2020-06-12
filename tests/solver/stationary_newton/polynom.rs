@@ -4,7 +4,7 @@ use newton_rootfinder::solver_advanced as nrf;
 
 use crate::common::{run_test_case_fd, run_test_case_jac};
 
-use nrf::solver::{ResolutionMethod, QuasiNewtonMethod};
+use nrf::solver::{QuasiNewtonMethod, ResolutionMethod};
 
 use nrf::test_cases::polynom;
 

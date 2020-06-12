@@ -2,7 +2,7 @@ extern crate newton_rootfinder;
 use newton_rootfinder::solver_advanced as nrf;
 use nrf::test_cases::broyden1965::*;
 
-use nrf::solver::{ResolutionMethod, QuasiNewtonMethod};
+use nrf::solver::{QuasiNewtonMethod, ResolutionMethod};
 
 use crate::common::{run_test_case_fd, run_test_case_jac};
 

@@ -155,7 +155,9 @@ impl fmt::Display for UpdateQuasiNewtonMethod {
         let mut content = String::new();
         match self {
             UpdateQuasiNewtonMethod::BroydenFirstMethod => content.push_str("Broyden First Method"),
-            UpdateQuasiNewtonMethod::BroydenSecondMethod => content.push_str("Broyden Second Method"),
+            UpdateQuasiNewtonMethod::BroydenSecondMethod => {
+                content.push_str("Broyden Second Method")
+            }
         };
 
         write!(f, "{}", content)

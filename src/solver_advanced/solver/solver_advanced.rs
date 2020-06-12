@@ -6,9 +6,9 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
+use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
 use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
-use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use crate::solver_advanced::residuals;
 
 /// Solver for rootfinding
@@ -215,10 +215,10 @@ where
                 QuasiNewtonMethod::StationaryNewton => (),
                 QuasiNewtonMethod::JacobianUpdate(method) => {
                     self.approximate_jacobian(method);
-                },
+                }
                 QuasiNewtonMethod::InverseJacobianUpdate(method) => {
                     self.approximate_inv_jacobian(method);
-                },
+                }
             };
         }
 
@@ -307,7 +307,7 @@ where
             _ => {
                 self.iteratives_step_size = Some(model.get_iteratives() - current_guess);
                 self.residuals_step_size = Some(errors_next.clone() - errors);
-            },
+            }
         };
 
         errors_next
