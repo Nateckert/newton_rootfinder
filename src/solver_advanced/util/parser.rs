@@ -35,7 +35,11 @@ use crate::solver_advanced::solver::{
 /// - damping (true or false)
 /// - tolerance
 /// - problem_size
-/// - resolution_method (NewtonRaphson or StationaryNewton)
+/// - resolution_method: (see `solver_advanced/solver/resolution_method`)
+///     - "NR" for Newton-Raphson
+///     - "SN" for Stationary Newton
+///     - "BROY1_jac" for Broyden First Method approximating the jacobian
+///     - "BROY2_jac" for Broyden Second Method approximating the jacobian
 ///
 ///```xml
 /// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>

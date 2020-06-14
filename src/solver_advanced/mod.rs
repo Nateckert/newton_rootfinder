@@ -4,7 +4,7 @@
 //!
 //! ### Model
 //! For a given function:
-//!```ignore
+//!```block
 //! f : (1,n) -> (1,n)
 //!      f(X) -> Y
 //!```
@@ -74,7 +74,7 @@
 //! - v, Ts, rho_s, Ps
 //!
 //! A first way to write the residuals would be to have the model outputs the following quantities:
-//!```ignore
+//!```block
 //! model(v, Ts, rho_s, Ps) -> | W - rho_s*v*A
 //!                            | Pt - Ps + rho_s*(v**2)/2
 //!                            | ht - f(Ts) + (v**2)/2
@@ -83,7 +83,7 @@
 //!
 //! That would require the user to change its model to have the desired residuals.
 //! However, the solver works with `ResidualsValues` that are pairs of outputs:
-//!```ignore
+//!```block
 //! model(v, Ts, rho_s, Ps) -> | (W, rho_s*v*A)
 //!                            | (Pt, Ps + rho_s*(v**2)/2)
 //!                            | (ht, f(Ts) + (v**2)/2)

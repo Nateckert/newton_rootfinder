@@ -56,9 +56,6 @@ fn broyden_case10_fd() {
     // ignore the username line
     lines_new.next();
     lines_ref.next();
-    // ignore the rust version line
-    lines_new.next();
-    lines_ref.next();
     // ignore the crate version line
     lines_new.next();
     lines_ref.next();

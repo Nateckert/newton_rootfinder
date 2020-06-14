@@ -4,7 +4,6 @@ Runner informations
 OS: Mac OS X 10.15.5 19F101
 Host: MacBook Pro de Nathan
 Username: nathaneckert
-Rust version: 1.44.0
 newton_rootfinder version: 0.4.0
 Simulation start:
   - UTC:   Thu, 11 Jun 2020 16:37:25 +0000
