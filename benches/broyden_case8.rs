@@ -88,7 +88,6 @@ fn solvers_comparison(c: &mut Criterion) {
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("SN", |b| b.iter(|| rf.solve(&mut user_model)));
 
-
     // First Broyden method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
         nrf::util::from_xml_finite_diff(&FILEPATH_BROY1_JAC);
@@ -107,7 +106,6 @@ fn solvers_comparison(c: &mut Criterion) {
 
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("BROY1_jac", |b| b.iter(|| rf.solve(&mut user_model)));
-
 
     // Second Broyden method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =

@@ -6,8 +6,8 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
-use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
+use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
 use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 use crate::solver_advanced::residuals;
@@ -172,7 +172,6 @@ where
 
         self.compute_jac_next_iter = false;
         self.last_iter_with_computed_jacobian = self.iter;
-
     }
 
     fn compute_newton_raphson_step<M: model::Model>(

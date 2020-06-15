@@ -18,7 +18,7 @@ fn square() {
         nalgebra::DVector::from_vec(vec![1.0]),
         nalgebra::DVector::from_vec(vec![2_f64.sqrt()]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
-        damping
+        damping,
     );
 }
 

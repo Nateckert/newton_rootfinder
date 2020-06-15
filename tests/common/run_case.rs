@@ -19,8 +19,13 @@ pub fn run_test_case_fd(
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf =
-        nrf::solver::default_with_guess(init, &iter_params, &res_config, resolution_method, damping);
+    let mut rf = nrf::solver::default_with_guess(
+        init,
+        &iter_params,
+        &res_config,
+        resolution_method,
+        damping,
+    );
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, func);
 
     rf.solve(&mut user_model);
@@ -49,8 +54,13 @@ pub fn run_test_case_jac(
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf =
-        nrf::solver::default_with_guess(init, &iter_params, &res_config, resolution_method, damping);
+    let mut rf = nrf::solver::default_with_guess(
+        init,
+        &iter_params,
+        &res_config,
+        resolution_method,
+        damping,
+    );
     let mut user_model = nrf::model::UserModelWithFuncJac::new(problem_size, func, jac);
 
     rf.solve(&mut user_model);
