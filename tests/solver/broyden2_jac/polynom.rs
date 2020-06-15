@@ -10,6 +10,7 @@ use nrf::test_cases::polynom;
 #[test]
 fn square() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_fd(
         problem_size,
         polynom::square2,
@@ -18,13 +19,14 @@ fn square() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
+        damping,
     );
 }
 
 #[test]
-#[should_panic]
 fn root_with_high_derivative() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_fd(
         problem_size,
         polynom::root_with_high_derivative,
@@ -33,12 +35,14 @@ fn root_with_high_derivative() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn square_jac() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_jac(
         problem_size,
         polynom::square2,
@@ -48,13 +52,14 @@ fn square_jac() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
+        damping,
     );
 }
 
 #[test]
-#[should_panic]
 fn root_with_high_derivative_jac() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_jac(
         problem_size,
         polynom::root_with_high_derivative,
@@ -64,5 +69,6 @@ fn root_with_high_derivative_jac() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
+        damping,
     );
 }

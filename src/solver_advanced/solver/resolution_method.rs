@@ -98,7 +98,7 @@ impl fmt::Display for QuasiNewtonMethod {
 /// H_{i+1} = H_{i} - (H_{i}*y_{i}-s_{i})c_{i}^{T}/(c_{i}^{T}*y_{i}),
 ///
 /// With, for the iteration i:
-/// - H_{i} = -J_{i}^{-1}, the opposite of the inverse of the approximated jacobian
+/// - H_{i} = J_{i}^{-1}, the inverse of the approximated jacobian
 /// - s_{i} = x_{i+1} - x_{i}, the vector of the iterative update
 /// - y_{i} = F_{x_{i+1}} - F_{x_{i}}, the vector of the residual update
 /// - c_{i}, a vector that is chosen differently according to the method.
@@ -121,10 +121,10 @@ impl fmt::Display for QuasiNewtonMethod {
 ///
 /// The update formulas are the following:
 ///
-/// | Method   | c_{i} value        | Jacobian update                                                               | Inverse jacobian update |
-/// |----------|--------------------|-------------------------------------------------------------------------------|-------------------------|
-/// | First    | H_{i}^{T} * s_{i}  | J_{i+1} = J_{i} - (J_{i}*s_{i}-y_{i})*s_{i}^{T}/(s_{i}^{T}*s_{i})             |                         |
-/// | Second   | y_{i}              | J_{i+1} = J_{i} - (J_{i}*s_{i}-y_{i})*y_{i}^{T}*J_{i}/(y_{i}^{T}*J_{i}*s_{i}) |                         |
+/// | Method   | c_{i} value        | Jacobian update                                                               | Inverse jacobian update                                                        |
+/// |----------|--------------------|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+/// | First    | H_{i}^{T} * s_{i}  | J_{i+1} = J_{i} - (J_{i}*s_{i}-y_{i})*s_{i}^{T}/(s_{i}^{T}*s_{i})             |   H_{i+1} = H_{i} - (H_{i}*y_{i}-s_{i})s_{i}^{T}*H_{i}/(s_{i}^{T}*H_{i}*y_{i}) |
+/// | Second   | y_{i}              | J_{i+1} = J_{i} - (J_{i}*s_{i}-y_{i})*y_{i}^{T}*J_{i}/(y_{i}^{T}*J_{i}*s_{i}) |   H_{i+1} = H_{i} - (H_{i}*y_{i}-s_{i})y_{i}^{T}/(y_{i}^{T}*y_{i})             |
 ///
 ///
 /// ## Reference
@@ -172,10 +172,26 @@ pub fn broyden_first_method_udpate_jac(
     jac - (jac * s - y) * s.transpose() / (s.norm_squared())
 }
 
+pub fn broyden_first_method_udpate_inv_jac(
+    inv_jac: &nalgebra::DMatrix<f64>,
+    s: &nalgebra::DVector<f64>,
+    y: &nalgebra::DVector<f64>,
+) -> nalgebra::DMatrix<f64> {
+    inv_jac - (inv_jac * y - s) * s.transpose() * inv_jac / ((s.transpose() * inv_jac * y)[(0, 0)])
+}
+
 pub fn broyden_second_method_udpate_jac(
     jac: &nalgebra::DMatrix<f64>,
     s: &nalgebra::DVector<f64>,
     y: &nalgebra::DVector<f64>,
 ) -> nalgebra::DMatrix<f64> {
     jac - (jac * s - y) * y.transpose() * jac / ((y.transpose() * jac * s)[(0, 0)])
+}
+
+pub fn broyden_second_method_udpate_inv_jac(
+    inv_jac: &nalgebra::DMatrix<f64>,
+    s: &nalgebra::DVector<f64>,
+    y: &nalgebra::DVector<f64>,
+) -> nalgebra::DMatrix<f64> {
+    inv_jac - (inv_jac * y - s) * y.transpose() / (y.norm_squared())
 }

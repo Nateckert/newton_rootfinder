@@ -55,9 +55,10 @@ use crate::solver_advanced::residuals;
 ///   let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
 ///   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 ///   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
+///   let damping = false;
 ///
-///   let mut rf_fd = nrf::solver::default_with_guess(init_guess_fd, &iter_params_fd, &res_config_fd, ResolutionMethod::NewtonRaphson);
-///   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
+///   let mut rf_fd = nrf::solver::default_with_guess(init_guess_fd, &iter_params_fd, &res_config_fd, ResolutionMethod::NewtonRaphson, damping);
+///   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
 /// }
 /// ```
 pub fn default_with_guess<'a, T>(
@@ -65,6 +66,7 @@ pub fn default_with_guess<'a, T>(
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
     resolution_method: ResolutionMethod,
+    damping: bool,
 ) -> RootFinder<'a, T>
 where
     T: Iterative + fmt::Display,
@@ -72,7 +74,6 @@ where
     let problem_size = initial_guess.len();
     let tolerance: f64 = 1e-6;
     let max_iter: usize = 50;
-    let damping = false;
     let parameters = SolverParameters::new(
         problem_size,
         tolerance,

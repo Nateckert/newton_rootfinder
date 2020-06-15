@@ -12,6 +12,7 @@ pub fn run_test_case_fd(
     init: nalgebra::DVector<f64>,
     solution: nalgebra::DVector<f64>,
     resolution_method: nrf::solver::ResolutionMethod,
+    damping: bool,
 ) {
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
@@ -19,7 +20,7 @@ pub fn run_test_case_fd(
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     let mut rf =
-        nrf::solver::default_with_guess(init, &iter_params, &res_config, resolution_method);
+        nrf::solver::default_with_guess(init, &iter_params, &res_config, resolution_method, damping);
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, func);
 
     rf.solve(&mut user_model);
@@ -41,6 +42,7 @@ pub fn run_test_case_jac(
     init: nalgebra::DVector<f64>,
     solution: nalgebra::DVector<f64>,
     resolution_method: nrf::solver::ResolutionMethod,
+    damping: bool,
 ) {
     let vec_iter_params = iteratives::default_vec_iteratives(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
@@ -48,7 +50,7 @@ pub fn run_test_case_jac(
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     let mut rf =
-        nrf::solver::default_with_guess(init, &iter_params, &res_config, resolution_method);
+        nrf::solver::default_with_guess(init, &iter_params, &res_config, resolution_method, damping);
     let mut user_model = nrf::model::UserModelWithFuncJac::new(problem_size, func, jac);
 
     rf.solve(&mut user_model);

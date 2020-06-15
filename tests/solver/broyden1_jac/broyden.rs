@@ -9,6 +9,7 @@ use crate::common::{run_test_case_fd, run_test_case_jac};
 #[test]
 fn broyden_case5_fd() {
     let problem_size = 5;
+    let damping = false;
     run_test_case_fd(
         problem_size,
         broyden1965_case5,
@@ -17,12 +18,14 @@ fn broyden_case5_fd() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case5_jac() {
     let problem_size = 5;
+    let damping = false;
     run_test_case_jac(
         problem_size,
         broyden1965_case5,
@@ -32,12 +35,14 @@ fn broyden_case5_jac() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case6_fd() {
     let problem_size = 5;
+    let damping = false;
     run_test_case_fd(
         problem_size,
         broyden1965_case6,
@@ -46,12 +51,14 @@ fn broyden_case6_fd() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case6_jac() {
     let problem_size = 5;
+    let damping = false;
     run_test_case_jac(
         problem_size,
         broyden1965_case6,
@@ -61,12 +68,14 @@ fn broyden_case6_jac() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case7_fd() {
     let problem_size = 10;
+    let damping = false;
     run_test_case_fd(
         problem_size,
         broyden1965_case7,
@@ -75,12 +84,14 @@ fn broyden_case7_fd() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case7_jac() {
     let problem_size = 10;
+    let damping = false;
     run_test_case_jac(
         problem_size,
         broyden1965_case7,
@@ -90,12 +101,14 @@ fn broyden_case7_jac() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case8_fd() {
     let problem_size = 20;
+    let damping = true;
     run_test_case_fd(
         problem_size,
         broyden1965_case8,
@@ -104,12 +117,14 @@ fn broyden_case8_fd() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case8_jac() {
     let problem_size = 20;
+    let damping = true;
     run_test_case_jac(
         problem_size,
         broyden1965_case8,
@@ -119,12 +134,14 @@ fn broyden_case8_jac() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case9_fd() {
     let problem_size = 2;
+    let damping = true;
     run_test_case_fd(
         problem_size,
         broyden1965_case9,
@@ -133,12 +150,14 @@ fn broyden_case9_fd() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 
 #[test]
 fn broyden_case9_jac() {
     let problem_size = 2;
+    let damping = true;
     run_test_case_jac(
         problem_size,
         broyden1965_case9,
@@ -148,6 +167,7 @@ fn broyden_case9_jac() {
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenFirstMethod,
         )),
+        damping,
     );
 }
 

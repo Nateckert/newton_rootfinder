@@ -12,7 +12,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Refactoring the enum for the resolution method: `ResolutionMethod`, `QuasiNewtonMethod` and `UpdateQuasiNewtonMethod`
 - Add solver placeholder for new resolution parameters
 
+### Fixed
+- Damping activation for quasi-Newton methods (the jacobian was recomputed if it hadn't been recomputed at the previous iteration and not the current iteration)
+
 ### Changed
+- Add argument `damping` to the `default_with_guess` function
 - Testing of log generation: the user info are not checked anymore (so TRAVIS or anybody else could run it)
 - Documentation of the `util` module: fixed a typo
 - Move `util/jacobian` under `solver/jacobian`

@@ -23,10 +23,10 @@ use std::fmt;
 /// (the value might change according to the versions).
 ///
 /// If the used method is a quasi-newton method
-/// and the jacobian has not been recently updated,
+/// and the jacobian has not been updated at the current iteration,
 /// damping won't be performed but the jacobian will be recomputed at the next iteration.
 ///
-/// In the case of the jacobian has been recomputed at the previous iteration,
+/// In the case of the jacobian has been recomputed at the current iteration,
 /// damping will be performed
 ///
 /// ## Tolerance

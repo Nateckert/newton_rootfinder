@@ -11,12 +11,14 @@ use nrf::test_cases::polynom;
 #[test]
 fn square() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_fd(
         problem_size,
         polynom::square2,
         nalgebra::DVector::from_vec(vec![1.0]),
         nalgebra::DVector::from_vec(vec![2_f64.sqrt()]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
+        damping
     );
 }
 
@@ -24,18 +26,21 @@ fn square() {
 #[should_panic]
 fn root_with_high_derivative() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_fd(
         problem_size,
         polynom::root_with_high_derivative,
         nalgebra::DVector::from_vec(vec![0.15]),
         nalgebra::DVector::from_vec(vec![0.1]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
+        damping,
     );
 }
 
 #[test]
 fn square_jac() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_jac(
         problem_size,
         polynom::square2,
@@ -43,6 +48,7 @@ fn square_jac() {
         nalgebra::DVector::from_vec(vec![1.0]),
         nalgebra::DVector::from_vec(vec![2_f64.sqrt()]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
+        damping,
     );
 }
 
@@ -50,6 +56,7 @@ fn square_jac() {
 #[should_panic]
 fn root_with_high_derivative_jac() {
     let problem_size = 1;
+    let damping = false;
     run_test_case_jac(
         problem_size,
         polynom::root_with_high_derivative,
@@ -57,5 +64,6 @@ fn root_with_high_derivative_jac() {
         nalgebra::DVector::from_vec(vec![0.15]),
         nalgebra::DVector::from_vec(vec![0.1]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
+        damping,
     );
 }

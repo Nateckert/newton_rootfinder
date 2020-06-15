@@ -7,6 +7,7 @@ use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
 use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
+use super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
 use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 use crate::solver_advanced::residuals;
@@ -123,7 +124,8 @@ where
     /// # let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     /// # let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
-    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
+    /// # let damping = false;
+    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
     /// rf.set_debug(true);
     /// rf.solve(&mut user_model);
     /// rf.write_log(&"solver_log.txt");
@@ -171,9 +173,6 @@ where
         self.compute_jac_next_iter = false;
         self.last_iter_with_computed_jacobian = self.iter;
 
-        if self.debug {
-            self.jac_to_log();
-        }
     }
 
     fn compute_newton_raphson_step<M: model::Model>(
@@ -181,11 +180,16 @@ where
         model: &mut M,
     ) -> nalgebra::DVector<f64> {
         self.compute_jac(model);
+
+        if self.debug {
+            self.jac_to_log();
+        }
+
         self.compute_next_from_inv_jac(model)
     }
 
-    fn approximate_jacobian(&self, method: UpdateQuasiNewtonMethod) {
-        match method {
+    fn approximate_jacobian(&mut self, method: UpdateQuasiNewtonMethod) {
+        let jac_next = match method {
             UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_jac(
                 self.jacobian.get_jacobian().as_ref().unwrap(),
                 self.iteratives_step_size.as_ref().unwrap(),
@@ -197,10 +201,25 @@ where
                 self.residuals_step_size.as_ref().unwrap(),
             ),
         };
+
+        self.jacobian.update_jacobian(jac_next);
     }
 
-    fn approximate_inv_jacobian(&self, method: UpdateQuasiNewtonMethod) {
-        unimplemented!();
+    fn approximate_inv_jacobian(&mut self, method: UpdateQuasiNewtonMethod) {
+        let inv_jac_next = match method {
+            UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_inv_jac(
+                self.jacobian.get_inverse().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_udpate_inv_jac(
+                self.jacobian.get_inverse().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+        };
+
+        self.jacobian.update_inverse(inv_jac_next);
     }
 
     fn compute_quasi_newton_step<M: model::Model>(
@@ -220,6 +239,10 @@ where
                     self.approximate_inv_jacobian(method);
                 }
             };
+        }
+
+        if self.debug {
+            self.jac_to_log();
         }
 
         self.compute_next_from_inv_jac(model)
@@ -253,7 +276,7 @@ where
         if max_error_next > max_error {
             // see documentation of the `SolverParameters` struct
             if self.parameters.get_resolution_method() != ResolutionMethod::NewtonRaphson
-                && self.last_iter_with_computed_jacobian != self.iter - 1
+                && self.last_iter_with_computed_jacobian != self.iter
             {
                 self.compute_jac_next_iter = true;
                 if self.debug {
