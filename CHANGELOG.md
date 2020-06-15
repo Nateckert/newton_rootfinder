@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Damping activation for quasi-Newton methods (the jacobian was recomputed if it hadn't been recomputed at the previous iteration and not the current iteration)
 
 ### Changed
+- Upgrade dependency `nalgebra` from 0.21.0 to 0.21.1
 - Add argument `damping` to the `default_with_guess` function
 - Testing of log generation: the user info are not checked anymore (so TRAVIS or anybody else could run it)
 - Documentation of the `util` module: fixed a typo
@@ -32,7 +33,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 - Log file formatting
 - Adapt xml parser to read the resolution method
-- Update dev-dependencies float-cmp from 0.6 to 0.8.0
+- Upgrade dev-dependency `float-cmp` from 0.6 to 0.8.0
 
 
 ## [0.3.0] - 2020-05-26
