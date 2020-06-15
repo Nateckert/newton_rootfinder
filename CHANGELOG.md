@@ -3,13 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.5.0] - 2020-06-15
 ### Added
 - Travis CI
 - Add Broyden's Methods
-- Add `solver/jacobian` to guard the jacobian and its inverse updates
-- Add `solver/resolution_method` to implement quasi-Newton methods
-- Refactoring the enum for the resolution method: `ResolutionMethod`, `QuasiNewtonMethod` and `UpdateQuasiNewtonMethod`
+- Add `solver/jacobian.rs` to guard the jacobian and its inverse updates
+- Add `solver/resolution_method.rs` to implement quasi-Newton methods
+- Refactoring the enums for the resolution method: `ResolutionMethod`, `QuasiNewtonMethod` and `UpdateQuasiNewtonMethod`
 - Add solver placeholder for new resolution parameters
 
 ### Fixed

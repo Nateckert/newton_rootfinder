@@ -1,6 +1,6 @@
 [package]
 name = "newton_rootfinder"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["nathan.eckert <nathan.eckert@polytechnique.edu>"]
 edition = "2018"
 description = "Newton based methods for root finding"
@@ -27,6 +27,5 @@ harness = false
 [dependencies]
 nalgebra = "0.21.0"
 minidom = "0.12.0"
-rustc_version_runtime = "0.1.5"
 whoami = "0.8.1"
 chrono = "0.4.11"

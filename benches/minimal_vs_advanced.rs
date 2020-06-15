@@ -10,27 +10,18 @@
 //! The time taken for resolution should be in the same proportion
 //! as for the function evaluation test
 //!
-//! Current Results :
-//! Solver 1D :          [37.099 ns 37.350 ns 37.602 ns]
-//! Solver 1D FD :       [60.788 ns 61.595 ns 62.524 ns]
-//! Advanced solver FD : [686.11 ns 691.50 ns 697.20 ns]
+//! Reference results :
+//! Solver 1D:                              [37.099 ns 37.350 ns 37.602 ns]
+//! Solver 1D FD:                           [60.788 ns 61.595 ns 62.524 ns]
+//! Advanced solver FD:                     [686.11 ns 691.50 ns 697.20 ns]
+//! Advanced solver FD StationaryNewton :   [712.83 ns 719.00 ns 725.14 ns]
+//! Advanced solver FD jacobian provided :  [718.22 ns 724.01 ns 729.89 ns]
 //!
 //! Without derivatives is 1.6 times faster than with
 //! Minimal solver is 11 times faster than advanced solver
 //! Expected times was 137 times
 //! The advanced solver is roughly 10 times faster than the minimal implementation
 //!
-//! Historical results :
-//!
-//! 2020.05.18 : introduction of simulation log
-//! Solver 1D :          [37.099 ns 37.350 ns 37.602 ns]
-//! Solver 1D FD :       [60.788 ns 61.595 ns 62.524 ns]
-//! Advanced solver FD : [686.11 ns 691.50 ns 697.20 ns]
-//!
-//! 2020.05.13: First working version :
-//! Solver 1D :          [37.179 ns 37.587 ns 38.081 ns]
-//! Solver 1D FD :       [59.780 ns 60.267 ns 60.767 ns]
-//! Advanced solver FD : [20.313 us 20.483 us 20.651 us]
 //!
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
@@ -78,11 +69,13 @@ fn solvers_comparison(c: &mut Criterion) {
     let stopping_residuals = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
     let res_config = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
+    let damping = false;
     let mut nrf = nrf::solver::default_with_guess(
         init_guess.clone(),
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::NewtonRaphson,
+        damping,
     );
     let mut nrf_stationary = nrf::solver::default_with_guess(
         init_guess.clone(),
@@ -91,6 +84,7 @@ fn solvers_comparison(c: &mut Criterion) {
         nrf::solver::ResolutionMethod::QuasiNewton(
             nrf::solver::QuasiNewtonMethod::StationaryNewton,
         ),
+        damping,
     );
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2_nalg);
 
@@ -105,6 +99,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &iter_params_jac,
         &res_config_jac,
         nrf::solver::ResolutionMethod::NewtonRaphson,
+        damping,
     );
     let mut user_model_jac =
         nrf::model::UserModelWithFuncJac::new(problem_size, square2_nalg, dsquare2_nalg);
