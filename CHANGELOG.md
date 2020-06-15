@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 - Upgrade dependency `nalgebra` from 0.21.0 to 0.21.1
+- Upgrade dependency `whoami` from 0.8.1 to 0.8.2
 - Add argument `damping` to the `default_with_guess` function
 - Testing of log generation: the user info are not checked anymore (so TRAVIS or anybody else could run it)
 - Documentation of the `util` module: fixed a typo

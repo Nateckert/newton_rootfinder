@@ -27,5 +27,5 @@ harness = false
 [dependencies]
 nalgebra = "0.21.1"
 minidom = "0.12.0"
-whoami = "0.8.1"
+whoami = "0.8.2"
 chrono = "0.4.11"
