@@ -2,7 +2,7 @@ extern crate newton_rootfinder;
 use newton_rootfinder::solver_advanced as nrf;
 use nrf::model::Model;
 use nrf::residuals;
-use nrf::util::jacobian;
+use nrf::solver::jacobian_evaluation;
 
 use crate::common::float_matrix_comparison;
 use nrf::test_cases::broyden1965;
@@ -23,7 +23,7 @@ fn jacobian_evaluation_broyden1965_case5() {
     let update_residuals = stopping_residuals.clone();
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
-    let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
+    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case5_jac(&inputs);
 
     float_matrix_comparison(&jac, &jac_ref, 1e-6);
@@ -42,7 +42,7 @@ fn jacobian_evaluation_broyden1965_case6() {
     let update_residuals = stopping_residuals.clone();
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
-    let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
+    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case6_jac(&inputs);
 
     float_matrix_comparison(&jac, &jac_ref, 1e-6);
@@ -65,7 +65,7 @@ fn jacobian_evaluation_broyden1965_case7() {
     let update_residuals = stopping_residuals.clone();
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
-    let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
+    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case7_jac(&inputs);
 
     float_matrix_comparison(&jac, &jac_ref, 1e-6);
@@ -85,7 +85,7 @@ fn jacobian_evaluation_broyden1965_case8() {
     let update_residuals = stopping_residuals.clone();
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
-    let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
+    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case8_jac(&inputs);
 
     float_matrix_comparison(&jac, &jac_ref, 1e-6);
@@ -105,7 +105,7 @@ fn jacobian_evaluation_broyden1965_case9() {
     let update_residuals = stopping_residuals.clone();
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
-    let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
+    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case9_jac(&inputs);
 
     float_matrix_comparison(&jac, &jac_ref, 1e-6);
@@ -125,7 +125,7 @@ fn jacobian_evaluation_broyden1965_case10() {
     let update_residuals = stopping_residuals.clone();
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![5e-8; problem_size]);
-    let jac = jacobian::jacobian_evaluation(&mut user_model, &perturbations, &res_config);
+    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config);
     let jac_ref = broyden1965::broyden1965_case10_jac(&inputs);
 
     float_matrix_comparison(&jac, &jac_ref, 1e-6);

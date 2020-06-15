@@ -4,7 +4,6 @@ use std::io::Write;
 use crate::solver_advanced::residuals::ResidualsValues;
 
 extern crate chrono;
-extern crate rustc_version_runtime;
 extern crate whoami;
 use chrono::prelude::*;
 
@@ -34,9 +33,6 @@ impl SolverLog {
         content.push_str(&"\n");
         content.push_str(&"Username: ");
         content.push_str(&whoami::username());
-        content.push_str(&"\n");
-        content.push_str("Rust version: ");
-        content.push_str(&rustc_version_runtime::version().to_string());
         content.push_str(&"\n");
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         content.push_str("newton_rootfinder version: ");
@@ -132,12 +128,6 @@ impl SolverLog {
             entry.push_str(&SEPARATION_LINE);
             self.add_content(&entry);
         }
-        self.add_content(&"\n");
-    }
-
-    pub fn add_jac(&mut self, jac: &nalgebra::DMatrix<f64>) {
-        self.add_content(&"Jacobian Matrix:\n");
-        self.add_content(&jac.to_string());
         self.add_content(&"\n");
     }
 

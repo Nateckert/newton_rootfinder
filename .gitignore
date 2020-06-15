@@ -2,3 +2,4 @@
 /src/bin/
 Cargo.lock
 *.txt
+*.svg

@@ -1,64 +1,5 @@
+use super::ResolutionMethod;
 use std::fmt;
-
-/// Choice of the iterative algorithm for the resolution
-///
-/// All of them are Newton based methods : (Newton or quasi-Newton)
-///
-/// All Newton-based iterative methods have a local convergence.
-/// They also assume that the jacobian is invertible at the root (simple root)
-///
-/// ## Newton-Raphson
-/// The classical Newton method.
-///
-/// Requires a full jacobian evaluation at each iteration step
-///
-/// Reference:
-///
-/// Tjalling J. Ypma
-///
-/// Historical development of the Newton–Raphson method,
-///
-/// SIAM Review 37 (4), p 531–551, 1995.
-///
-/// doi:10.1137/1037125.
-///
-/// The convergence rate is quadratic :
-/// || x_{n+1} - x_sol || < || x_{n} - x_sol ||^2
-///
-/// ## Stationary Newton
-/// A quasi Newton Method requiring the evaluation of the jacobian only at the first iteration step.
-///
-/// The jacobian of the first iteration is used for all the updates
-///
-/// The convergence rate is locally linear and controlled by the first error :
-///
-/// || x_{n+1} - x_sol || < || x_{n} - x_sol ||*|| x_{0} - x_sol ||
-///
-/// Reference:
-///
-/// Dennis, Jr., J. E. (1967)
-///
-/// A Stationary Newton Method for Nonlinear Functional Equations
-///
-/// SIAM Journal on Numerical Analysis, 4(2), p 222–232.
-///
-/// doi:10.1137/0704021
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum ResolutionMethod {
-    NewtonRaphson,
-    StationaryNewton,
-}
-
-impl fmt::Display for ResolutionMethod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let result = match self {
-            ResolutionMethod::NewtonRaphson => &"Newton-Raphson",
-            ResolutionMethod::StationaryNewton => &"Stationary Newton",
-        };
-
-        write!(f, "{}", result)
-    }
-}
 
 /// A minimal struct holding the resolution parameters
 ///
@@ -82,10 +23,10 @@ impl fmt::Display for ResolutionMethod {
 /// (the value might change according to the versions).
 ///
 /// If the used method is a quasi-newton method
-/// and the jacobian has not been recently updated,
+/// and the jacobian has not been updated at the current iteration,
 /// damping won't be performed but the jacobian will be recomputed at the next iteration.
 ///
-/// In the case of the jacobian has been recomputed at the previous iteration,
+/// In the case of the jacobian has been recomputed at the current iteration,
 /// damping will be performed
 ///
 /// ## Tolerance

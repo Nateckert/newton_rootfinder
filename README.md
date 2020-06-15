@@ -1,6 +1,7 @@
 Newton based methods for rootfinding
 ========================================================
 
+![crates.io](https://img.shields.io/crates/v/newton_rootfinder.svg)
 [![Build Status](https://travis-ci.com/Nateckert/newton_rootfinder.svg?branch=master)](https://travis-ci.com/Nateckert/newton_rootfinder)
 
 This crate allows you to use [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) for rootfinding.
@@ -69,7 +70,6 @@ The focus of this crate is the development of this solver.
 
  1. The inputs and outputs of the model are assumed to be `nalgebra` vectors.
  2. The test base is still in construction
- 3. Other resolution methods (Broyden, ...) are not available, only Stationary Newton
 
 
 
@@ -81,7 +81,7 @@ N-dimensional :
 
 | crate                 | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
 |-----------------------|--------:|:-----------------------------:|:-------------------:|-------------------------------:|
-| **newton_rootfinder** |   0.3.0 |       ✔️                      |      ✔️             |  ❌ (not yet)                 |
+| **newton_rootfinder** |   0.5.0 |       ✔️                      |      ✔️             |  ✔️                  |
 | peroxide              |  0.21.7 |       ❌                      |      ❌             |   ❌                          |
 
 
@@ -93,7 +93,7 @@ One dimension :
 
 | crate                 | version | Newton-Raphson | Other Iterative methods | Analytical methods  |
 |-----------------------|--------:|---------------:|------------------------:|--------------------:|
-| **newton_rootfinder** |   0.3.0 |  ✔️            | ❌                     | ❌                  |
+| **newton_rootfinder** |   0.5.0 |  ✔️            | ❌                     | ❌                  |
 | newton-raphson        |   0.1.0 |  ✔️            | ❌                     | ❌                  |
 | nrfind                |   1.0.3 |  ✔️            | ❌                     | ❌                  |
 | rootfind              |   0.7.0 |  ✔️            | ✔️                     | ❌                  |

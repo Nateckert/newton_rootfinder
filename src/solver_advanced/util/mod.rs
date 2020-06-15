@@ -14,7 +14,7 @@
 //! ```xml
 //! <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 //! <nrf>
-//!     <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true"/>
+//!     <solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>
 //!     <iteratives min_value="-inf"  max_value="inf" max_step_abs="inf" max_step_rel="inf">
 //!         <iterative id="0" min_value="-inf"  max_value="inf" max_step_abs="100" max_step_rel="0.5"/>
 //!         <iterative id="1" min_value="0"     max_value="inf" max_step_abs="inf" max_step_rel="0.5"/>
@@ -31,10 +31,7 @@
 //!
 //! These values are taken into account only if none are provided for a given iterative or residual
 //!
-//! # Jacobian (for internal use but required to be public for integration testing)
-//! Implementation of the finite difference evaluation
 
-pub mod jacobian;
 mod parser;
 
 pub use parser::from_xml_finite_diff;

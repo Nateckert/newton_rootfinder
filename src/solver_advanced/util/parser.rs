@@ -5,8 +5,10 @@ use minidom::Element;
 
 use crate::solver_advanced::iteratives;
 use crate::solver_advanced::residuals;
-use crate::solver_advanced::solver::ResolutionMethod;
 use crate::solver_advanced::solver::SolverParameters;
+use crate::solver_advanced::solver::{
+    QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod,
+};
 
 /// Parser for a solver operating with a model with the jacobian provided
 ///
@@ -33,7 +35,13 @@ use crate::solver_advanced::solver::SolverParameters;
 /// - damping (true or false)
 /// - tolerance
 /// - problem_size
-/// - resolution_method (NewtonRaphson or StationaryNewton)
+/// - resolution_method: (see `solver_advanced/solver/resolution_method`)
+///     - "NR" for Newton-Raphson
+///     - "SN" for Stationary Newton
+///     - "BROY1" for Broyden First Method approximating the jacobian
+///     - "BROY2" for Broyden Second Method approximating the jacobian
+///     - "BROY1_INV" for Broyden First Method approximating the inverse of the jacobian
+///     - "BROY2_INV" for Broyden First Method approximating the inverse of the jacobian
 ///
 ///```xml
 /// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
@@ -487,8 +495,12 @@ fn parse_resolution_method(node: &Element, node_info: &str) -> ResolutionMethod 
             .attr(&"resolution_method")
             .unwrap_or_else(|| panic!("The attribute \"resolution_method\" is missing in {}", node_info)) {
                 "NR" => ResolutionMethod::NewtonRaphson,
-                "SN" => ResolutionMethod::StationaryNewton,
-                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\" and \"SN\"", node_info),
+                "SN" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
+                "BROY1" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenFirstMethod)),
+                "BROY1_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::BroydenFirstMethod)),
+                "BROY2" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
+                "BROY2_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
+                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\" and \"BROY2_INV\"", node_info),
             }
 }
 
@@ -636,6 +648,90 @@ mod tests {
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
         assert_eq!(solver_parameters.get_damping(), true);
     }
+
+    #[test]
+    fn parsing_solver_node_resolution_method_1() {
+        const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="SN"/>"#;
+        let solver_node: Element = DATA.parse().unwrap();
+        let solver_parameters = parse_solver_node(&solver_node);
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton)
+        );
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
+    }
+
+    #[test]
+    fn parsing_solver_node_resolution_method_2() {
+        const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY1"/>"#;
+        let solver_node: Element = DATA.parse().unwrap();
+        let solver_parameters = parse_solver_node(&solver_node);
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
+                UpdateQuasiNewtonMethod::BroydenFirstMethod
+            ))
+        );
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
+    }
+
+    #[test]
+    fn parsing_solver_node_resolution_method_3() {
+        const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY2"/>"#;
+        let solver_node: Element = DATA.parse().unwrap();
+        let solver_parameters = parse_solver_node(&solver_node);
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
+                UpdateQuasiNewtonMethod::BroydenSecondMethod
+            ))
+        );
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
+    }
+
+    #[test]
+    fn parsing_solver_node_resolution_method_4() {
+        const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY1_INV"/>"#;
+        let solver_node: Element = DATA.parse().unwrap();
+        let solver_parameters = parse_solver_node(&solver_node);
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+                UpdateQuasiNewtonMethod::BroydenFirstMethod
+            ))
+        );
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
+    }
+
+    #[test]
+    fn parsing_solver_node_resolution_method_5() {
+        const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY2_INV"/>"#;
+        let solver_node: Element = DATA.parse().unwrap();
+        let solver_parameters = parse_solver_node(&solver_node);
+        assert_eq!(solver_parameters.get_problem_size(), 3);
+        assert_eq!(solver_parameters.get_max_iter(), 60);
+        assert_eq!(
+            solver_parameters.get_resolution_method(),
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+                UpdateQuasiNewtonMethod::BroydenSecondMethod
+            ))
+        );
+        assert_eq!(solver_parameters.get_tolerance(), 1e-6);
+        assert_eq!(solver_parameters.get_damping(), true);
+    }
+
     #[test]
     #[should_panic(expected = "The attribute \"problem_size\" is missing in the solver node")]
     fn parsing_solver_node_2() {
@@ -668,7 +764,7 @@ mod tests {
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
         assert_eq!(
             solver_parameters.get_resolution_method(),
-            ResolutionMethod::StationaryNewton
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton)
         );
         assert_eq!(solver_parameters.get_damping(), false);
     }
@@ -1381,7 +1477,7 @@ mod tests {
 
     #[test]
     #[should_panic(
-        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\" and \"SN\""
+        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\" and \"BROY2_INV\""
     )]
     fn parsing_root_fd_4() {
         const DATA: &'static str = r#"

@@ -40,7 +40,8 @@
 //!   let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-//!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
+//!   let damping = false;
+//!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
 //!   let mut user_model =
 //!       nrf::model::UserModelWithFunc::new(problem_size, square2);
 //!
@@ -52,11 +53,19 @@
 //! ```
 
 mod default;
+mod jacobian;
 mod log;
 mod parameters;
+mod resolution_method;
 mod solver_advanced;
 
 pub use default::default_with_guess;
-pub use parameters::ResolutionMethod;
+pub use jacobian::jacobian_evaluation;
+pub use jacobian::JacobianMatrix;
 pub use parameters::SolverParameters;
+pub use resolution_method::{
+    broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac,
+};
+pub use resolution_method::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
+pub use resolution_method::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 pub use solver_advanced::RootFinder;

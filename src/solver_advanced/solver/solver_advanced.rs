@@ -6,10 +6,11 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
-use super::ResolutionMethod;
-use super::SolverParameters;
+use super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
+use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
+use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
+use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 use crate::solver_advanced::residuals;
-use crate::solver_advanced::util::jacobian;
 
 /// Solver for rootfinding
 ///
@@ -32,9 +33,11 @@ where
     // solver placeholder
     iter: usize,
     solver_log: super::log::SolverLog,
-    jacobian: nalgebra::DMatrix<f64>,
+    jacobian: JacobianMatrix,
     compute_jac_next_iter: bool,
     last_iter_with_computed_jacobian: usize,
+    iteratives_step_size: Option<nalgebra::DVector<f64>>,
+    residuals_step_size: Option<nalgebra::DVector<f64>>,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -73,10 +76,11 @@ where
             );
         }
 
-        let jacobian =
-            nalgebra::DMatrix::zeros(parameters.get_problem_size(), parameters.get_problem_size());
+        let jacobian = JacobianMatrix::new();
         let compute_jac_next_iter = true;
         let last_iter_with_computed_jacobian = 0;
+        let iteratives_step_size = None;
+        let residuals_step_size = None;
 
         RootFinder {
             parameters,
@@ -89,6 +93,8 @@ where
             jacobian,
             compute_jac_next_iter,
             last_iter_with_computed_jacobian,
+            iteratives_step_size,
+            residuals_step_size,
         }
     }
 
@@ -118,7 +124,8 @@ where
     /// # let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     /// # let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
-    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson);
+    /// # let damping = false;
+    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
     /// rf.set_debug(true);
     /// rf.solve(&mut user_model);
     /// rf.write_log(&"solver_log.txt");
@@ -138,7 +145,8 @@ where
 
         let jacobians = model.get_jacobian();
         let normalization_method = self.residuals_config.get_update_methods();
-        self.jacobian = jacobians.normalize(&residuals_values, &normalization_method);
+        self.jacobian
+            .update_jacobian(jacobians.normalize(&residuals_values, &normalization_method));
     }
 
     fn compute_jac_fd<M: model::Model>(&mut self, model: &mut M) {
@@ -148,40 +156,103 @@ where
             .iters_params
             .compute_perturbations(&iters_values, self.parameters.get_problem_size());
 
-        self.jacobian =
-            jacobian::jacobian_evaluation(model, &perturbations, &(self.residuals_config));
+        self.jacobian.update_jacobian(jacobian_evaluation(
+            model,
+            &perturbations,
+            &(self.residuals_config),
+        ));
     }
 
     fn compute_jac<M: model::Model>(&mut self, model: &mut M) {
         if model.jacobian_provided() {
-            self.compute_jac_func(model)
+            self.compute_jac_func(model);
         } else {
-            self.compute_jac_fd(model)
-        };
+            self.compute_jac_fd(model);
+        }
 
         self.compute_jac_next_iter = false;
         self.last_iter_with_computed_jacobian = self.iter;
+    }
+
+    fn compute_newton_raphson_step<M: model::Model>(
+        &mut self,
+        model: &mut M,
+    ) -> nalgebra::DVector<f64> {
+        self.compute_jac(model);
 
         if self.debug {
             self.jac_to_log();
         }
+
+        self.compute_next_from_inv_jac(model)
     }
 
-    fn compute_next<M: model::Model>(&mut self, model: &mut M) -> nalgebra::DVector<f64> {
-        match self.parameters.get_resolution_method() {
-            ResolutionMethod::NewtonRaphson => self.compute_jac(model),
-            ResolutionMethod::StationaryNewton => {
-                if self.compute_jac_next_iter {
-                    self.compute_jac(model)
+    fn approximate_jacobian(&mut self, method: UpdateQuasiNewtonMethod) {
+        let jac_next = match method {
+            UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_jac(
+                self.jacobian.get_jacobian().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_udpate_jac(
+                self.jacobian.get_jacobian().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+        };
+
+        self.jacobian.update_jacobian(jac_next);
+    }
+
+    fn approximate_inv_jacobian(&mut self, method: UpdateQuasiNewtonMethod) {
+        let inv_jac_next = match method {
+            UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_inv_jac(
+                self.jacobian.get_inverse().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_udpate_inv_jac(
+                self.jacobian.get_inverse().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+            ),
+        };
+
+        self.jacobian.update_inverse(inv_jac_next);
+    }
+
+    fn compute_quasi_newton_step<M: model::Model>(
+        &mut self,
+        model: &mut M,
+        resolution_method: QuasiNewtonMethod,
+    ) -> nalgebra::DVector<f64> {
+        if self.compute_jac_next_iter {
+            self.compute_jac(model);
+        } else {
+            match resolution_method {
+                QuasiNewtonMethod::StationaryNewton => (),
+                QuasiNewtonMethod::JacobianUpdate(method) => {
+                    self.approximate_jacobian(method);
                 }
-            }
+                QuasiNewtonMethod::InverseJacobianUpdate(method) => {
+                    self.approximate_inv_jacobian(method);
+                }
+            };
         }
 
+        if self.debug {
+            self.jac_to_log();
+        }
+
+        self.compute_next_from_inv_jac(model)
+    }
+
+    fn compute_next_from_inv_jac<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&model.get_residuals());
 
-        let raw_step = jacobian::newton_raw_step_size(&residuals, &self.jacobian);
+        let raw_step = -self.jacobian.get_inverse().as_ref().unwrap() * residuals;
 
         let iter_values = model.get_iteratives();
 
@@ -204,7 +275,7 @@ where
         if max_error_next > max_error {
             // see documentation of the `SolverParameters` struct
             if self.parameters.get_resolution_method() != ResolutionMethod::NewtonRaphson
-                && self.last_iter_with_computed_jacobian != self.iter - 1
+                && self.last_iter_with_computed_jacobian != self.iter
             {
                 self.compute_jac_next_iter = true;
                 if self.debug {
@@ -252,6 +323,15 @@ where
             );
         }
 
+        match self.parameters.get_resolution_method() {
+            ResolutionMethod::NewtonRaphson => (),
+            ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => (),
+            _ => {
+                self.iteratives_step_size = Some(model.get_iteratives() - current_guess);
+                self.residuals_step_size = Some(errors_next.clone() - errors);
+            }
+        };
+
         errors_next
     }
 
@@ -273,11 +353,27 @@ where
             self.iteration_to_log(model, &errors);
         }
 
+        // first iteration: always a Newton-Raphson step
+        //    if max_error > self.parameters.get_tolerance() {
+        //        self.iter += 1;
+        //        let proposed_guess = self.compute_newton_raphson_step(model);
+        //        errors = self.update_model(model, &proposed_guess);
+        //        max_error = errors.amax();
+        //    }
+
+        // other iterations
         while max_error > self.parameters.get_tolerance()
             && self.iter < self.parameters.get_max_iter()
         {
             self.iter += 1;
-            let proposed_guess = self.compute_next(model);
+
+            let proposed_guess = match self.parameters.get_resolution_method() {
+                ResolutionMethod::NewtonRaphson => self.compute_newton_raphson_step(model),
+                ResolutionMethod::QuasiNewton(quasi_newton_method) => {
+                    self.compute_quasi_newton_step(model, quasi_newton_method)
+                }
+            };
+
             errors = self.update_model(model, &proposed_guess);
             max_error = errors.amax();
         }
@@ -317,7 +413,7 @@ where
     }
 
     fn jac_to_log(&mut self) {
-        self.solver_log.add_jac(&self.jacobian);
+        self.solver_log.add_content(&self.jacobian.to_string());
     }
 
     /// Writing of simulation log
