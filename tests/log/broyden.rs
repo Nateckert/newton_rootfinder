@@ -40,7 +40,7 @@ fn broyden_case10_fd() {
     let mut lines_new = log_new_reader.lines();
     let mut lines_ref = log_ref_reader.lines();
 
-    // Parse the runner informations except the time
+    // Parse the runner informations
     for _i in 0..3 {
         let line_new = lines_new.next().unwrap();
         let line_ref = lines_ref.next().unwrap();
@@ -54,6 +54,9 @@ fn broyden_case10_fd() {
     lines_new.next();
     lines_ref.next();
     // ignore the username line
+    lines_new.next();
+    lines_ref.next();
+    // ignore the rustc version line
     lines_new.next();
     lines_ref.next();
     // ignore the crate version line

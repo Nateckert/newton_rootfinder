@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- rustc_version_runtime dependency to print rustc version information in log. This was removed in version 5.0 due to a documentation build issue on doc.rs of this dependency.
+
 ### Changed
 - Readme: it is not a duplicate of the documentation main page. It now points to it.
 - Documentation: change of the main page.
