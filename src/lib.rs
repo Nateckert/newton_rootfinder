@@ -17,31 +17,6 @@
 //!
 //! The speed of the advanced solver will be benchmarked against this one to estimate the overhead.
 //!
-//! # Examples
-//! ```
-//! extern crate newton_rootfinder as nrf;
-//! use nrf::solver_minimal::{solver1d, solver1d_fd};
-//!
-//! fn square2(x: f64) -> f64 {
-//!     x.powi(2)-2.0
-//! }
-//! fn dsquare(x: f64) -> f64 {
-//!     2.0*x
-//! }
-//!
-//! fn main() {
-//!     let max_iter = 50;
-//!     let tolerance = 1e-6;
-//!     let finite_diff_dx = 1e-8;
-//!
-//!     let x1 = solver1d(1.0, square2, dsquare, max_iter, tolerance);
-//!     let x2 = solver1d_fd(1.0, square2, max_iter, tolerance, finite_diff_dx);
-//!
-//!     println!("{}", x1);                         // 1.4142135623746899
-//!     println!("{}", x2);                         // 1.4142135623746772
-//!     println!("{}", std::f64::consts::SQRT_2);   // 1.4142135623730951
-//! }
-//! ```
 //!
 //! # Advanced solver
 //!
@@ -70,7 +45,55 @@
 //! 1. The inputs and outputs of the model are assumed to be `nalgebra` vectors.
 //! 2. The test base is still in construction
 //!
+//! ## Examples
+//! ```
+//! extern crate newton_rootfinder;
+//! use newton_rootfinder::solver_advanced as nrf;
+//! use nrf::model::Model; // trait import
 //!
+//! extern crate nalgebra;
+//!
+//! // Function to optimize: x**2 = 2
+//! pub fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
+//!     let mut y = x * x;
+//!     y[0] -= 2.0;
+//!    y
+//! }
+//!
+//! fn main() {
+//!
+//!     let problem_size = 1;
+//!
+//!     // Parametrization of the iteratives variables
+//!     let vec_iter_params = nrf::iteratives::default_vec_iteratives_fd(problem_size);
+//!     let iter_params = nrf::iteratives::Iteratives::new(&vec_iter_params);
+//!
+//!     // Parametrization of the residuals
+//!     let stopping_residuals = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+//!     let update_methods = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+//!     let res_config = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
+//!
+//!     // Parametrization of the solver
+//!     let init = nalgebra::DVector::from_vec(vec![1.0]);
+//!     let resolution_method = nrf::solver::ResolutionMethod::NewtonRaphson;
+//!     let damping = false;
+//!     let mut rf = nrf::solver::default_with_guess(
+//!         init,
+//!         &iter_params,
+//!         &res_config,
+//!         resolution_method,
+//!         damping,
+//!     );
+//!
+//!     // Adpatation of the function to solve to the Model trait.
+//!     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
+//!
+//!     rf.solve(&mut user_model);
+//!
+//!     println!("{}", user_model.get_iteratives()[0]); // 1.4142135623747443
+//!     println!("{}", std::f64::consts::SQRT_2);       // 1.4142135623730951
+//! }
+//! ```
 //!
 //! # Comparison with other rust crates
 //!
@@ -86,18 +109,15 @@
 //!
 //!
 //! If you are looking for one dimensional crates, several options are available.
-//! As a reminder, the focus of newton_rootfinder is **NOT** the development of the 1D solver.
 //!
 //! One dimension :
 //!
-//! | crate                 | version | Newton-Raphson | Other Iterative methods | Analytical methods  |
-//! |-----------------------|--------:|---------------:|------------------------:|--------------------:|
-//! | **newton_rootfinder** |   0.5.0 |  ✔️            | ❌                     | ❌                  |
-//! | newton-raphson        |   0.1.0 |  ✔️            | ❌                     | ❌                  |
-//! | nrfind                |   1.0.3 |  ✔️            | ❌                     | ❌                  |
-//! | rootfind              |   0.7.0 |  ✔️            | ✔️                     | ❌                  |
-//! | roots                 |   0.6.0 |  ✔️            | ✔️                     | ✔️                  |
-//! | peroxide              |  0.21.7 |  ✔️            | ❌                     | ❌                  |
+//! | crate                 | version | Newton-Raphson | Other Iterative methods | Analytical methods  | Error handling |
+//! |-----------------------|--------:|---------------:|------------------------:|--------------------:|---------------:|
+//! | newton-raphson        |   0.1.0 |  ✔️            | ❌                     | ❌                  | ❌             |
+//! | nrfind                |   1.0.3 |  ✔️            | ❌                     | ❌                  | ✔️             |
+//! | rootfind              |   0.7.0 |  ✔️            | ✔️                     | ❌                  | ✔️             |
+//! | roots                 |   0.6.0 |  ✔️            | ✔️                     | ✔️                  | ✔️             |
 //!
 
 pub mod solver_advanced;
