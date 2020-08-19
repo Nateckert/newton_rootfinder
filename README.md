@@ -9,4 +9,4 @@ This crate allows you to use [Newton's method](https://en.wikipedia.org/wiki/New
 The implementation is available in Rust.
 
 
-Check the documentation on [doc.rs] (https://docs.rs/newton_rootfinder/)
+Check the documentation on [doc.rs](https://docs.rs/newton_rootfinder/)
