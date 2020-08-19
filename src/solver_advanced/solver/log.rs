@@ -4,8 +4,8 @@ use std::io::Write;
 use crate::solver_advanced::residuals::ResidualsValues;
 
 extern crate chrono;
-extern crate whoami;
 extern crate rustc_version_runtime;
+extern crate whoami;
 use chrono::prelude::*;
 
 const SEPARATION_ITER: &str = "=========================\n\n";
