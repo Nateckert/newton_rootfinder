@@ -40,8 +40,12 @@ use crate::solver_advanced::solver::{
 ///     - "SN" for Stationary Newton
 ///     - "BROY1" for Broyden First Method approximating the jacobian
 ///     - "BROY2" for Broyden Second Method approximating the jacobian
+///     - "GRST1" for Greenstadt First Method approximating the jacobian
+///     - "GRST2" for Greenstadt Second Method approximating the jacobian
 ///     - "BROY1_INV" for Broyden First Method approximating the inverse of the jacobian
-///     - "BROY2_INV" for Broyden First Method approximating the inverse of the jacobian
+///     - "BROY2_INV" for Broyden Second Method approximating the inverse of the jacobian
+///     - "GRST1_INV" for Greenstadt First Method approximating the inverse of the jacobian
+///     - "GRST2_INV" for Greenstadt Second Method approximating the inverse of the jacobian
 ///
 ///```xml
 /// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
@@ -500,7 +504,11 @@ fn parse_resolution_method(node: &Element, node_info: &str) -> ResolutionMethod 
                 "BROY1_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::BroydenFirstMethod)),
                 "BROY2" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
                 "BROY2_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
-                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\" and \"BROY2_INV\"", node_info),
+                "GRST1" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtFirstMethod)),
+                "GRST1_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtFirstMethod)),
+                "GRST2" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtSecondMethod)),
+                "GRST2_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtSecondMethod)),
+                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\", \"BROY2_INV\", \"GRST1\", \"GRST1_INV\", \"GRST2\", \"GRST2_INV\"", node_info),
             }
 }
 
@@ -1477,7 +1485,7 @@ mod tests {
 
     #[test]
     #[should_panic(
-        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\" and \"BROY2_INV\""
+        expected = "The attribute \"resolution_method\" at the solver node has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\", \"BROY2_INV\", \"GRST1\", \"GRST1_INV\", \"GRST2\", \"GRST2_INV\""
     )]
     fn parsing_root_fd_4() {
         const DATA: &'static str = r#"

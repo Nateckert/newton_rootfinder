@@ -6,9 +6,11 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
+use super::greenstadt_second_method_udpate_jac;
 use super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
 use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
+use super::{quasi_method_update_inv_jac, quasi_method_update_jac};
 use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 use crate::solver_advanced::residuals;
 
@@ -38,6 +40,7 @@ where
     last_iter_with_computed_jacobian: usize,
     iteratives_step_size: Option<nalgebra::DVector<f64>>,
     residuals_step_size: Option<nalgebra::DVector<f64>>,
+    residuals_values_current: Option<nalgebra::DVector<f64>>,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -81,6 +84,7 @@ where
         let last_iter_with_computed_jacobian = 0;
         let iteratives_step_size = None;
         let residuals_step_size = None;
+        let residuals_values_current = None;
 
         RootFinder {
             parameters,
@@ -95,6 +99,7 @@ where
             last_iter_with_computed_jacobian,
             iteratives_step_size,
             residuals_step_size,
+            residuals_values_current,
         }
     }
 
@@ -199,6 +204,22 @@ where
                 self.iteratives_step_size.as_ref().unwrap(),
                 self.residuals_step_size.as_ref().unwrap(),
             ),
+            UpdateQuasiNewtonMethod::GreenstadtFirstMethod => quasi_method_update_jac(
+                self.jacobian.get_jacobian().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+                self.residuals_values_current.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
+                let c = self.jacobian.get_inverse().as_ref().unwrap()
+                    * self.residuals_step_size.as_ref().unwrap();
+                greenstadt_second_method_udpate_jac(
+                    self.jacobian.get_jacobian().as_ref().unwrap(),
+                    self.iteratives_step_size.as_ref().unwrap(),
+                    self.residuals_step_size.as_ref().unwrap(),
+                    &c,
+                )
+            }
         };
 
         self.jacobian.update_jacobian(jac_next);
@@ -216,6 +237,23 @@ where
                 self.iteratives_step_size.as_ref().unwrap(),
                 self.residuals_step_size.as_ref().unwrap(),
             ),
+            UpdateQuasiNewtonMethod::GreenstadtFirstMethod => quasi_method_update_inv_jac(
+                self.jacobian.get_inverse().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+                self.residuals_values_current.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
+                let c = self.jacobian.get_inverse().as_ref().unwrap().transpose()
+                    * self.jacobian.get_inverse().as_ref().unwrap()
+                    * self.residuals_step_size.as_ref().unwrap();
+                quasi_method_update_inv_jac(
+                    self.jacobian.get_inverse().as_ref().unwrap(),
+                    self.iteratives_step_size.as_ref().unwrap(),
+                    self.residuals_step_size.as_ref().unwrap(),
+                    &c,
+                )
+            }
         };
 
         self.jacobian.update_inverse(inv_jac_next);
@@ -329,6 +367,7 @@ where
             _ => {
                 self.iteratives_step_size = Some(model.get_iteratives() - current_guess);
                 self.residuals_step_size = Some(errors_next.clone() - errors);
+                self.residuals_values_current = Some(errors_next.clone())
             }
         };
 
