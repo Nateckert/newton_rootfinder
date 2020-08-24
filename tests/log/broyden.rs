@@ -29,7 +29,6 @@ fn broyden_case10_fd() {
 
     rf.solve(&mut user_model);
 
-
     let log_ref = File::open(&"./tests/log/log_ref.txt").unwrap();
     let log_new = File::open(&LOG_PATH).unwrap();
 

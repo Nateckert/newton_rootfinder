@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::io::Write;
 use std::fs::OpenOptions;
+use std::io::Write;
 
 use crate::solver_advanced::residuals::ResidualsValues;
 
@@ -60,7 +60,9 @@ impl SolverLog {
 
         write!(file, "{}", content).unwrap();
 
-        SolverLog { path: path.to_string() }
+        SolverLog {
+            path: path.to_string(),
+        }
     }
 
     pub fn add_content(&self, new_content: &str) {

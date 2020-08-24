@@ -436,8 +436,12 @@ where
     {
         let iteratives = model.get_iteratives();
         let residuals = model.get_residuals();
-        self.solver_log.as_ref().unwrap()
-            .add_new_iteration(&iteratives, &residuals, errors, self.iter);
+        self.solver_log.as_ref().unwrap().add_new_iteration(
+            &iteratives,
+            &residuals,
+            errors,
+            self.iter,
+        );
     }
 
     fn recompute_jacobian_to_log(&self) {
@@ -452,11 +456,16 @@ where
     {
         let iteratives = model.get_iteratives();
         let residuals = model.get_residuals();
-        self.solver_log.as_ref().unwrap().add_damping(&iteratives, &residuals, errors);
+        self.solver_log
+            .as_ref()
+            .unwrap()
+            .add_damping(&iteratives, &residuals, errors);
     }
 
     fn jac_to_log(&self) {
-        self.solver_log.as_ref().unwrap().add_content(&self.jacobian.to_string());
+        self.solver_log
+            .as_ref()
+            .unwrap()
+            .add_content(&self.jacobian.to_string());
     }
-
 }
