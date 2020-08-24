@@ -6,9 +6,11 @@ use crate::solver_advanced::iteratives;
 use crate::solver_advanced::iteratives::Iterative;
 use crate::solver_advanced::model;
 
+use super::greenstadt_second_method_udpate_jac;
 use super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
 use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
+use super::{quasi_method_update_inv_jac, quasi_method_update_jac};
 use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 use crate::solver_advanced::residuals;
 
@@ -32,12 +34,13 @@ where
 
     // solver placeholder
     iter: usize,
-    solver_log: super::log::SolverLog,
+    solver_log: Option<super::log::SolverLog>,
     jacobian: JacobianMatrix,
     compute_jac_next_iter: bool,
     last_iter_with_computed_jacobian: usize,
     iteratives_step_size: Option<nalgebra::DVector<f64>>,
     residuals_step_size: Option<nalgebra::DVector<f64>>,
+    residuals_values_current: Option<nalgebra::DVector<f64>>,
 }
 
 impl<'a, T> RootFinder<'a, T>
@@ -51,7 +54,7 @@ where
         residuals_config: &'a residuals::ResidualsConfig<'a>,
     ) -> Self {
         let debug = false;
-        let solver_log = super::log::SolverLog::new();
+        let solver_log = None;
         let iter = 0;
 
         if residuals_config.len() != parameters.get_problem_size() {
@@ -81,6 +84,7 @@ where
         let last_iter_with_computed_jacobian = 0;
         let iteratives_step_size = None;
         let residuals_step_size = None;
+        let residuals_values_current = None;
 
         RootFinder {
             parameters,
@@ -95,13 +99,14 @@ where
             last_iter_with_computed_jacobian,
             iteratives_step_size,
             residuals_step_size,
+            residuals_values_current,
         }
     }
 
-    /// Activate the gathering of the log informations
+    /// Activate the gathering of the log
     ///
-    /// It is required to write the log after the resolution.
-    /// The path must also be provided (as .txt file)
+    /// The path must be provided (as .txt file)
+    /// This generate a .txt file at the given path with simulation informations.
     ///
     /// # Examples
     ///
@@ -126,12 +131,13 @@ where
     /// # let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
     /// # let damping = false;
     /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
-    /// rf.set_debug(true);
+    ///
+    /// rf.activate_debug(&"solver_log.txt");
     /// rf.solve(&mut user_model);
-    /// rf.write_log(&"solver_log.txt");
     /// ```
-    pub fn set_debug(&mut self, debug: bool) {
-        self.debug = debug;
+    pub fn activate_debug(&mut self, path: &str) {
+        self.debug = true;
+        self.solver_log = Some(super::log::SolverLog::new(path));
     }
 
     fn evaluate_errors<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
@@ -199,6 +205,22 @@ where
                 self.iteratives_step_size.as_ref().unwrap(),
                 self.residuals_step_size.as_ref().unwrap(),
             ),
+            UpdateQuasiNewtonMethod::GreenstadtFirstMethod => quasi_method_update_jac(
+                self.jacobian.get_jacobian().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+                self.residuals_values_current.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
+                let c = self.jacobian.get_inverse().as_ref().unwrap()
+                    * self.residuals_step_size.as_ref().unwrap();
+                greenstadt_second_method_udpate_jac(
+                    self.jacobian.get_jacobian().as_ref().unwrap(),
+                    self.iteratives_step_size.as_ref().unwrap(),
+                    self.residuals_step_size.as_ref().unwrap(),
+                    &c,
+                )
+            }
         };
 
         self.jacobian.update_jacobian(jac_next);
@@ -216,6 +238,23 @@ where
                 self.iteratives_step_size.as_ref().unwrap(),
                 self.residuals_step_size.as_ref().unwrap(),
             ),
+            UpdateQuasiNewtonMethod::GreenstadtFirstMethod => quasi_method_update_inv_jac(
+                self.jacobian.get_inverse().as_ref().unwrap(),
+                self.iteratives_step_size.as_ref().unwrap(),
+                self.residuals_step_size.as_ref().unwrap(),
+                self.residuals_values_current.as_ref().unwrap(),
+            ),
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
+                let c = self.jacobian.get_inverse().as_ref().unwrap().transpose()
+                    * self.jacobian.get_inverse().as_ref().unwrap()
+                    * self.residuals_step_size.as_ref().unwrap();
+                quasi_method_update_inv_jac(
+                    self.jacobian.get_inverse().as_ref().unwrap(),
+                    self.iteratives_step_size.as_ref().unwrap(),
+                    self.residuals_step_size.as_ref().unwrap(),
+                    &c,
+                )
+            }
         };
 
         self.jacobian.update_inverse(inv_jac_next);
@@ -329,6 +368,7 @@ where
             _ => {
                 self.iteratives_step_size = Some(model.get_iteratives() - current_guess);
                 self.residuals_step_size = Some(errors_next.clone() - errors);
+                self.residuals_values_current = Some(errors_next.clone())
             }
         };
 
@@ -353,6 +393,9 @@ where
             self.iteration_to_log(model, &errors);
         }
 
+        // Warning: unrolling by hand the first iteration as the following code does
+        //          is actually slowing down the code (run benchmarks to see it)
+        //
         // first iteration: always a Newton-Raphson step
         //    if max_error > self.parameters.get_tolerance() {
         //        self.iter += 1;
@@ -379,52 +422,50 @@ where
         }
     }
 
-    fn parameters_to_log(&mut self) {
-        self.solver_log.add_parameters(
+    fn parameters_to_log(&self) {
+        self.solver_log.as_ref().unwrap().add_parameters(
             &self.parameters.to_string(),
             &self.iters_params.to_string(),
             &self.residuals_config.to_string(),
         );
     }
 
-    fn iteration_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)
+    fn iteration_to_log<M>(&self, model: &M, errors: &nalgebra::DVector<f64>)
+    where
+        M: model::Model,
+    {
+        let iteratives = model.get_iteratives();
+        let residuals = model.get_residuals();
+        self.solver_log.as_ref().unwrap().add_new_iteration(
+            &iteratives,
+            &residuals,
+            errors,
+            self.iter,
+        );
+    }
+
+    fn recompute_jacobian_to_log(&self) {
+        self.solver_log.as_ref().unwrap().add_content(
+            &"Iteration refused, the jacobian will be recomputed at the next iteration\n\n",
+        );
+    }
+
+    fn damping_to_log<M>(&self, model: &M, errors: &nalgebra::DVector<f64>)
     where
         M: model::Model,
     {
         let iteratives = model.get_iteratives();
         let residuals = model.get_residuals();
         self.solver_log
-            .add_new_iteration(&iteratives, &residuals, errors, self.iter);
+            .as_ref()
+            .unwrap()
+            .add_damping(&iteratives, &residuals, errors);
     }
 
-    fn recompute_jacobian_to_log(&mut self) {
-        self.solver_log.add_content(
-            &"Iteration refused, the jacobian will be recomputed at the next iteration\n\n",
-        );
-    }
-
-    fn damping_to_log<M>(&mut self, model: &M, errors: &nalgebra::DVector<f64>)
-    where
-        M: model::Model,
-    {
-        let iteratives = model.get_iteratives();
-        let residuals = model.get_residuals();
-        self.solver_log.add_damping(&iteratives, &residuals, errors);
-    }
-
-    fn jac_to_log(&mut self) {
-        self.solver_log.add_content(&self.jacobian.to_string());
-    }
-
-    /// Writing of simulation log
-    ///
-    /// The debug field of the solver must be activated
-    /// during the simulation in order to be able to write it.
-    /// This can be achived thanks to the `set_debug()` method
-    pub fn write_log(&self, path: &str) {
-        if !self.debug {
-            panic!("The debug field was not activated during the simulation");
-        }
-        self.solver_log.write(path);
+    fn jac_to_log(&self) {
+        self.solver_log
+            .as_ref()
+            .unwrap()
+            .add_content(&self.jacobian.to_string());
     }
 }

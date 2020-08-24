@@ -1,4 +1,10 @@
+pub mod broyden1_inv_jac;
 pub mod broyden1_jac;
+pub mod broyden2_inv_jac;
 pub mod broyden2_jac;
+pub mod greenstadt1_inv_jac;
+pub mod greenstadt1_jac;
+pub mod greenstadt2_inv_jac;
+pub mod greenstadt2_jac;
 pub mod newton_raphson;
 pub mod stationary_newton;

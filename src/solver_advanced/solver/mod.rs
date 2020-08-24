@@ -63,9 +63,11 @@ pub use default::default_with_guess;
 pub use jacobian::jacobian_evaluation;
 pub use jacobian::JacobianMatrix;
 pub use parameters::SolverParameters;
+pub use resolution_method::greenstadt_second_method_udpate_jac;
 pub use resolution_method::{
     broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac,
 };
 pub use resolution_method::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
+pub use resolution_method::{quasi_method_update_inv_jac, quasi_method_update_jac};
 pub use resolution_method::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 pub use solver_advanced::RootFinder;

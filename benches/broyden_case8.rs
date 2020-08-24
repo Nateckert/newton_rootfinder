@@ -33,6 +33,10 @@ fn solvers_comparison(c: &mut Criterion) {
     const FILEPATH_BROY2_JAC: &'static str = "./benches/data/broyden_case8_BROY2.xml";
     const FILEPATH_BROY1_INV: &'static str = "./benches/data/broyden_case8_BROY1_INV.xml";
     const FILEPATH_BROY2_INV: &'static str = "./benches/data/broyden_case8_BROY2_INV.xml";
+    const FILEPATH_GRST1_JAC: &'static str = "./benches/data/broyden_case8_GRST1.xml";
+    const FILEPATH_GRST2_JAC: &'static str = "./benches/data/broyden_case8_GRST2.xml";
+    const FILEPATH_GRST1_INV: &'static str = "./benches/data/broyden_case8_GRST1_INV.xml";
+    const FILEPATH_GRST2_INV: &'static str = "./benches/data/broyden_case8_GRST2_INV.xml";
 
     let mut group_function = c.benchmark_group("Solver parsing");
     group_function.bench_function("NR", |b| {
@@ -156,6 +160,82 @@ fn solvers_comparison(c: &mut Criterion) {
 
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("BROY2_inv", |b| b.iter(|| rf.solve(&mut user_model)));
+
+    // First Greenstad method on jacobian
+    let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
+        nrf::util::from_xml_finite_diff(&FILEPATH_GRST1_JAC);
+
+    let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
+    let residuals_config =
+        nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
+    let problem_size = solver_parameters.get_problem_size();
+
+    let mut rf = nrf::solver::RootFinder::new(
+        solver_parameters,
+        init_broyden1965_case8(),
+        &iteratives,
+        &residuals_config,
+    );
+
+    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    group_function.bench_function("GRST1", |b| b.iter(|| rf.solve(&mut user_model)));
+
+    // Second Greenstad method on jacobian
+    let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
+        nrf::util::from_xml_finite_diff(&FILEPATH_GRST2_JAC);
+
+    let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
+    let residuals_config =
+        nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
+    let problem_size = solver_parameters.get_problem_size();
+
+    let mut rf = nrf::solver::RootFinder::new(
+        solver_parameters,
+        init_broyden1965_case8(),
+        &iteratives,
+        &residuals_config,
+    );
+
+    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    group_function.bench_function("GRST2", |b| b.iter(|| rf.solve(&mut user_model)));
+
+    // First Greenstad method on inverse jacobian
+    let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
+        nrf::util::from_xml_finite_diff(&FILEPATH_GRST1_INV);
+
+    let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
+    let residuals_config =
+        nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
+    let problem_size = solver_parameters.get_problem_size();
+
+    let mut rf = nrf::solver::RootFinder::new(
+        solver_parameters,
+        init_broyden1965_case8(),
+        &iteratives,
+        &residuals_config,
+    );
+
+    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    group_function.bench_function("GRST1_inv", |b| b.iter(|| rf.solve(&mut user_model)));
+
+    // Second Greenstad method on inverse jacobian
+    let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
+        nrf::util::from_xml_finite_diff(&FILEPATH_GRST2_INV);
+
+    let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
+    let residuals_config =
+        nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
+    let problem_size = solver_parameters.get_problem_size();
+
+    let mut rf = nrf::solver::RootFinder::new(
+        solver_parameters,
+        init_broyden1965_case8(),
+        &iteratives,
+        &residuals_config,
+    );
+
+    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    group_function.bench_function("GRST2_inv", |b| b.iter(|| rf.solve(&mut user_model)));
 
     group_function.finish();
 }

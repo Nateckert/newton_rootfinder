@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.6.0] - 2020-08-24
+### Added
+- rustc_version_runtime dependency to print rustc version information in log. This was removed in version 5.0 due to a documentation build issue on doc.rs of this dependency.
+- New resolution methods: Greenstadt first and second method
+
+### Changed
+- Readme: it is not a duplicate of the documentation main page. It now points to it.
+- Documentation: change of the main page.
+- Simulation log function (changed from `set_debug()` to `activate_debug()`)
+- Simulation log mecanism: instead of writing the log at the end of the simulation, write it on the fly in order to have data in case of a panic.
+
 ## [0.5.0] - 2020-06-15
 ### Added
 - Travis CI

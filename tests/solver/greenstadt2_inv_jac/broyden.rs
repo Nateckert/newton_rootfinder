@@ -16,7 +16,7 @@ fn broyden_case5_fd() {
         init_broyden1965_case5(),
         solution_broyden1965_case5(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -33,7 +33,7 @@ fn broyden_case5_jac() {
         init_broyden1965_case5(),
         solution_broyden1965_case5(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -49,7 +49,7 @@ fn broyden_case6_fd() {
         init_broyden1965_case6(),
         solution_broyden1965_case6(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -66,7 +66,7 @@ fn broyden_case6_jac() {
         init_broyden1965_case6(),
         solution_broyden1965_case6(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -82,7 +82,7 @@ fn broyden_case7_fd() {
         init_broyden1965_case7(),
         solution_broyden1965_case7(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -99,7 +99,7 @@ fn broyden_case7_jac() {
         init_broyden1965_case7(),
         solution_broyden1965_case7(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -115,7 +115,7 @@ fn broyden_case8_fd() {
         init_broyden1965_case8(),
         solution_broyden1965_case8(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -132,7 +132,7 @@ fn broyden_case8_jac() {
         init_broyden1965_case8(),
         solution_broyden1965_case8(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -148,7 +148,7 @@ fn broyden_case9_fd() {
         init_broyden1965_case9(),
         solution_broyden1965_case9(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -165,7 +165,7 @@ fn broyden_case9_jac() {
         init_broyden1965_case9(),
         solution_broyden1965_case9(),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -180,7 +180,7 @@ fn broyden_case9_jac() {
 //        broyden1965_case10,
 //        init_broyden1965_case10(),
 //        solution_broyden1965_case10(),
-//        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
+//        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenFirstMethod)),
 //    );
 //}
 
@@ -193,6 +193,6 @@ fn broyden_case9_jac() {
 //        broyden1965_case10_jac,
 //        init_broyden1965_case10(),
 //        solution_broyden1965_case10(),
-//        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
+//        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenFirstMethod)),
 //    );
 //}
