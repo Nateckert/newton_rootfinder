@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Documentation: change of the main page.
 - Simulation log function (changed from `set_debug()` to `activate_debug()`)
 - Simulation log mecanism: instead of writing the log at the end of the simulation, write it on the fly in order to have data in case of a panic.
+- Update version of dependencies: chrono and whoami.
 
 ## [0.5.0] - 2020-06-15
 ### Added

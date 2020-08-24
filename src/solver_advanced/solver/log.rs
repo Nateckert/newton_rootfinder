@@ -30,10 +30,10 @@ impl SolverLog {
         content.push_str(&"Runner informations\n");
         content.push_str(&"===================\n\n");
         content.push_str(&"OS: ");
-        content.push_str(&whoami::os());
+        content.push_str(&whoami::distro());
         content.push_str(&"\n");
         content.push_str(&"Host: ");
-        content.push_str(&whoami::host());
+        content.push_str(&whoami::devicename());
         content.push_str(&"\n");
         content.push_str(&"Username: ");
         content.push_str(&whoami::username());
