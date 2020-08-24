@@ -3,6 +3,7 @@ extern crate newton_rootfinder;
 use newton_rootfinder::solver_advanced as nrf;
 
 use crate::common::{run_test_case_fd, run_test_case_jac};
+
 use nrf::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 
 use nrf::test_cases::polynom;
@@ -17,7 +18,7 @@ fn square() {
         nalgebra::DVector::from_vec(vec![1.0]),
         nalgebra::DVector::from_vec(vec![2_f64.sqrt()]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -33,7 +34,7 @@ fn root_with_high_derivative() {
         nalgebra::DVector::from_vec(vec![0.15]),
         nalgebra::DVector::from_vec(vec![0.1]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -50,7 +51,7 @@ fn square_jac() {
         nalgebra::DVector::from_vec(vec![1.0]),
         nalgebra::DVector::from_vec(vec![2_f64.sqrt()]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );
@@ -67,7 +68,7 @@ fn root_with_high_derivative_jac() {
         nalgebra::DVector::from_vec(vec![0.15]),
         nalgebra::DVector::from_vec(vec![0.1]),
         ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
-            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
         )),
         damping,
     );

@@ -23,13 +23,12 @@ fn broyden_case10_fd() {
         &iteratives,
         &residuals_config,
     );
-    rf.set_debug(true);
+    rf.activate_debug(&LOG_PATH);
 
     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case10);
 
     rf.solve(&mut user_model);
 
-    rf.write_log(&LOG_PATH);
 
     let log_ref = File::open(&"./tests/log/log_ref.txt").unwrap();
     let log_new = File::open(&LOG_PATH).unwrap();

@@ -16,7 +16,7 @@ fn square() {
         polynom::square2,
         nalgebra::DVector::from_vec(vec![1.0]),
         nalgebra::DVector::from_vec(vec![2_f64.sqrt()]),
-        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
         damping,
@@ -32,7 +32,7 @@ fn root_with_high_derivative() {
         polynom::root_with_high_derivative,
         nalgebra::DVector::from_vec(vec![0.15]),
         nalgebra::DVector::from_vec(vec![0.1]),
-        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
         damping,
@@ -49,7 +49,7 @@ fn square_jac() {
         polynom::dsquare,
         nalgebra::DVector::from_vec(vec![1.0]),
         nalgebra::DVector::from_vec(vec![2_f64.sqrt()]),
-        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
         damping,
@@ -66,7 +66,7 @@ fn root_with_high_derivative_jac() {
         polynom::root_with_high_derivative_jac,
         nalgebra::DVector::from_vec(vec![0.15]),
         nalgebra::DVector::from_vec(vec![0.1]),
-        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+        ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
             UpdateQuasiNewtonMethod::BroydenSecondMethod,
         )),
         damping,

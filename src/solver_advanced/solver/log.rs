@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Write;
+use std::fs::OpenOptions;
 
 use crate::solver_advanced::residuals::ResidualsValues;
 
@@ -15,14 +16,16 @@ const FLOAT_WIDTH: usize = 30;
 const INT_WIDTH: usize = 6;
 
 pub struct SolverLog {
-    content: String,
+    path: String,
 }
 
 /// Log for debugging information
 ///
 /// This object defines the format and concatenate the debugging informations
 impl SolverLog {
-    pub fn new() -> Self {
+    pub fn new(path: &str) -> Self {
+        let mut file = File::create(path).unwrap();
+
         let mut content = String::new();
         content.push_str(&"Runner informations\n");
         content.push_str(&"===================\n\n");
@@ -55,15 +58,18 @@ impl SolverLog {
         content.push_str(&"\n");
         content.push_str(&"\n");
 
-        SolverLog { content }
+        write!(file, "{}", content).unwrap();
+
+        SolverLog { path: path.to_string() }
     }
 
-    pub fn add_content(&mut self, new_content: &str) {
-        self.content.push_str(new_content);
+    pub fn add_content(&self, new_content: &str) {
+        let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
+        write!(file, "{}", new_content).unwrap();
     }
 
     pub fn add_parameters(
-        &mut self,
+        &self,
         solver_parameters: &str,
         iteratives_config: &str,
         residuals_config: &str,
@@ -74,7 +80,7 @@ impl SolverLog {
     }
 
     pub fn add_damping(
-        &mut self,
+        &self,
         iteratives: &nalgebra::DVector<f64>,
         residuals: &ResidualsValues,
         errors: &nalgebra::DVector<f64>,
@@ -85,7 +91,7 @@ impl SolverLog {
         self.add_iteration(iteratives, residuals, errors);
     }
     pub fn add_new_iteration(
-        &mut self,
+        &self,
         iteratives: &nalgebra::DVector<f64>,
         residuals: &ResidualsValues,
         errors: &nalgebra::DVector<f64>,
@@ -99,7 +105,7 @@ impl SolverLog {
     }
 
     fn add_iteration(
-        &mut self,
+        &self,
         iteratives: &nalgebra::DVector<f64>,
         residuals: &ResidualsValues,
         errors: &nalgebra::DVector<f64>,
@@ -133,10 +139,5 @@ impl SolverLog {
             self.add_content(&entry);
         }
         self.add_content(&"\n");
-    }
-
-    pub fn write(&self, path: &str) {
-        let mut f = File::create(path).unwrap();
-        write!(f, "{}", self.content).unwrap();
     }
 }
