@@ -3,33 +3,90 @@
 //!
 //! This crate allows you to use [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) for rootfinding.
 //!
-//! It aims to implement several Newton based methods (Broyden, ...), whether the jacobian function is provided or not.
+//! It aims to implement several Newton based methods (Newton-Raphson, Broyden, ...), whether the jacobian function is provided or not.
 //!
-//! It also aims to work on a complex model, limiting the number of model calls to a minimum.
+//! # Nonlinear equation solver
 //!
-//! A minimal solver is also provided for basic usages and benchmarking purposes.
+//! ## Practical example
 //!
-//! # Minimal solver
+//! Let's consider the following equations :
 //!
-//! A minimal solver is provided for basic usages in the `solver_minimal` module.
+//! x1 * x2 + x3 = 1
 //!
-//! This minimal solver works only on basic 1D functions.
+//! x1 * x2 / x3 = x1 * x3
 //!
-//! The speed of the advanced solver will be benchmarked against this one to estimate the overhead.
+//! x1 * x3 - x3 / x2 - 1 = 0
 //!
+//! Let's call X = (x1, x2, x3) the iterative variables
+//! 
+//! Let's call f the function such as f(X) = (left, right),
+//! where left is the left member of the equations :
 //!
-//! # Advanced solver
+//!  left = ( x1 * x2 + x3, x1 * x2 / x3, x1 * x3 - x3 / x2 - 1  )
 //!
-//! An advanced solver is available for n-dimension problems.
+//!  right = (1, x1 * x3, 0)
 //!
-//! To get improved interactions with the user problem (usually a function),
-//! the user is required to implement the `Model` trait in order to use the solver.
-//! This ensures a reduced number of calls to the function and a better debugging experience if needed.
+//! Let's call the pair (left, right) the residuals (i.e the residual equations)
 //!
-//! It is defined in the `solver_advanced` module.
-//! Don't hesitate to check in this module documentation for examples.
+//! Solving this problem implies to find X such that the residual equations are fullfiled.
+//! Newton based methods will achieve that by iterating on the vector X (hence the name of iteratives).
 //!
-//! The focus of this crate is the development of this solver.
+//! ## General formulation
+//!
+//! The solver provided in this crate aims to solve the n-dimensional problem:
+//!
+//! f((iterative_1, ... , iterative_n)) -> (equation_1, ... , equation_n)
+//!
+//! Each equation being separated into two : left side and right side.
+//!
+//! In the litterature, the problem is often described as f(X) = 0,
+//! as the mathematical expressions can be rearranged.
+//!
+//! However, it is practical to not adopt this framework for numerical aspects:
+//!
+//! Imagine for example, that the residual equations are involving different variables with different order of magnitudes :
+//!
+//! Eq1 : Pressure_1 = Pressure_2
+//!
+//! Eq2 : Temperature_1 = Temperature_2
+//!
+//! The usual order of magnitude of a pressure is of 10^5 Pa, a temperature is usually 10^2 K.
+//! Hence, from the numerical point of view,
+//! the two pressures being equal should have a different signification than the temperatures being equal.
+//!
+//! This particularity has lead to the separation of left and right member of an equation for the implementation of this solver.
+//!
+//! # Implementation
+//!
+//! ## User problem definition
+//!
+//! To get improved interactions with the user problem,
+//! the user is required to provide a stuct implementing the `Model` trait.
+//! This trait allows for the solver to be integrated tightly with the use problem and optimized.
+//! Check the documentation of this trait for more details.
+//!
+//! In practice, in most of the case, the user's problem is defined through a function or a clojure.
+//! A mecanism has been provided to implement the `Model` trait automatically given a user defined function
+//!
+//! Check the `UserModelWithFunc` documentation for more details.
+//!
+//! ## Numerical methods
+//!
+//! This crate implents several Newton based methods through the `ResolutionMethod` enum.
+//!
+//! ## Problem parametrization
+//!
+//! In addition to the selection of the numerical methods,
+//! it is possible to configure many parameters with regards to the iterative variables or the residuals equations.
+//!
+//!  Check the documentation of the `iteratives` and `residuals` modules for more details.
+//!
+//! ## User interface
+//!
+//! To ease the parametrization of the solver, it is possible to set up the parametrization through an extarnal .xml configuration file.
+//! The parametrization will be read at runtime before launching the resolution.
+//!
+//! It also possible to define the parametrization programmatically, in such case your programm will execute faster. 
 //!
 //! ## Key features
 //!  1. Works whether the jacobian is provided or not (evaluating it with finite-differentiation).
@@ -95,30 +152,7 @@
 //! }
 //! ```
 //!
-//! # Comparison with other rust crates
-//!
-//! Note: Crates may have evolved since this comparison was established.
-//!
-//! N-dimensional :
-//!
-//! | crate                 | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
-//! |-----------------------|--------:|:-----------------------------:|:-------------------:|-------------------------------:|
-//! | **newton_rootfinder** |   0.5.0 |       ✔️                      |      ✔️             |  ✔️                           |
-//! | peroxide              |  0.21.7 |       ❌                      |      ❌             |   ❌                          |
-//!
-//!
-//!
-//! If you are looking for one dimensional crates, several options are available.
-//!
-//! One dimension :
-//!
-//! | crate                 | version | Newton-Raphson | Other Iterative methods | Analytical methods  | Error handling |
-//! |-----------------------|--------:|---------------:|------------------------:|--------------------:|---------------:|
-//! | newton-raphson        |   0.1.0 |  ✔️            | ❌                     | ❌                  | ❌             |
-//! | nrfind                |   1.0.3 |  ✔️            | ❌                     | ❌                  | ✔️             |
-//! | rootfind              |   0.7.0 |  ✔️            | ✔️                     | ❌                  | ✔️             |
-//! | roots                 |   0.6.0 |  ✔️            | ✔️                     | ✔️                  | ✔️             |
-//!
+
 
 pub mod solver_advanced;
 pub mod solver_minimal;

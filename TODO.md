@@ -21,6 +21,7 @@ Make it more generic to avoid enforcing the function having to be nalgebra vecto
 ## Documentation
 
 One can always improve it !
+As a starter, it would be neat to display all equations Latex style
 
 ## Datastructure
 
