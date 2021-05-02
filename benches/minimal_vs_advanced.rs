@@ -29,8 +29,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 extern crate nalgebra;
 
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
-use newton_rootfinder::solver_minimal::{solver1d, solver1d_fd};
+use newton_rootfinder as nrf;
+use util::solver_one_dimensional::{solver1d, solver1d_fd};
 
 fn square2(x: f64) -> f64 {
     x.powi(2) - 2.0

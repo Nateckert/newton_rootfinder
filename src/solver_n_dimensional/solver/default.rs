@@ -5,10 +5,10 @@ extern crate nalgebra;
 use super::ResolutionMethod;
 use super::RootFinder;
 use super::SolverParameters;
-use crate::solver_advanced::iteratives;
-use crate::solver_advanced::iteratives::Iterative;
+use crate::iteratives::Iterative;
 
-use crate::solver_advanced::residuals;
+use crate::iteratives;
+use crate::residuals;
 
 /// Default function to create a solver with default parameters
 ///
@@ -34,7 +34,7 @@ use crate::solver_advanced::residuals;
 ///
 /// ```
 /// extern crate newton_rootfinder;
-/// use newton_rootfinder::solver_advanced as nrf;
+/// use newton_rootfinder as nrf;
 /// use nrf::iteratives;
 /// use nrf::residuals;
 /// use nrf::solver::ResolutionMethod;

@@ -92,7 +92,7 @@ impl Iterative for IterativeParams {
     /// # Examples
     /// ```
     /// extern crate newton_rootfinder;
-    /// use newton_rootfinder::solver_advanced as nrf;
+    /// use newton_rootfinder as nrf;
     /// use nrf::iteratives::*;
     ///
     /// let (max_step_abs, max_step_rel, min_value, max_value) = (1.0, 1.0, f64::NEG_INFINITY, f64::INFINITY);

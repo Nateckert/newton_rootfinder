@@ -79,8 +79,8 @@ impl fmt::Display for JacobianMatrix {
     }
 }
 
-use crate::solver_advanced::model;
-use crate::solver_advanced::residuals;
+use crate::model;
+use crate::residuals;
 
 /// Evaluate a jacobian per forward finite difference when perturbation step eps is provided
 pub fn jacobian_evaluation<T>(

@@ -1,5 +1,5 @@
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
+use newton_rootfinder as nrf;
 use nrf::test_cases::broyden1965::*;
 
 use nrf::model::Model;
@@ -9,7 +9,7 @@ fn broyden_case10_fd() {
     const FILEPATH: &'static str = "./tests/advanced_parametrization/broyden_case10.xml";
 
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =

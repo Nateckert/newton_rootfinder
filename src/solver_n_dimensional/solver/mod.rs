@@ -17,7 +17,7 @@
 //!
 //! ```
 //! extern crate newton_rootfinder;
-//! use newton_rootfinder::solver_advanced as nrf;
+//! use newton_rootfinder as nrf;
 //! use nrf::model::Model;
 //! use nrf::iteratives;
 //! use nrf::residuals;
@@ -57,7 +57,7 @@ mod jacobian;
 mod log;
 mod parameters;
 mod resolution_method;
-mod solver_advanced;
+mod rootfinder;
 
 pub use default::default_with_guess;
 pub use jacobian::jacobian_evaluation;
@@ -70,4 +70,4 @@ pub use resolution_method::{
 pub use resolution_method::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 pub use resolution_method::{quasi_method_update_inv_jac, quasi_method_update_jac};
 pub use resolution_method::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
-pub use solver_advanced::RootFinder;
+pub use rootfinder::RootFinder;

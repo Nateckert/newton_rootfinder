@@ -1,6 +1,6 @@
 use super::Model;
 
-use crate::solver_advanced::residuals;
+use crate::residuals;
 
 /// Blanket implementation to easily adapt user function to the `Model` trait required by the solver to work with finite-differences
 ///
@@ -14,7 +14,7 @@ use crate::solver_advanced::residuals;
 /// }
 ///
 /// extern crate newton_rootfinder;
-/// use newton_rootfinder::solver_advanced as nrf;
+/// use newton_rootfinder as nrf;
 /// use nrf::model::Model; // trait import required
 /// extern crate nalgebra;
 ///
@@ -94,7 +94,7 @@ impl Model for UserModelWithFunc {
 /// }
 ///
 /// extern crate newton_rootfinder;
-/// use newton_rootfinder::solver_advanced as nrf;
+/// use newton_rootfinder as nrf;
 /// use nrf::model::Model; // trait import required
 /// extern crate nalgebra;
 ///

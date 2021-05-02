@@ -63,7 +63,7 @@ impl fmt::Display for NormalizationMethod {
 /// # Examples
 /// ```
 /// extern crate newton_rootfinder;
-/// use newton_rootfinder::solver_advanced as nrf;
+/// use newton_rootfinder as nrf;
 /// extern crate float_cmp;
 /// use float_cmp::*;
 /// use nrf::residuals::*;
@@ -132,7 +132,7 @@ pub fn deriv_normalization(
 /// # Examples
 /// ```
 /// extern crate newton_rootfinder;
-/// use newton_rootfinder::solver_advanced as nrf;
+/// use newton_rootfinder as nrf;
 ///
 /// let problem_size = 3;
 /// let stopping_criterias_ref = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];

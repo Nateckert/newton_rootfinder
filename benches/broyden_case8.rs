@@ -23,7 +23,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 extern crate nalgebra;
 
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
+use newton_rootfinder as nrf;
 use nrf::test_cases::broyden1965::{broyden1965_case8, init_broyden1965_case8};
 
 fn solvers_comparison(c: &mut Criterion) {
@@ -40,7 +40,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     let mut group_function = c.benchmark_group("Solver parsing");
     group_function.bench_function("NR", |b| {
-        b.iter(|| nrf::util::from_xml_finite_diff(&FILEPATH_NR))
+        b.iter(|| nrf::xml_parser::from_xml_finite_diff(&FILEPATH_NR))
     });
 
     group_function.finish();
@@ -49,7 +49,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // Newton Raphson method
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_NR);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_NR);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -68,7 +68,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // Stationary Newton method
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_SN);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_SN);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -87,7 +87,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // First Broyden method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_BROY1_JAC);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_BROY1_JAC);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -106,7 +106,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // Second Broyden method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_BROY2_JAC);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_BROY2_JAC);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -125,7 +125,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // First Broyden method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_BROY1_INV);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_BROY1_INV);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -144,7 +144,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // Second Broyden method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_BROY2_INV);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_BROY2_INV);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -163,7 +163,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // First Greenstad method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_GRST1_JAC);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_GRST1_JAC);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -182,7 +182,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // Second Greenstad method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_GRST2_JAC);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_GRST2_JAC);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -201,7 +201,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // First Greenstad method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_GRST1_INV);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_GRST1_INV);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -220,7 +220,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     // Second Greenstad method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH_GRST2_INV);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH_GRST2_INV);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =

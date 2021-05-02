@@ -1,5 +1,5 @@
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
+use newton_rootfinder as nrf;
 
 extern crate nalgebra;
 use nrf::iteratives;

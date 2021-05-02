@@ -2,9 +2,10 @@ use std::fmt;
 
 extern crate nalgebra;
 
-use crate::solver_advanced::iteratives;
-use crate::solver_advanced::iteratives::Iterative;
-use crate::solver_advanced::model;
+use crate::iteratives;
+use crate::iteratives::Iterative;
+use crate::model;
+use crate::residuals;
 
 use super::greenstadt_second_method_udpate_jac;
 use super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
@@ -12,7 +13,7 @@ use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
 use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
 use super::{quasi_method_update_inv_jac, quasi_method_update_jac};
 use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
-use crate::solver_advanced::residuals;
+
 
 /// Solver for rootfinding
 ///
@@ -112,7 +113,7 @@ where
     ///
     /// ```no_run
     /// extern crate newton_rootfinder;
-    /// use newton_rootfinder::solver_advanced as nrf;
+    /// use newton_rootfinder as nrf;
     /// # use nrf::iteratives;
     /// # use nrf::residuals;
     /// # use nrf::solver::ResolutionMethod;

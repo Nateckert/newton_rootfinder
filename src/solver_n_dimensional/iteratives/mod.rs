@@ -14,8 +14,8 @@
 //! # Examples
 //! ```
 //! extern crate newton_rootfinder;
-//! use newton_rootfinder::solver_advanced as nrf;
-//! use nrf::iteratives::*;
+//! use newton_rootfinder as nrf;
+//! use nrf::iteratives::{Iteratives, IterativeParams, IterativeParamsFD};
 //!
 //! let size = 5;
 //! let my_iters_fd = Iteratives::new(&vec![IterativeParamsFD::default(); size]);
@@ -38,7 +38,7 @@ pub use iteratives_base::Iteratives; // struct re-export
 /// # Examples
 ///```
 /// extern crate newton_rootfinder;
-/// use newton_rootfinder::solver_advanced as nrf;
+/// use newton_rootfinder as nrf;
 ///
 /// let size = 2;
 /// let iteratives_vec = nrf::iteratives::default_vec_iteratives(size);
@@ -59,7 +59,7 @@ pub fn default_vec_iteratives(size: usize) -> Vec<IterativeParams> {
 /// # Examples
 ///```
 /// extern crate newton_rootfinder;
-/// use newton_rootfinder::solver_advanced as nrf;
+/// use newton_rootfinder as nrf;
 ///
 /// let size = 2;
 /// let iteratives_vec = nrf::iteratives::default_vec_iteratives_fd(size);

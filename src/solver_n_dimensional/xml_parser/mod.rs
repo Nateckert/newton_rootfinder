@@ -32,7 +32,14 @@
 //! These values are taken into account only if none are provided for a given iterative or residual
 //!
 
-mod parser;
+mod node_iterative;
+mod node_iterative_fd;
+mod node_iterative_jac;
+mod node_residual;
+mod node_solver;
+mod util;
+mod xml_file_fd;
+mod xml_file_jac;
 
-pub use parser::from_xml_finite_diff;
-pub use parser::from_xml_jacobian;
+pub use xml_file_fd::from_xml_finite_diff;
+pub use xml_file_jac::from_xml_jacobian;

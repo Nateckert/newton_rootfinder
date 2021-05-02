@@ -1,6 +1,6 @@
 extern crate nalgebra;
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
+use newton_rootfinder as nrf;
 
 use crate::common::{run_test_case_fd, run_test_case_jac};
 use nrf::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};

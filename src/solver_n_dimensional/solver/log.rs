@@ -2,7 +2,7 @@ use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::Write;
 
-use crate::solver_advanced::residuals::ResidualsValues;
+use crate::residuals::ResidualsValues;
 
 extern crate chrono;
 extern crate rustc_version_runtime;

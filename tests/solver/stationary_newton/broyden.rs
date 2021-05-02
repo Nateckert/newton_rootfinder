@@ -1,5 +1,5 @@
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
+use newton_rootfinder as nrf;
 use nrf::test_cases::broyden1965::*;
 
 use nrf::solver::{QuasiNewtonMethod, ResolutionMethod};

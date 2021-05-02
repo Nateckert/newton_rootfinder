@@ -1,5 +1,5 @@
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
+use newton_rootfinder as nrf;
 use nrf::model::Model;
 use nrf::residuals;
 use nrf::solver::jacobian_evaluation;
