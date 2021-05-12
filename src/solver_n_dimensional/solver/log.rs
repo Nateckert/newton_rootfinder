@@ -4,9 +4,7 @@ use std::io::Write;
 
 use crate::residuals::ResidualsValues;
 
-extern crate chrono;
-extern crate rustc_version_runtime;
-extern crate whoami;
+#[cfg(feature = "additional_log_info")]
 use chrono::prelude::*;
 
 const SEPARATION_ITER: &str = "=========================\n\n";
@@ -19,43 +17,70 @@ pub struct SolverLog {
     path: String,
 }
 
+#[cfg(feature = "additional_log_info")]
+fn write_time(content: &mut String) {
+    let utc: DateTime<Utc> = Utc::now();
+    let local: DateTime<Local> = Local::now();
+
+    content.push_str("Simulation start:\n");
+
+    content.push_str(&"  - UTC:   ");
+    content.push_str(&utc.to_rfc2822());
+    content.push_str(&"\n");
+    content.push_str(&"  - Local: ");
+    content.push_str(&local.to_rfc2822());
+    content.push_str(&"\n");
+}
+
+
+#[cfg(feature = "additional_log_info")]
+fn write_user_infos(content: &mut String) {
+    content.push_str(&"OS: ");
+    content.push_str(&whoami::distro());
+    content.push_str(&"\n");
+    content.push_str(&"Host: ");
+    content.push_str(&whoami::devicename());
+    content.push_str(&"\n");
+    content.push_str(&"Username: ");
+    content.push_str(&whoami::username());
+    content.push_str(&"\n");
+}
+
+#[cfg(feature = "additional_log_info")]
+fn write_rustc_info(content: &mut String) {
+    content.push_str("Rust version: ");
+    content.push_str(&rustc_version_runtime::version().to_string());
+    content.push_str(&"\n");
+}
+
 /// Log for debugging information
 ///
 /// This object defines the format and concatenate the debugging informations
 impl SolverLog {
+
+
+
     pub fn new(path: &str) -> Self {
         let mut file = File::create(path).unwrap();
 
         let mut content = String::new();
         content.push_str(&"Runner informations\n");
         content.push_str(&"===================\n\n");
-        content.push_str(&"OS: ");
-        content.push_str(&whoami::distro());
-        content.push_str(&"\n");
-        content.push_str(&"Host: ");
-        content.push_str(&whoami::devicename());
-        content.push_str(&"\n");
-        content.push_str(&"Username: ");
-        content.push_str(&whoami::username());
-        content.push_str(&"\n");
-        content.push_str("Rust version: ");
-        content.push_str(&rustc_version_runtime::version().to_string());
-        content.push_str(&"\n");
+
+        #[cfg(feature = "additional_log_info")]
+        {
+            write_user_infos(&mut content);
+            write_rustc_info(&mut content);
+        }
+
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         content.push_str("newton_rootfinder version: ");
         content.push_str(VERSION);
         content.push_str(&"\n");
-        content.push_str("Simulation start:\n");
 
-        let utc: DateTime<Utc> = Utc::now();
-        let local: DateTime<Local> = Local::now();
+        #[cfg(feature = "additional_log_info")]
+        write_time(&mut content);
 
-        content.push_str(&"  - UTC:   ");
-        content.push_str(&utc.to_rfc2822());
-        content.push_str(&"\n");
-        content.push_str(&"  - Local: ");
-        content.push_str(&local.to_rfc2822());
-        content.push_str(&"\n");
         content.push_str(&"\n");
 
         write!(file, "{}", content).unwrap();
