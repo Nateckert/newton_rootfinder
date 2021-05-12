@@ -18,13 +18,13 @@
 //! - BroydenSecondMethod_INV-FD:   [826.59 ns 831.91 ns 837.23 ns]
 //!
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 extern crate nalgebra;
 
 extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
-use nrf::test_cases::broyden1965::{broyden1965_case8, init_broyden1965_case8};
+use util::test_cases::broyden1965::{broyden1965_case8, init_broyden1965_case8};
 
 fn solvers_comparison(c: &mut Criterion) {
     const FILEPATH_NR: &'static str = "./benches/data/broyden_case8_NR.xml";

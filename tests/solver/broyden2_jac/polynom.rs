@@ -5,7 +5,7 @@ use newton_rootfinder as nrf;
 use crate::common::{run_test_case_fd, run_test_case_jac};
 use nrf::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 
-use nrf::test_cases::polynom;
+use util::test_cases::polynom;
 
 #[test]
 fn square() {

@@ -5,7 +5,7 @@ use nrf::residuals;
 use nrf::solver::jacobian_evaluation;
 
 use crate::common::float_matrix_comparison;
-use nrf::test_cases::broyden1965;
+use util::test_cases::broyden1965;
 
 extern crate float_cmp;
 extern crate nalgebra;

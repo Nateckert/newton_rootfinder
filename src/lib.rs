@@ -258,5 +258,3 @@ pub use solver_n_dimensional::solver;
 pub use solver_n_dimensional::xml_parser;
 
 mod solver_n_dimensional;
-
-pub mod test_cases;

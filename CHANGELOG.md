@@ -8,10 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - License file : the licensing hasn't been changed but has been made more explicited with the adequate section in the readme and the licenses files
 ### Changed
 - Improve documentation and rewrite of the README.md
-- Define API thanks to rexport, access to `newton_rootfinder::solver_advanced` has been deleted
+- Define API thanks to rexport, access to `newton_rootfinder::solver_advanced` has been deleted, use directly `newton_rootfinder` from now on.
+- Moved from nalgebra 0.21.1 to 0.26.2
 
 ### Removed
-- The minimal solver has been removed from the public API
+- The minimal solver has been removed from the public API, it is still a dev dependency
+- The test cases have been removed from the public API, it is still a dev dependency
 ## [0.6.0] - 2020-08-24
 ### Added
 - rustc_version_runtime dependency to print rustc version information in log. This was removed in version 5.0 due to a documentation build issue on doc.rs of this dependency.

@@ -1,6 +1,6 @@
 extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
-use nrf::test_cases::broyden1965::*;
+use util::test_cases::broyden1965::*;
 
 use crate::common::{run_test_case_fd, run_test_case_jac};
 
