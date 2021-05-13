@@ -79,7 +79,7 @@ impl Iterative for IterativeParams {
     /// Compute a limited update step
     ///
     /// The step size is reduced according to the following criteria :
-    ///```ignore
+    ///```block
     /// abs(step_size) < max_step_abs
     /// abs(step_size) < max_step_rel*abs(iterative_value)
     ///```

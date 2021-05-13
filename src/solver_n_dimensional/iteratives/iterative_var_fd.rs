@@ -156,7 +156,7 @@ impl Iterative for IterativeParamsFD {
     /// Compute the perturbation for finite differences evaluation.
     ///
     /// For a given f(x), this method compute the dx to use in the formula:
-    ///```ignore
+    ///```block
     /// df/dx = (f(x+dx)-f(x))/dx
     ///```
     ///
