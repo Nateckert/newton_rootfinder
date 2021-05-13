@@ -32,7 +32,6 @@ fn write_time(content: &mut String) {
     content.push_str(&"\n");
 }
 
-
 #[cfg(feature = "additional_log_info")]
 fn write_user_infos(content: &mut String) {
     content.push_str(&"OS: ");
@@ -57,9 +56,6 @@ fn write_rustc_info(content: &mut String) {
 ///
 /// This object defines the format and concatenate the debugging informations
 impl SolverLog {
-
-
-
     pub fn new(path: &str) -> Self {
         let mut file = File::create(path).unwrap();
 

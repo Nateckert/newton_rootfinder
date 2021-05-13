@@ -96,7 +96,6 @@ mod tests {
 
     use crate::solver::ResolutionMethod;
 
-
     #[test]
     fn parsing_root_fd_1() {
         const DATA: &'static str = r#"
