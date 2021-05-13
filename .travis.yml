@@ -1,9 +1,23 @@
 language: rust
+cache: cargo
 rust:
   - stable
   - beta
   - nightly
+
 matrix:
   allow_failures:
     - rust: nightly
-cache: cargo
+  include:
+  - name: 'Rust: format check'
+    rust: stable
+    install:
+    - rustup component add rustfmt
+    script:
+    - cargo fmt --verbose --all -- --check
+
+script:
+  - cargo build --verbose --all
+  - cargo test  --verbose --all
+  - cargo test  --verbose --all --features=additional_log_info 
+  - cargo doc   --verbose --no-deps
