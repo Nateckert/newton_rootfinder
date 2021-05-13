@@ -14,7 +14,6 @@ use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
 use super::{quasi_method_update_inv_jac, quasi_method_update_jac};
 use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 
-
 /// Solver for rootfinding
 ///
 /// The solver operates on the model and mutate it

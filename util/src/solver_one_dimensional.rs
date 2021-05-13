@@ -6,9 +6,7 @@
 //!
 //! # Examples
 //! ```
-//! extern crate newton_rootfinder as nrf;
-//! use nrf::solver_one_dimensional::{solver1d, solver1d_fd};
-//! extern crate float_cmp;
+//! use util::solver_one_dimensional::{solver1d, solver1d_fd};
 //!
 //! pub fn square2(x: f64) -> f64 {
 //!     x.powi(2)-2.0
@@ -22,8 +20,8 @@
 //! let x_sol = std::f64::consts::SQRT_2;
 //!
 //! println!("{}, {}", x1, x2);
-//! assert!(float_cmp::approx_eq!(f64, x_sol, x1, epsilon = 1e-5));
-//! assert!(float_cmp::approx_eq!(f64, x_sol, x2, epsilon = 1e-5));
+//! assert!((x1 - x_sol).abs() < 1e-5);
+//! assert!((x2 - x_sol).abs() < 1e-5);;
 //! ```
 
 pub fn solver1d(
