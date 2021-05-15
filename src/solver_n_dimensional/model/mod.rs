@@ -4,7 +4,7 @@
 //!
 //! # Implementation
 //!
-//! Don't hesitate to check the [Model] trait documentation ! 
+//! Don't hesitate to check the [Model] trait documentation !
 //!
 //! # Motivations
 //!

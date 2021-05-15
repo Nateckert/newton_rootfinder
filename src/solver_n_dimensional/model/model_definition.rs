@@ -1,4 +1,3 @@
-
 extern crate nalgebra;
 
 use crate::residuals;
