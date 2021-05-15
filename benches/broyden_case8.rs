@@ -63,7 +63,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("NR", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // Stationary Newton method
@@ -82,7 +82,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("SN", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // First Broyden method on jacobian
@@ -101,7 +101,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("BROY1_jac", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // Second Broyden method on jacobian
@@ -120,7 +120,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("BROY2_jac", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // First Broyden method on inverse jacobian
@@ -139,7 +139,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("BROY1_inv", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // Second Broyden method on inverse jacobian
@@ -158,7 +158,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("BROY2_inv", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // First Greenstad method on jacobian
@@ -177,7 +177,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("GRST1", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // Second Greenstad method on jacobian
@@ -196,7 +196,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("GRST2", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // First Greenstad method on inverse jacobian
@@ -215,7 +215,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("GRST1_inv", |b| b.iter(|| rf.solve(&mut user_model)));
 
     // Second Greenstad method on inverse jacobian
@@ -234,7 +234,7 @@ fn solvers_comparison(c: &mut Criterion) {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case8);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case8);
     group_function.bench_function("GRST2_inv", |b| b.iter(|| rf.solve(&mut user_model)));
 
     group_function.finish();

@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - License file : the licensing hasn't been changed but has been made more explicited with the adequate section in the readme and the licenses files
 ### Changed
 - Improve documentation and rewrite of the README.md
-- Define API thanks to rexport, access to `newton_rootfinder::solver_advanced` has been deleted, use directly `newton_rootfinder` from now on.
+- *Breaking change*: Define API thanks to rexport, access to `newton_rootfinder::solver_advanced` has been deleted, use directly `newton_rootfinder` from now on.
+- *Breaking change*: Use `UserModelFromFunc` and `UserModelFromFuncAndJacobian` instead of `UserModelWithFunc` and `UserModelWithFuncJac`
 - Moved from nalgebra 0.21.1 to 0.26.2
 
 ### Removed

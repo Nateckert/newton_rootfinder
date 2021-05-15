@@ -1,15 +1,3 @@
-//! The rootfinder is operating on a `Model`
-//!
-//! A usual rootfinding algorithm operates on a function f(X) -> Y.
-//! The solver attempts to find X such that norm(f(X)) < tolerance.
-//!
-//! However, in real life cases, the model computes other quantities that are the main focus of the end-user of the solver.
-//! In fact, the Y paremeters (the residuals) have often few significations,
-//! the user being mostly interested by other quantities.
-//!
-//! With most available solvers, computing the other quantities requires another function call to extract them.
-//! This extra function call being made with the X values found by the solver.
-//!
 
 extern crate nalgebra;
 

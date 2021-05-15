@@ -81,8 +81,8 @@
 //! # Usage
 //!
 //! Using this crate require the following steps:
-//! - Defining the problem (i.e have a struct implementing the `Model` trait)
-//! - Parametrizing the solver (iteratives, residuals and some other parameters)
+//! - Defining the problem (i.e have a struct implementing the [model::Model] trait)
+//! - Parametrizing the solver ([iteratives], [residuals] and some other parameters)
 //! - Call the solver on the model: the solver will then mutate the model into a resolved state
 //!
 //! ```
@@ -169,14 +169,11 @@
 //! ## User problem definition
 //!
 //! To get improved interactions with the user problem,
-//! the user is required to provide a stuct implementing the `Model` trait.
+//! the user is required to provide a stuct implementing the [model::Model] trait.
 //! This trait allows for the solver to be integrated tightly with the use problem and optimized.
-//! Check the documentation of this trait for more details.
 //!
-//! In practice, in most of the case, the user's problem is defined through a function or a clojure.
-//! A mecanism has been provided to implement the `Model` trait automatically given a user defined function
+//! Check the documentation of the [model] module for more details.
 //!
-//! Check the `UserModelWithFunc` documentation for more details.
 //!
 //! ## Numerical methods
 //!
