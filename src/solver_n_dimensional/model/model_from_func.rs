@@ -99,7 +99,7 @@ impl Model for UserModelFromFunc {
 /// extern crate nalgebra;
 ///
 /// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-/// let mut user_model = nrf::model::UserModelWithFuncJac::new(1, square, dsquare);
+/// let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(1, square, dsquare);
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///

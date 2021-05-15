@@ -26,7 +26,7 @@ pub fn run_test_case_fd(
         resolution_method,
         damping,
     );
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, func);
+    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, func);
 
     rf.solve(&mut user_model);
 
@@ -61,7 +61,7 @@ pub fn run_test_case_jac(
         resolution_method,
         damping,
     );
-    let mut user_model = nrf::model::UserModelWithFuncJac::new(problem_size, func, jac);
+    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(problem_size, func, jac);
 
     rf.solve(&mut user_model);
 

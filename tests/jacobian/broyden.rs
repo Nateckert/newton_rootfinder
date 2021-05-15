@@ -15,7 +15,7 @@ fn jacobian_evaluation_broyden1965_case5() {
     let inputs = broyden1965::init_broyden1965_case5();
     let problem_size = inputs.len();
     let mut user_model =
-        nrf::model::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case5);
+        nrf::model::UserModelFromFunc::new(problem_size, broyden1965::broyden1965_case5);
     user_model.set_iteratives(&inputs);
     user_model.evaluate();
 
@@ -34,7 +34,7 @@ fn jacobian_evaluation_broyden1965_case6() {
     let inputs = broyden1965::init_broyden1965_case6();
     let problem_size = inputs.len();
     let mut user_model =
-        nrf::model::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case6);
+        nrf::model::UserModelFromFunc::new(problem_size, broyden1965::broyden1965_case6);
     user_model.set_iteratives(&inputs);
     user_model.evaluate();
 
@@ -56,7 +56,7 @@ fn jacobian_evaluation_broyden1965_case7() {
     let inputs = broyden1965::init_broyden1965_case7();
     let problem_size = inputs.len();
     let mut user_model =
-        nrf::model::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case7);
+        nrf::model::UserModelFromFunc::new(problem_size, broyden1965::broyden1965_case7);
 
     user_model.set_iteratives(&inputs);
     user_model.evaluate();
@@ -76,7 +76,7 @@ fn jacobian_evaluation_broyden1965_case8() {
     let inputs = broyden1965::init_broyden1965_case8();
     let problem_size = inputs.len();
     let mut user_model =
-        nrf::model::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case8);
+        nrf::model::UserModelFromFunc::new(problem_size, broyden1965::broyden1965_case8);
 
     user_model.set_iteratives(&inputs);
     user_model.evaluate();
@@ -96,7 +96,7 @@ fn jacobian_evaluation_broyden1965_case9() {
     let inputs = broyden1965::init_broyden1965_case9();
     let problem_size = inputs.len();
     let mut user_model =
-        nrf::model::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case9);
+        nrf::model::UserModelFromFunc::new(problem_size, broyden1965::broyden1965_case9);
 
     user_model.set_iteratives(&inputs);
     user_model.evaluate();
@@ -116,7 +116,7 @@ fn jacobian_evaluation_broyden1965_case10() {
     let inputs = broyden1965::init_broyden1965_case10();
     let problem_size = inputs.len();
     let mut user_model =
-        nrf::model::UserModelWithFunc::new(problem_size, broyden1965::broyden1965_case10);
+        nrf::model::UserModelFromFunc::new(problem_size, broyden1965::broyden1965_case10);
 
     user_model.set_iteratives(&inputs);
     user_model.evaluate();
