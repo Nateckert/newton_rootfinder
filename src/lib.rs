@@ -54,30 +54,9 @@
 //! f((iterative_1, ... , iterative_n)) -> (equation_1, ... , equation_n)
 //!```
 //!
-//! ## Separation of residuals equations into two members
-//!
 //! In the litterature, the problem is often described as f(X) = 0,
 //! as the mathematical expressions can be rearranged.
-//!
-//! However, it is practical to not adopt this framework in order to deal with specific numerical aspects.
-//! Indeed, mathematically it is easy to define the number 0.
-//! However, for floating point arithmetics (computations done on computers with floating point number),
-//! the residuals equations being fulfilled will be defined comparatively to a given tolerance,
-//! as it could be impossible to have the equations verified up to machine precision accuracy.
-//!
-//! Imagine for example, that the residual equations are involving different variables with different order of magnitudes :
-//!
-//!```block
-//! Eq1 : Pressure_1 = Pressure_2
-//! Eq2 : Temperature_1 = Temperature_2
-//!```
-//!
-//! The usual order of magnitude of a pressure is of 10^5 Pa, a temperature is usually 10^2 K.
-//! Hence, from the numerical point of view,
-//! the two pressures being equal should have a different signification than the temperatures being equal.
-//!
-//! This particularity has lead to the separation of left and right member of an equation for the implementation of this solver.
-//!
+//! 
 //! # Usage
 //!
 //! Using this crate require the following steps:
