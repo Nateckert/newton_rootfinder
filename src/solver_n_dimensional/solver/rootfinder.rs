@@ -380,8 +380,6 @@ where
     where
         M: model::Model,
     {
-        // Initial state
-        model.init();
         model.set_iteratives(&self.initial_guess);
         model.evaluate();
 

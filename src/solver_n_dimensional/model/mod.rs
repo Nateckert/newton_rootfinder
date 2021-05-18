@@ -1,6 +1,5 @@
-//! This module contains the model behavior definition through the [Model] trait
-//!
-//! The solver defined in this crate is operating on a [Model]
+//! The solver has been designed to operate on a user defined model.
+//! To define such a model, the user must adapt the problem through the implementation of the [Model] trait.
 //!
 //! # Implementation
 //!
@@ -29,14 +28,14 @@
 //! - the error handling
 //! - the computation process
 //!
-//! Error handling differentiation:
+//! *Error handling differentiation*:
 //!
-//! if a computation outside of the validity domain is realized during the convergence process,
+//! If a computation outside of the validity domain is performed during the convergence process,
 //! the solver could recover from it and the final solution could still be in the validity domain.
 //! If an error is raised during this computation, the program would abort.
 //! Hence the potential need for the user to want to handle errors differently at different steps of the resolution process.
 //!
-//! Computation process differentiation:
+//! *Computation process differentiation*:
 //!
 //! To speed-up computation, one can cache results that can be reused during the evaluation of the jacobian.
 //! For rootfinding algorithm working with finite differantiation, the interesting cached results would be the one from the reference point.

@@ -17,8 +17,6 @@ use crate::residuals;
 /// In addition the user must provide the `len_problem` methods for determining the size.
 ///
 /// Six other methods have an default blanket implementation :
-/// - `init()` : to be called once before the first function call and the start of the algorithm.
-///           It allows the user to implement a logic such as loading some data to setup its model.
 /// - three functions to interact with memory effects of a model : `len_memory()`, `set_memory()`, `get_memory()`
 ///          Such memory effects can occure in complex model in interaction with the finite-difference evaluation of the jacobian.
 ///          For example, one can use some global variables to approximate some expression.
@@ -30,22 +28,12 @@ use crate::residuals;
 ///          The user must change the `jacobian_provided` method to return true.
 ///          The user must provide the `get_jacobian` method to return the values of the jacobian.
 pub trait Model {
-    fn init(&self) {
-        //default empty method
-    }
     fn evaluate(&mut self);
+    /// This method defines the dimension of the problem.
+    ///
+    /// It should be consistent of the length of the [Model::get_iteratives] and [Model::get_residuals] return argument.
     fn len_problem(&self) -> usize;
-    fn len_memory(&self) -> usize {
-        0 // 0 by default if not using any memory features
-    }
 
-    fn set_memory(&mut self, #[allow(unused_variables)] memory: &nalgebra::DVector<f64>) {
-        // default empty method
-    }
-    fn get_memory(&self) -> nalgebra::DVector<f64> {
-        // default empty DVector
-        nalgebra::DVector::from_vec(vec![])
-    }
     fn set_iteratives(&mut self, iteratives: &nalgebra::DVector<f64>);
     fn get_iteratives(&self) -> nalgebra::DVector<f64>;
     fn get_residuals(&self) -> residuals::ResidualsValues;
@@ -56,5 +44,16 @@ pub trait Model {
         let left = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         let right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         residuals::JacobianValues::new(left, right)
+    }
+    fn len_memory(&self) -> usize {
+        0 // 0 by default if not using any memory features
+    }
+
+    fn set_memory(&mut self, #[allow(unused_variables)] memory: &nalgebra::DVector<f64>) {
+        // default empty method
+    }
+    fn get_memory(&self) -> nalgebra::DVector<f64> {
+        // default empty DVector
+        nalgebra::DVector::from_vec(vec![])
     }
 }
