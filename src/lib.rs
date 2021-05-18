@@ -54,9 +54,16 @@
 //! f((iterative_1, ... , iterative_n)) -> (equation_1, ... , equation_n)
 //!```
 //!
-//! In the litterature, the problem is often described as f(X) = 0,
-//! as the mathematical expressions can be rearranged.
+//! In the litterature, the problem is often described as ```f(X) = 0```,
+//! as the mathematical expressions of the residual equations can be rearranged.
 //! 
+//! ## Resolution principle
+//!
+//! Check the wikipedia article on [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) !
+//!
+//! You will see that it involves the computation of the jacobian matrix (i.e the n-dimensional derivative matrix).
+//! This matrix can either be provided by the user, or computed thanks to finite-difference.
+//!
 //! # Usage
 //!
 //! Using this crate require the following steps:
@@ -129,6 +136,7 @@
 //! #    let solver_parameters = nrf::solver::SolverParameters::new(1, 1e-6, 60, nrf::solver::ResolutionMethod::NewtonRaphson, true);
 //! #    let inital_guess = nalgebra::DVector::from_vec(vec![1.0]);
 //! #
+//!     // ...
 //!     let mut rootfinder = nrf::solver::RootFinder::new(
 //!         solver_parameters,
 //!         inital_guess,
@@ -160,10 +168,20 @@
 //!
 //! ## Problem parametrization
 //!
-//! In addition to the selection of the numerical methods,
-//! it is possible to configure many parameters with regards to the iterative variables or the residuals equations.
+//! The parametrization of the resolution is a three step process in order to configure :
+//! - each one of the [iteratives] variables
+//! - each one of the [residuals] equations
+//! - the solver itself, by defining the [solver::SolverParameters]
 //!
-//!  Check the documentation of the `iteratives` and `residuals` modules for more details.
+//! Once each of these element has been defined, the [solver::RootFinder] struct can be instanciated.
+//!
+//! It is this struct that will perform the resolution.
+//!
+//! ## Debugging
+//!
+//! In order to be able to debug more easily the resolution process, it is possible to generate a simulation log.
+//!
+//! Check the [solver::RootFinder::activate_debug] method.
 //!
 //! ## User interface
 //!

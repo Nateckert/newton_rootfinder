@@ -22,14 +22,20 @@ use crate::residuals;
 ///
 /// # Memory
 ///
-/// Three functions to interact with memory effects of a model : `len_memory()`, `set_memory()`, `get_memory()`
+/// Two methods are available to interact with memory effects of a model.
+/// For most of the cases, the user won't have to bother using such mecanisms.
 /// 
 /// Such memory effects can occur in complex model in interaction with the finite-difference evaluation of the jacobian.
 /// 
-/// For example, one can use some global variables to approximate some expression.
-/// These global variables are updated after each model evaluation.
-/// Hence, if the jacobian evaluation is made with finite-difference and the memory state not reinitialised in-between two evaluation,
-/// the column order would change the result.
+/// For example, let's suppose your model is itself calling functions that are implementing some iterative process.
+///
+/// To initialize such process, you have to provide some value,
+/// a good educated guess would be the previous value computed.
+///
+/// During the finite-difference evaluation of the jacobian matrix,
+/// the previous value that would be used would depend of the previous iterative perturbed.
+/// Instead of this previous value, a better value would be the value from the reference point of the jacobian calculation.
+/// In this case, the value of each column of the jacobian would not depend of the order of computation of the columns.
 ///
 pub trait Model {
     /// This method defines the dimension of the problem.
@@ -86,17 +92,18 @@ pub trait Model {
         residuals::JacobianValues::new(left, right)
     }
 
-    /// The default implementation returns 0
-    fn len_memory(&self) -> usize {
-        0
-    }
-
-    /// The default implementation is empty
-    fn set_memory(&mut self, #[allow(unused_variables)] memory: &nalgebra::DVector<f64>) {
-    }
-
-    /// The default implementation returns an empty vector
+    /// This method allow the solver to memorize information after calculating the reference point
+    /// and before the jacobian evaluation by finite-difference.
+    ///
+    /// The default implementation returns an empty vector.
     fn get_memory(&self) -> nalgebra::DVector<f64> {
         nalgebra::DVector::from_vec(vec![])
+    }
+
+    /// This method is called in-between the computation of each column of the jacobian matrix, 
+    /// in order to reset the values to the ones from the [Model::get_memory]
+    ///
+    /// The default implementation is empty.
+    fn set_memory(&mut self, #[allow(unused_variables)] memory: &nalgebra::DVector<f64>) {
     }
 }
