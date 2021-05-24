@@ -1,6 +1,6 @@
 [package]
 name = "newton_rootfinder"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["nathan.eckert <nathan.eckert@polytechnique.edu>"]
 edition = "2018"
 description = "Newton based methods for root finding"
@@ -14,7 +14,8 @@ license = "MIT OR Apache-2.0"
 
 [dev-dependencies]
 float-cmp = "0.8.0"
-criterion = "0.3.2"
+criterion = "0.3"
+util = { path = "./util" }
 
 [[bench]]
 name = "minimal_vs_advanced"
@@ -25,8 +26,11 @@ name = "broyden_case8"
 harness = false
 
 [dependencies]
-nalgebra = "0.21.1"
-minidom = "0.12.0"
-whoami = "0.9.0"
-rustc_version_runtime = "0.2.0"
-chrono = "0.4.15"
+nalgebra = "0.26"
+minidom = "0.12"
+whoami = { version = "1.1", optional = true }
+rustc_version_runtime = { version = "0.2.0", optional = true }
+chrono = { version = "0.4", optional = true }
+
+[features]
+additional_log_info = ["chrono", "rustc_version_runtime", "whoami"]

@@ -1,6 +1,6 @@
 extern crate newton_rootfinder;
-use newton_rootfinder::solver_advanced as nrf;
-use nrf::test_cases::broyden1965::*;
+use newton_rootfinder as nrf;
+use util::test_cases::broyden1965::*;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -10,7 +10,7 @@ fn broyden_case10_fd() {
     const FILEPATH: &'static str = "./tests/log/broyden_case10.xml";
     const LOG_PATH: &'static str = "./tests/log/log.txt";
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
-        nrf::util::from_xml_finite_diff(&FILEPATH);
+        nrf::xml_parser::from_xml_finite_diff(&FILEPATH);
 
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
@@ -25,11 +25,15 @@ fn broyden_case10_fd() {
     );
     rf.activate_debug(&LOG_PATH);
 
-    let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, broyden1965_case10);
+    let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case10);
 
     rf.solve(&mut user_model);
 
-    let log_ref = File::open(&"./tests/log/log_ref.txt").unwrap();
+    #[cfg(not(feature = "additional_log_info"))]
+    let log_ref = File::open(&"./tests/log/log_ref_without_additional_infos.txt").unwrap();
+    #[cfg(feature = "additional_log_info")]
+    let log_ref = File::open(&"./tests/log/log_ref_with_additional_infos.txt").unwrap();
+
     let log_new = File::open(&LOG_PATH).unwrap();
 
     let log_new_reader = BufReader::new(log_new);
@@ -45,30 +49,38 @@ fn broyden_case10_fd() {
         assert_eq!(line_new.unwrap(), line_ref.unwrap());
     }
 
-    // ignore the OS line
-    lines_new.next();
-    lines_ref.next();
-    // ignore the host line
-    lines_new.next();
-    lines_ref.next();
-    // ignore the username line
-    lines_new.next();
-    lines_ref.next();
-    // ignore the rustc version line
-    lines_new.next();
-    lines_ref.next();
+    #[cfg(feature = "additional_log_info")]
+    {
+        // ignore the OS line
+        lines_new.next();
+        lines_ref.next();
+        // ignore the host line
+        lines_new.next();
+        lines_ref.next();
+        // ignore the username line
+        lines_new.next();
+        lines_ref.next();
+        // ignore the rustc version line
+        lines_new.next();
+        lines_ref.next();
+    }
+
     // ignore the crate version line
     lines_new.next();
     lines_ref.next();
-    // ignore the time line
-    lines_new.next();
-    lines_ref.next();
-    // ignore the UTC time line
-    lines_new.next();
-    lines_ref.next();
-    // ignore the Local time line
-    lines_new.next();
-    lines_ref.next();
+
+    #[cfg(feature = "additional_log_info")]
+    {
+        // ignore the time line
+        lines_new.next();
+        lines_ref.next();
+        // ignore the UTC time line
+        lines_new.next();
+        lines_ref.next();
+        // ignore the Local time line
+        lines_new.next();
+        lines_ref.next();
+    }
 
     for (elt_new, elt_ref) in lines_new.zip(lines_ref) {
         assert_eq!(elt_new.unwrap(), elt_ref.unwrap());

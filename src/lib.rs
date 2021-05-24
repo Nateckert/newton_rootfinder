@@ -3,52 +3,198 @@
 //!
 //! This crate allows you to use [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) for rootfinding.
 //!
-//! It aims to implement several Newton based methods (Broyden, ...), whether the jacobian function is provided or not.
+//! It aims to implement several Newton based methods (Newton-Raphson, Broyden, ...), whether the jacobian function is provided or not.
 //!
-//! It also aims to work on a complex model, limiting the number of model calls to a minimum.
+//! # Nonlinear equation solver
 //!
-//! A minimal solver is also provided for basic usages and benchmarking purposes.
+//! ## Practical example
 //!
-//! # Minimal solver
+//! Let's consider the following equations :
 //!
-//! A minimal solver is provided for basic usages in the `solver_minimal` module.
+//!```block
+//! x1 * x2 + x3 = 1
+//! x1 * x2 / x3 = x1 * x3
+//! x1 * x3 - x3 / x2 - 1 = 0
+//!```
 //!
-//! This minimal solver works only on basic 1D functions.
+//! Let's call X = (x1, x2, x3) the **iterative variables**
 //!
-//! The speed of the advanced solver will be benchmarked against this one to estimate the overhead.
+//! Let's define mathematically the problem thanks to the function f :
+//!
+//!```block
+//! f(X) -> (left, right)
+//!```
+//!
+//! where the left and right 3-dimensional vectors are the left and right members of the equations :
+//!
+//!```block
+//! left = ( x1 * x2 + x3, x1 * x2 / x3, x1 * x3 - x3 / x2 - 1  )
+//! right = (1, x1 * x3, 0)
+//!```
+//!
+//! Let's call the pair (left, right) the **residuals** (i.e the residual equations)
+//!
+//! Solving this problem implies to find X such that the residual equations are fullfiled.
+//!
+//! Newton based methods will achieve that by iterating on the vector X (hence the name of iteratives).
+//!
+//! ## General formulation
+//!
+//! In the previous example, the following concepts have been highlighted:
+//!
+//! - Iterative variables : the variables on which the algorithm will iterate
+//! - Residuals : the equations that must be verified, each residual is separated into two expressions, the left member and the right member of the equation.
+//!
+//! For a well-defined problem, the must be as many iterative variables as residuals.
 //!
 //!
-//! # Advanced solver
+//! The solver provided in this crate aims to solve the n-dimensional problem:
 //!
-//! An advanced solver is available for n-dimension problems.
+//!```block
+//! f((iterative_1, ... , iterative_n)) -> (equation_1, ... , equation_n)
+//!```
 //!
-//! To get improved interactions with the user problem (usually a function),
-//! the user is required to implement the `Model` trait in order to use the solver.
-//! This ensures a reduced number of calls to the function and a better debugging experience if needed.
+//! In the litterature, the problem is often described as ```f(X) = 0```,
+//! as the mathematical expressions of the residual equations can be rearranged.
 //!
-//! It is defined in the `solver_advanced` module.
-//! Don't hesitate to check in this module documentation for examples.
+//! ## Resolution principle
 //!
-//! The focus of this crate is the development of this solver.
+//! Check the wikipedia article on [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) !
 //!
-//! ## Key features
-//!  1. Works whether the jacobian is provided or not (evaluating it with finite-differentiation).
-//!  2. In-detail parametrization of iterative variables, residuals and stopping criteria.
-//!  3. Debugging informations available through a .txt log file.
-//!  4. The advanced solver is designed to interact with a complex model computing other outputs and having memory effects.
-//!      The requirements of this model are defined by the `Model` trait.
-//!      The struct `UserModelWithFunc` is provided to easily adapt a given function to the required trait.
-//!  5. Real world use cases and an extensive function database are included in the crate for integration testing and benchmarking. (work in progress)
+//! You will see that it involves the computation of the jacobian matrix (i.e the n-dimensional derivative matrix).
+//! This matrix can either be provided by the user, or computed thanks to finite-difference.
 //!
-//! ## Current limitations
+//! # Usage
 //!
-//! 1. The inputs and outputs of the model are assumed to be `nalgebra` vectors.
-//! 2. The test base is still in construction
+//! Using this crate require the following steps:
+//! - Defining the problem (i.e have a struct implementing the [model::Model] trait)
+//! - Parametrizing the solver ([iteratives], [residuals] and some other parameters)
+//! - Call the solver on the model: the solver will then mutate the model into a resolved state
+//!
+//! ```
+//! use newton_rootfinder as nrf;
+//! use nrf::model::Model; // trait import
+//! #
+//! # use nalgebra;
+//!
+//! struct UserModel {
+//! # pub inputs: nalgebra::DVector<f64>,
+//! # pub left: nalgebra::DVector<f64>,
+//! // ...
+//! }
+//! #
+//! # impl UserModel {
+//! #     pub fn get_outputs(self) -> bool {
+//! #          true
+//! #      }
+//! #       pub fn new() -> Self {
+//! #           UserModel {
+//! #                   inputs: nalgebra::DVector::from_vec(vec![1.0]),
+//! #                   left: nalgebra::DVector::from_vec(vec![1.0]),
+//! #           }
+//! #   }
+//! # }
+//! #
+//! impl Model for UserModel {
+//! // ...
+//! #   fn evaluate(&mut self) {
+//! #       let mut y = self.inputs.clone() * self.inputs.clone();
+//! #       y[0] -= 2.0;
+//! #       self.left =  y;
+//! #    }
+//! #
+//! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues {
+//! #       let right = nalgebra::DVector::zeros(self.len_problem());
+//! #       nrf::residuals::ResidualsValues::new(self.left.clone(), right.clone())
+//! #    }
+//! #
+//! #   fn get_iteratives(&self) -> nalgebra::DVector<f64> {
+//! #        self.inputs.clone()
+//! #   }
+//! #
+//! #   fn set_iteratives(&mut self, iteratives: &nalgebra::DVector<f64>) {
+//! #        self.inputs = iteratives.clone();
+//! #    }
+//! #
+//! #   fn len_problem(&self) -> usize {
+//! #        1
+//! #    }
+//! #
+//! }
+//!
+//!
+//! fn main() {
+//!
+//! #    let problem_size = 1;
+//! #    let vec_iter_params = nrf::iteratives::default_vec_iteratives_fd(problem_size);
+//! #    let iteratives_configuration = nrf::iteratives::Iteratives::new(&vec_iter_params);
+//! #
+//! #    let stopping_residuals = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+//! #    let update_methods = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
+//! #    let residuals_configuration = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
+//! #
+//! #    let solver_parameters = nrf::solver::SolverParameters::new(1, 1e-6, 60, nrf::solver::ResolutionMethod::NewtonRaphson, true);
+//! #    let inital_guess = nalgebra::DVector::from_vec(vec![1.0]);
+//! #
+//!     // ...
+//!     let mut rootfinder = nrf::solver::RootFinder::new(
+//!         solver_parameters,
+//!         inital_guess,
+//!         &iteratives_configuration,
+//!         &residuals_configuration,
+//!     );
+//!
+//!     let mut user_model = UserModel::new();
+//!
+//!     rootfinder.solve(&mut user_model);
+//!
+//!     println!("{}", user_model.get_outputs());
+//! }
+//! ```
+//!
+//!
+//! ## User problem definition
+//!
+//! To get improved interactions with the user problem,
+//! the user is required to provide a stuct implementing the [model::Model] trait.
+//! This trait allows for the solver to be integrated tightly with the use problem and optimized.
+//!
+//! Check the documentation of the [model] module for more details.
+//!
+//!
+//! ## Numerical methods
+//!
+//! This crate implents several Newton based methods through the `ResolutionMethod` enum.
+//!
+//! ## Problem parametrization
+//!
+//! The parametrization of the resolution is a three step process in order to configure :
+//! - each one of the [iteratives] variables
+//! - each one of the [residuals] equations
+//! - the solver itself, by defining the [solver::SolverParameters]
+//!
+//! Once each of these element has been defined, the [solver::RootFinder] struct can be instanciated.
+//!
+//! It is this struct that will perform the resolution.
+//!
+//! ## Debugging
+//!
+//! In order to be able to debug more easily the resolution process, it is possible to generate a simulation log.
+//!
+//! Check the [solver::RootFinder::activate_debug] method.
+//!
+//! ## User interface
+//!
+//! To ease the parametrization of the solver, it is possible to set up the parametrization through an external `.xml` configuration file.
+//! The parametrization will be read at runtime before launching the resolution.
+//!
+//! It also possible to define the parametrization programmatically, in such case your programm will execute faster.
+//!
 //!
 //! ## Examples
 //! ```
 //! extern crate newton_rootfinder;
-//! use newton_rootfinder::solver_advanced as nrf;
+//! use newton_rootfinder as nrf;
 //! use nrf::model::Model; // trait import
 //!
 //! extern crate nalgebra;
@@ -86,7 +232,7 @@
 //!     );
 //!
 //!     // Adpatation of the function to solve to the Model trait.
-//!     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
+//!     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
 //!
 //!     rf.solve(&mut user_model);
 //!
@@ -95,30 +241,14 @@
 //! }
 //! ```
 //!
-//! # Comparison with other rust crates
-//!
-//! Note: Crates may have evolved since this comparison was established.
-//!
-//! N-dimensional :
-//!
-//! | crate                 | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
-//! |-----------------------|--------:|:-----------------------------:|:-------------------:|-------------------------------:|
-//! | **newton_rootfinder** |   0.5.0 |       ✔️                      |      ✔️             |  ✔️                           |
-//! | peroxide              |  0.21.7 |       ❌                      |      ❌             |   ❌                          |
-//!
-//!
-//!
-//! If you are looking for one dimensional crates, several options are available.
-//!
-//! One dimension :
-//!
-//! | crate                 | version | Newton-Raphson | Other Iterative methods | Analytical methods  | Error handling |
-//! |-----------------------|--------:|---------------:|------------------------:|--------------------:|---------------:|
-//! | newton-raphson        |   0.1.0 |  ✔️            | ❌                     | ❌                  | ❌             |
-//! | nrfind                |   1.0.3 |  ✔️            | ❌                     | ❌                  | ✔️             |
-//! | rootfind              |   0.7.0 |  ✔️            | ✔️                     | ❌                  | ✔️             |
-//! | roots                 |   0.6.0 |  ✔️            | ✔️                     | ✔️                  | ✔️             |
-//!
 
-pub mod solver_advanced;
-pub mod solver_minimal;
+pub use solver_n_dimensional::model;
+
+pub use solver_n_dimensional::iteratives;
+pub use solver_n_dimensional::residuals;
+
+pub use solver_n_dimensional::solver;
+
+pub use solver_n_dimensional::xml_parser;
+
+mod solver_n_dimensional;
