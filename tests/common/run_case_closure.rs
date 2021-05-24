@@ -6,9 +6,9 @@ use nrf::iteratives;
 use nrf::model::Model;
 use nrf::residuals;
 
-pub fn run_test_case_fd(
+pub fn run_closure_case_fd(
     problem_size: usize,
-    func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
+    closure: &dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
     init: nalgebra::DVector<f64>,
     solution: nalgebra::DVector<f64>,
     resolution_method: nrf::solver::ResolutionMethod,
@@ -26,7 +26,7 @@ pub fn run_test_case_fd(
         resolution_method,
         damping,
     );
-    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, func);
+    let mut user_model = nrf::model::UserModelFromClosure::new(problem_size, closure);
 
     rf.solve(&mut user_model);
 
@@ -40,10 +40,10 @@ pub fn run_test_case_fd(
     }
 }
 
-pub fn run_test_case_jac(
+pub fn run_closure_case_jac(
     problem_size: usize,
-    func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
-    jac: fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
+    closure: &dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
+    jac: &dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
     init: nalgebra::DVector<f64>,
     solution: nalgebra::DVector<f64>,
     resolution_method: nrf::solver::ResolutionMethod,
@@ -61,7 +61,8 @@ pub fn run_test_case_jac(
         resolution_method,
         damping,
     );
-    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(problem_size, func, jac);
+    let mut user_model =
+        nrf::model::UserModelFromClosureAndJacobian::new(problem_size, closure, jac);
 
     rf.solve(&mut user_model);
 

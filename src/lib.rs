@@ -56,7 +56,7 @@
 //!
 //! In the litterature, the problem is often described as ```f(X) = 0```,
 //! as the mathematical expressions of the residual equations can be rearranged.
-//! 
+//!
 //! ## Resolution principle
 //!
 //! Check the wikipedia article on [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) !

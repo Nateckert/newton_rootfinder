@@ -24,9 +24,9 @@ use crate::residuals;
 ///
 /// Two methods are available to interact with memory effects of a model.
 /// For most of the cases, the user won't have to bother using such mecanisms.
-/// 
+///
 /// Such memory effects can occur in complex model in interaction with the finite-difference evaluation of the jacobian.
-/// 
+///
 /// For example, let's suppose your model is itself calling functions that are implementing some iterative process.
 ///
 /// To initialize such process, you have to provide some value,
@@ -100,10 +100,9 @@ pub trait Model {
         nalgebra::DVector::from_vec(vec![])
     }
 
-    /// This method is called in-between the computation of each column of the jacobian matrix, 
+    /// This method is called in-between the computation of each column of the jacobian matrix,
     /// in order to reset the values to the ones from the [Model::get_memory]
     ///
     /// The default implementation is empty.
-    fn set_memory(&mut self, #[allow(unused_variables)] memory: &nalgebra::DVector<f64>) {
-    }
+    fn set_memory(&mut self, #[allow(unused_variables)] memory: &nalgebra::DVector<f64>) {}
 }

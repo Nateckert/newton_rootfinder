@@ -173,3 +173,28 @@ impl Model for UserModelFromFuncAndJacobian {
         residuals::JacobianValues::new(jac_left, jac_right)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    pub fn square(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
+        x * x
+    }
+
+    #[test]
+    fn create_user_model() {
+        let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
+        let mut user_model = UserModelFromFunc::new(1, square);
+        user_model.set_iteratives(&iteratives);
+        user_model.evaluate();
+
+        assert_eq!(user_model.len_problem(), 1);
+        assert_eq!(
+            user_model.get_iteratives(),
+            nalgebra::DVector::from_vec(vec!(2.0))
+        );
+        assert_eq!(user_model.jacobian_provided(), false);
+        assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+    }
+}

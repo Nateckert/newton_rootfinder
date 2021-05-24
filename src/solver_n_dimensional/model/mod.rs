@@ -42,7 +42,7 @@
 //!
 //! # Quick & easy adaptation from user defined function
 //!
-//! In practice, in most of the case, the user's problem is defined through a function or a clojure.
+//! In practice, in most of the case, the user's problem is defined through a function or a closure.
 //! A mecanism has been provided to implement the [Model] trait automatically given a user defined function.
 //!
 //! To ease the adaptation of a function to the required trait,
@@ -51,7 +51,9 @@
 //! - [UserModelFromFuncAndJacobian]: to work with two functions, one for the model and one for the jacobian
 
 mod model_definition;
+mod model_from_closure;
 mod model_from_func;
 
 pub use model_definition::Model;
+pub use model_from_closure::{UserModelFromClosure, UserModelFromClosureAndJacobian};
 pub use model_from_func::{UserModelFromFunc, UserModelFromFuncAndJacobian};
