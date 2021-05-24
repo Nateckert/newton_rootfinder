@@ -15,7 +15,7 @@ pub fn non_linear(inputs: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
 #[test]
 fn jacobian_evaluation_non_linear() {
     let problem_size = 2;
-    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, non_linear);
+    let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, non_linear);
     let inputs = nalgebra::DVector::from_vec(vec![1.0, 2.0]);
     user_model.set_iteratives(&inputs);
     user_model.evaluate();

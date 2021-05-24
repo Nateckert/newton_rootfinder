@@ -47,8 +47,10 @@
 //!
 //! To ease the adaptation of a function to the required trait,
 //! the following structs are provided :
-//! - [UserModelFromFunc]: to work with a function defining the problem, finite-difference will be used
-//! - [UserModelFromFuncAndJacobian]: to work with two functions, one for the model and one for the jacobian
+//! - [UserModelFromFunction]: to work with a function defining the problem, finite-difference will be used
+//! - [UserModelFromFunctionAndJacobian]: to work with two functions, one for the model and one for the jacobian
+//! - [UserModelFromClosure]: to work with a closure defining the problem, finite-difference will be used
+//! - [UserModelFromClosureAndJacobian]: to work with two closures, one for the model and one for the jacobian
 
 mod model_definition;
 mod model_from_closure;
@@ -56,4 +58,4 @@ mod model_from_func;
 
 pub use model_definition::Model;
 pub use model_from_closure::{UserModelFromClosure, UserModelFromClosureAndJacobian};
-pub use model_from_func::{UserModelFromFunc, UserModelFromFuncAndJacobian};
+pub use model_from_func::{UserModelFromFunction, UserModelFromFunctionAndJacobian};

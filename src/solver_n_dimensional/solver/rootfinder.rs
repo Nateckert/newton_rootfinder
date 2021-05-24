@@ -128,7 +128,7 @@ where
     /// # let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     /// # let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    /// # let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, square2);
+    /// # let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
     /// # let damping = false;
     /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
     ///

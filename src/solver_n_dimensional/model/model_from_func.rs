@@ -2,7 +2,7 @@ use super::Model;
 
 use crate::residuals;
 
-/// Blanket implementation to easily adapt user function to the `Model` trait required by the solver to work with finite-differences
+/// Blanket implementation to easily adapt user function to the [Model](super::Model)  trait required by the solver to work with finite-differences
 ///
 /// The right side of the equation is a constant and by default zero.
 /// No other outputs are computed
@@ -13,13 +13,11 @@ use crate::residuals;
 ///     x*x
 /// }
 ///
-/// extern crate newton_rootfinder;
 /// use newton_rootfinder as nrf;
 /// use nrf::model::Model; // trait import required
-/// extern crate nalgebra;
 ///
 /// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-/// let mut user_model = nrf::model::UserModelFromFunc::new(1, square);
+/// let mut user_model = nrf::model::UserModelFromFunction::new(1, square);
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///
@@ -28,7 +26,7 @@ use crate::residuals;
 /// assert_eq!(user_model.jacobian_provided(), false);
 /// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 /// ```
-pub struct UserModelFromFunc {
+pub struct UserModelFromFunction {
     pub inputs: nalgebra::DVector<f64>,
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
     pub left: nalgebra::DVector<f64>,
@@ -36,7 +34,7 @@ pub struct UserModelFromFunc {
     problem_size: usize,
 }
 
-impl UserModelFromFunc {
+impl UserModelFromFunction {
     pub fn new(
         problem_size: usize,
         func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
@@ -45,7 +43,7 @@ impl UserModelFromFunc {
         let left = nalgebra::DVector::from_vec(vec![f64::NAN; problem_size]);
         let right = nalgebra::DVector::zeros(problem_size);
 
-        UserModelFromFunc {
+        UserModelFromFunction {
             inputs,
             func,
             left,
@@ -55,7 +53,7 @@ impl UserModelFromFunc {
     }
 }
 
-impl Model for UserModelFromFunc {
+impl Model for UserModelFromFunction {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
@@ -77,7 +75,7 @@ impl Model for UserModelFromFunc {
     }
 }
 
-/// Blanket implementation to easily adapt user functions to the `Model` trait required by the solver to work with a jacobian provided
+/// Blanket implementation to easily adapt user functions to the [Model](super::Model)  trait required by the solver to work with a jacobian provided
 ///
 /// The right side of the equation is a constant and by default zero.
 /// No other outputs are computed
@@ -93,13 +91,11 @@ impl Model for UserModelFromFunc {
 ///     jac
 /// }
 ///
-/// extern crate newton_rootfinder;
 /// use newton_rootfinder as nrf;
 /// use nrf::model::Model; // trait import required
-/// extern crate nalgebra;
 ///
 /// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-/// let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(1, square, dsquare);
+/// let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(1, square, dsquare);
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///
@@ -113,7 +109,7 @@ impl Model for UserModelFromFunc {
 /// assert_eq!(jac_left[(0,0)], 4.0);
 /// assert_eq!(jac_right[(0,0)], 0.0);
 /// ```
-pub struct UserModelFromFuncAndJacobian {
+pub struct UserModelFromFunctionAndJacobian {
     pub inputs: nalgebra::DVector<f64>,
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
     pub jac: fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
@@ -122,7 +118,7 @@ pub struct UserModelFromFuncAndJacobian {
     problem_size: usize,
 }
 
-impl UserModelFromFuncAndJacobian {
+impl UserModelFromFunctionAndJacobian {
     pub fn new(
         problem_size: usize,
         func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
@@ -132,7 +128,7 @@ impl UserModelFromFuncAndJacobian {
         let left = nalgebra::DVector::from_vec(vec![f64::NAN; problem_size]);
         let right = nalgebra::DVector::zeros(problem_size);
 
-        UserModelFromFuncAndJacobian {
+        UserModelFromFunctionAndJacobian {
             inputs,
             func,
             jac,
@@ -143,7 +139,7 @@ impl UserModelFromFuncAndJacobian {
     }
 }
 
-impl Model for UserModelFromFuncAndJacobian {
+impl Model for UserModelFromFunctionAndJacobian {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
@@ -182,10 +178,16 @@ mod tests {
         x * x
     }
 
+    pub fn dsquare(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
+        let mut y = nalgebra::DMatrix::zeros(1, 1);
+        y[(0, 0)] = 2.0 * x[0];
+        y
+    }
+
     #[test]
     fn create_user_model() {
         let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
-        let mut user_model = UserModelFromFunc::new(1, square);
+        let mut user_model = UserModelFromFunction::new(1, square);
         user_model.set_iteratives(&iteratives);
         user_model.evaluate();
 
@@ -195,6 +197,21 @@ mod tests {
             nalgebra::DVector::from_vec(vec!(2.0))
         );
         assert_eq!(user_model.jacobian_provided(), false);
+        assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+    }
+    #[test]
+    fn create_user_model_with_jacobian() {
+        let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
+        let mut user_model = UserModelFromFunctionAndJacobian::new(1, square, dsquare);
+        user_model.set_iteratives(&iteratives);
+        user_model.evaluate();
+
+        assert_eq!(user_model.len_problem(), 1);
+        assert_eq!(
+            user_model.get_iteratives(),
+            nalgebra::DVector::from_vec(vec!(2.0))
+        );
+        assert_eq!(user_model.jacobian_provided(), true);
         assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
     }
 }

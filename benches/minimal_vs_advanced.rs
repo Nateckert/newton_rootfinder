@@ -86,7 +86,7 @@ fn solvers_comparison(c: &mut Criterion) {
         ),
         damping,
     );
-    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, square2_nalg);
+    let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2_nalg);
 
     let vec_iter_params_jac = nrf::iteratives::default_vec_iteratives(problem_size);
     let iter_params_jac = nrf::iteratives::Iteratives::new(&vec_iter_params_jac);
@@ -102,7 +102,7 @@ fn solvers_comparison(c: &mut Criterion) {
         damping,
     );
     let mut user_model_jac =
-        nrf::model::UserModelFromFuncAndJacobian::new(problem_size, square2_nalg, dsquare2_nalg);
+        nrf::model::UserModelFromFunctionAndJacobian::new(problem_size, square2_nalg, dsquare2_nalg);
 
     let mut group_solver = c.benchmark_group("Solver");
     group_solver.bench_function("Solver 1D", |b| {

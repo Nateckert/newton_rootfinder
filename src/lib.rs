@@ -232,7 +232,7 @@
 //!     );
 //!
 //!     // Adpatation of the function to solve to the Model trait.
-//!     let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, square2);
+//!     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
 //!
 //!     rf.solve(&mut user_model);
 //!

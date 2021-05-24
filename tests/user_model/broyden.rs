@@ -13,7 +13,7 @@ fn broyden_case5_jac() {
     let init_guess = init_broyden1965_case5();
     let problem_size = init_guess.len();
 
-    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(
+    let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(
         problem_size,
         broyden1965_case5,
         broyden1965_case5_jac,
@@ -36,7 +36,7 @@ fn broyden_case6_jac() {
     let init_guess = init_broyden1965_case6();
     let problem_size = init_guess.len();
 
-    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(
+    let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(
         problem_size,
         broyden1965_case6,
         broyden1965_case6_jac,
@@ -59,7 +59,7 @@ fn broyden_case7_jac() {
     let init_guess = init_broyden1965_case7();
     let problem_size = init_guess.len();
 
-    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(
+    let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(
         problem_size,
         broyden1965_case7,
         broyden1965_case7_jac,
@@ -82,7 +82,7 @@ fn broyden_case8_jac() {
     let init_guess = init_broyden1965_case8();
     let problem_size = init_guess.len();
 
-    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(
+    let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(
         problem_size,
         broyden1965_case8,
         broyden1965_case8_jac,
@@ -105,7 +105,7 @@ fn broyden_case9_jac() {
     let init_guess = init_broyden1965_case9();
     let problem_size = init_guess.len();
 
-    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(
+    let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(
         problem_size,
         broyden1965_case9,
         broyden1965_case9_jac,
@@ -128,7 +128,7 @@ fn broyden_case10_jac() {
     let init_guess = init_broyden1965_case10();
     let problem_size = init_guess.len();
 
-    let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(
+    let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(
         problem_size,
         broyden1965_case10,
         broyden1965_case10_jac,

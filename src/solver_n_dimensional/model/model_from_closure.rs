@@ -1,6 +1,30 @@
 use super::Model;
 use crate::residuals;
 
+/// Blanket implementation to easily adapt user closure to the [Model](super::Model) trait required by the solver to work with finite-differences
+///
+/// The right side of the equation is a constant and by default zero.
+/// No other outputs are computed
+///
+/// # Examples
+/// ```
+/// use newton_rootfinder as nrf;
+/// use nrf::model::Model; // trait import required
+///
+/// let square_closure = |iteratives: &nalgebra::DVector<f64>| -> nalgebra::DVector<f64> {
+///     iteratives * iteratives
+/// };
+///
+/// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
+/// let mut user_model = nrf::model::UserModelFromClosure::new(1, &square_closure);
+/// user_model.set_iteratives(&iteratives);
+/// user_model.evaluate();
+///
+/// assert_eq!(user_model.len_problem(), 1);
+/// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
+/// assert_eq!(user_model.jacobian_provided(), false);
+/// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+/// ```
 pub struct UserModelFromClosure<'a> {
     pub inputs: nalgebra::DVector<f64>,
     pub closure: &'a dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
@@ -50,6 +74,41 @@ impl<'a> Model for UserModelFromClosure<'a> {
     }
 }
 
+/// Blanket implementation to easily adapt user closures to the [Model](super::Model)  trait required by the solver to work with a jacobian provided
+///
+/// The right side of the equation is a constant and by default zero.
+/// No other outputs are computed
+///
+/// # Examples
+/// ```
+/// let square_closure = |iteratives: &nalgebra::DVector<f64>| -> nalgebra::DVector<f64> {
+///     iteratives * iteratives
+/// };
+///
+/// let derivative_closure = |iteratives: &nalgebra::DVector<f64>| -> nalgebra::DMatrix<f64> {
+///     let mut y = nalgebra::DMatrix::zeros(1, 1);
+///     y[(0, 0)] = 2.0 * iteratives[0];
+///     y
+/// };
+///
+/// use newton_rootfinder as nrf;
+/// use nrf::model::Model; // trait import required
+///
+/// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
+/// let mut user_model = nrf::model::UserModelFromClosureAndJacobian::new(1, &square_closure, &derivative_closure);
+/// user_model.set_iteratives(&iteratives);
+/// user_model.evaluate();
+///
+/// assert_eq!(user_model.len_problem(), 1);
+/// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
+/// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+///
+/// assert_eq!(user_model.jacobian_provided(), true);
+/// let jacobians_values = user_model.get_jacobian();
+/// let (jac_left, jac_right) = jacobians_values.get_jacobians();
+/// assert_eq!(jac_left[(0,0)], 4.0);
+/// assert_eq!(jac_right[(0,0)], 0.0);
+/// ```
 pub struct UserModelFromClosureAndJacobian<'a, 'b> {
     pub inputs: nalgebra::DVector<f64>,
     pub closure: &'a dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
@@ -132,6 +191,33 @@ mod tests {
             nalgebra::DVector::from_vec(vec!(2.0))
         );
         assert_eq!(user_model.jacobian_provided(), false);
+        assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+    }
+
+    #[test]
+    fn create_user_model_with_jacobian() {
+        let square_closure = |iteratives: &nalgebra::DVector<f64>| -> nalgebra::DVector<f64> {
+            iteratives * iteratives
+        };
+
+        let derivative_closure = |iteratives: &nalgebra::DVector<f64>| -> nalgebra::DMatrix<f64> {
+            let mut y = nalgebra::DMatrix::zeros(1, 1);
+            y[(0, 0)] = 2.0 * iteratives[0];
+            y
+        };
+
+        let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
+        let mut user_model =
+            UserModelFromClosureAndJacobian::new(1, &square_closure, &derivative_closure);
+        user_model.set_iteratives(&iteratives);
+        user_model.evaluate();
+
+        assert_eq!(user_model.len_problem(), 1);
+        assert_eq!(
+            user_model.get_iteratives(),
+            nalgebra::DVector::from_vec(vec!(2.0))
+        );
+        assert_eq!(user_model.jacobian_provided(), true);
         assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
     }
 }

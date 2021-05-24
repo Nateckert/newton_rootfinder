@@ -23,7 +23,7 @@ fn broyden_case10_fd() {
         &residuals_config,
     );
 
-    let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, broyden1965_case10);
+    let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case10);
 
     rf.solve(&mut user_model);
 
