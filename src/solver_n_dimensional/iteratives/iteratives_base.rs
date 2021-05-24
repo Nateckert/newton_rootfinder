@@ -133,17 +133,17 @@ where
             content.push_str(&"|");
         }
 
-        content.push_str("\n");
+        content.push('\n');
         content.push_str(&separation_line);
 
         for (i, elt) in self.iteratives_params.iter().enumerate() {
             content.push_str(&format!("| {:width$}|", &i.to_string(), width = 10));
             content.push_str(&elt.to_string());
-            content.push_str("\n");
+            content.push('\n');
             content.push_str(&separation_line);
         }
 
-        content.push_str("\n");
+        content.push('\n');
         write!(f, "{}", content)
     }
 }

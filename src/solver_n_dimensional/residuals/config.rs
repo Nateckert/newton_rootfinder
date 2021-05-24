@@ -160,10 +160,10 @@ impl<'a> fmt::Display for ResidualsConfig<'a> {
                 self.update_methods[i].to_string(),
                 width = 25
             ));
-            content.push_str("\n");
+            content.push('\n');
         }
         content.push_str(&separation_line);
-        content.push_str("\n");
+        content.push('\n');
         write!(f, "{}", content)
     }
 }

@@ -1,4 +1,3 @@
-use nalgebra;
 use std::fmt;
 
 fn compute_inverse(matrix: &nalgebra::DMatrix<f64>) -> nalgebra::DMatrix<f64> {
@@ -13,6 +12,12 @@ fn compute_inverse(matrix: &nalgebra::DMatrix<f64>) -> nalgebra::DMatrix<f64> {
 pub struct JacobianMatrix {
     matrix: Option<nalgebra::DMatrix<f64>>,
     inverse: Option<nalgebra::DMatrix<f64>>,
+}
+
+impl Default for JacobianMatrix {
+    fn default() -> Self {
+        JacobianMatrix::new()
+    }
 }
 
 impl JacobianMatrix {
