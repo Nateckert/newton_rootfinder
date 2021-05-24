@@ -43,7 +43,7 @@
 //!   let damping = false;
 //!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
 //!   let mut user_model =
-//!       nrf::model::UserModelWithFunc::new(problem_size, square2);
+//!       nrf::model::UserModelFromFunc::new(problem_size, square2);
 //!
 //!   rf.solve(&mut user_model);
 //!

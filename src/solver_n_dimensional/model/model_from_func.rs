@@ -19,7 +19,7 @@ use crate::residuals;
 /// extern crate nalgebra;
 ///
 /// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-/// let mut user_model = nrf::model::UserModelWithFunc::new(1, square);
+/// let mut user_model = nrf::model::UserModelFromFunc::new(1, square);
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///
@@ -28,7 +28,7 @@ use crate::residuals;
 /// assert_eq!(user_model.jacobian_provided(), false);
 /// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 /// ```
-pub struct UserModelWithFunc {
+pub struct UserModelFromFunc {
     pub inputs: nalgebra::DVector<f64>,
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
     pub left: nalgebra::DVector<f64>,
@@ -36,7 +36,7 @@ pub struct UserModelWithFunc {
     problem_size: usize,
 }
 
-impl UserModelWithFunc {
+impl UserModelFromFunc {
     pub fn new(
         problem_size: usize,
         func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
@@ -45,7 +45,7 @@ impl UserModelWithFunc {
         let left = nalgebra::DVector::from_vec(vec![f64::NAN; problem_size]);
         let right = nalgebra::DVector::zeros(problem_size);
 
-        UserModelWithFunc {
+        UserModelFromFunc {
             inputs,
             func,
             left,
@@ -55,7 +55,7 @@ impl UserModelWithFunc {
     }
 }
 
-impl Model for UserModelWithFunc {
+impl Model for UserModelFromFunc {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
@@ -99,7 +99,7 @@ impl Model for UserModelWithFunc {
 /// extern crate nalgebra;
 ///
 /// let iteratives = nalgebra::DVector::from_vec(vec!(2.0));
-/// let mut user_model = nrf::model::UserModelWithFuncJac::new(1, square, dsquare);
+/// let mut user_model = nrf::model::UserModelFromFuncAndJacobian::new(1, square, dsquare);
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///
@@ -113,7 +113,7 @@ impl Model for UserModelWithFunc {
 /// assert_eq!(jac_left[(0,0)], 4.0);
 /// assert_eq!(jac_right[(0,0)], 0.0);
 /// ```
-pub struct UserModelWithFuncJac {
+pub struct UserModelFromFuncAndJacobian {
     pub inputs: nalgebra::DVector<f64>,
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
     pub jac: fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
@@ -122,7 +122,7 @@ pub struct UserModelWithFuncJac {
     problem_size: usize,
 }
 
-impl UserModelWithFuncJac {
+impl UserModelFromFuncAndJacobian {
     pub fn new(
         problem_size: usize,
         func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
@@ -132,7 +132,7 @@ impl UserModelWithFuncJac {
         let left = nalgebra::DVector::from_vec(vec![f64::NAN; problem_size]);
         let right = nalgebra::DVector::zeros(problem_size);
 
-        UserModelWithFuncJac {
+        UserModelFromFuncAndJacobian {
             inputs,
             func,
             jac,
@@ -143,7 +143,7 @@ impl UserModelWithFuncJac {
     }
 }
 
-impl Model for UserModelWithFuncJac {
+impl Model for UserModelFromFuncAndJacobian {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
@@ -171,5 +171,30 @@ impl Model for UserModelWithFuncJac {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         residuals::JacobianValues::new(jac_left, jac_right)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    pub fn square(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
+        x * x
+    }
+
+    #[test]
+    fn create_user_model() {
+        let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
+        let mut user_model = UserModelFromFunc::new(1, square);
+        user_model.set_iteratives(&iteratives);
+        user_model.evaluate();
+
+        assert_eq!(user_model.len_problem(), 1);
+        assert_eq!(
+            user_model.get_iteratives(),
+            nalgebra::DVector::from_vec(vec!(2.0))
+        );
+        assert_eq!(user_model.jacobian_provided(), false);
+        assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
     }
 }

@@ -54,35 +54,21 @@
 //! f((iterative_1, ... , iterative_n)) -> (equation_1, ... , equation_n)
 //!```
 //!
-//! ## Separation of residuals equations into two members
+//! In the litterature, the problem is often described as ```f(X) = 0```,
+//! as the mathematical expressions of the residual equations can be rearranged.
 //!
-//! In the litterature, the problem is often described as f(X) = 0,
-//! as the mathematical expressions can be rearranged.
+//! ## Resolution principle
 //!
-//! However, it is practical to not adopt this framework in order to deal with specific numerical aspects.
-//! Indeed, mathematically it is easy to define the number 0.
-//! However, for floating point arithmetics (computations done on computers with floating point number),
-//! the residuals equations being fulfilled will be defined comparatively to a given tolerance,
-//! as it could be impossible to have the equations verified up to machine precision accuracy.
+//! Check the wikipedia article on [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) !
 //!
-//! Imagine for example, that the residual equations are involving different variables with different order of magnitudes :
-//!
-//!```block
-//! Eq1 : Pressure_1 = Pressure_2
-//! Eq2 : Temperature_1 = Temperature_2
-//!```
-//!
-//! The usual order of magnitude of a pressure is of 10^5 Pa, a temperature is usually 10^2 K.
-//! Hence, from the numerical point of view,
-//! the two pressures being equal should have a different signification than the temperatures being equal.
-//!
-//! This particularity has lead to the separation of left and right member of an equation for the implementation of this solver.
+//! You will see that it involves the computation of the jacobian matrix (i.e the n-dimensional derivative matrix).
+//! This matrix can either be provided by the user, or computed thanks to finite-difference.
 //!
 //! # Usage
 //!
 //! Using this crate require the following steps:
-//! - Defining the problem (i.e have a struct implementing the `Model` trait)
-//! - Parametrizing the solver (iteratives, residuals and some other parameters)
+//! - Defining the problem (i.e have a struct implementing the [model::Model] trait)
+//! - Parametrizing the solver ([iteratives], [residuals] and some other parameters)
 //! - Call the solver on the model: the solver will then mutate the model into a resolved state
 //!
 //! ```
@@ -150,6 +136,7 @@
 //! #    let solver_parameters = nrf::solver::SolverParameters::new(1, 1e-6, 60, nrf::solver::ResolutionMethod::NewtonRaphson, true);
 //! #    let inital_guess = nalgebra::DVector::from_vec(vec![1.0]);
 //! #
+//!     // ...
 //!     let mut rootfinder = nrf::solver::RootFinder::new(
 //!         solver_parameters,
 //!         inital_guess,
@@ -169,14 +156,11 @@
 //! ## User problem definition
 //!
 //! To get improved interactions with the user problem,
-//! the user is required to provide a stuct implementing the `Model` trait.
+//! the user is required to provide a stuct implementing the [model::Model] trait.
 //! This trait allows for the solver to be integrated tightly with the use problem and optimized.
-//! Check the documentation of this trait for more details.
 //!
-//! In practice, in most of the case, the user's problem is defined through a function or a clojure.
-//! A mecanism has been provided to implement the `Model` trait automatically given a user defined function
+//! Check the documentation of the [model] module for more details.
 //!
-//! Check the `UserModelWithFunc` documentation for more details.
 //!
 //! ## Numerical methods
 //!
@@ -184,10 +168,20 @@
 //!
 //! ## Problem parametrization
 //!
-//! In addition to the selection of the numerical methods,
-//! it is possible to configure many parameters with regards to the iterative variables or the residuals equations.
+//! The parametrization of the resolution is a three step process in order to configure :
+//! - each one of the [iteratives] variables
+//! - each one of the [residuals] equations
+//! - the solver itself, by defining the [solver::SolverParameters]
 //!
-//!  Check the documentation of the `iteratives` and `residuals` modules for more details.
+//! Once each of these element has been defined, the [solver::RootFinder] struct can be instanciated.
+//!
+//! It is this struct that will perform the resolution.
+//!
+//! ## Debugging
+//!
+//! In order to be able to debug more easily the resolution process, it is possible to generate a simulation log.
+//!
+//! Check the [solver::RootFinder::activate_debug] method.
 //!
 //! ## User interface
 //!
@@ -238,7 +232,7 @@
 //!     );
 //!
 //!     // Adpatation of the function to solve to the Model trait.
-//!     let mut user_model = nrf::model::UserModelWithFunc::new(problem_size, square2);
+//!     let mut user_model = nrf::model::UserModelFromFunc::new(problem_size, square2);
 //!
 //!     rf.solve(&mut user_model);
 //!
