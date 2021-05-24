@@ -101,8 +101,11 @@ fn solvers_comparison(c: &mut Criterion) {
         nrf::solver::ResolutionMethod::NewtonRaphson,
         damping,
     );
-    let mut user_model_jac =
-        nrf::model::UserModelFromFunctionAndJacobian::new(problem_size, square2_nalg, dsquare2_nalg);
+    let mut user_model_jac = nrf::model::UserModelFromFunctionAndJacobian::new(
+        problem_size,
+        square2_nalg,
+        dsquare2_nalg,
+    );
 
     let mut group_solver = c.benchmark_group("Solver");
     group_solver.bench_function("Solver 1D", |b| {
