@@ -164,7 +164,7 @@
 //!
 //! ## Numerical methods
 //!
-//! This crate implents several Newton based methods through the `ResolutionMethod` enum.
+//! This crate implents several Newton based methods through the [solver::ResolutionMethod] enum.
 //!
 //! ## Problem parametrization
 //!
@@ -187,6 +187,7 @@
 //!
 //! To ease the parametrization of the solver, it is possible to set up the parametrization through an external `.xml` configuration file.
 //! The parametrization will be read at runtime before launching the resolution.
+//! For more information, check the [xml_parser] module.
 //!
 //! It also possible to define the parametrization programmatically, in such case your programm will execute faster.
 //!

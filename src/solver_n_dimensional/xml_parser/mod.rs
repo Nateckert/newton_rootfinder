@@ -2,15 +2,16 @@
 //!
 //! # Parser
 //! A parser to an xml configuration file is provided to ease the construction of the parameters:
-//! - `from_xml_finite_diff()`
-//! - `from_xml_jacobian()`
+//! - [from_xml_finite_diff()]
+//! - [from_xml_jacobian()]
 //!
 //! For the meaning of each parameters, please refer to the documentation of the related module:
-//! - solver: `newton_rootfinder::solver_advanced::solver::SolverParameters`
-//! - iteratives: `newton_rootfinder::solver_advanced::iteratives`
-//! - residuals: `newton_rootfinder::solver_advanced::residuals`
+//! - solver: [crate::solver::SolverParameters]
+//! - iteratives: [crate::iteratives]
+//! - residuals: [crate::residuals]
 //!
-//! Parse a xml configuration file to create the elements that are required by a `RootFinder`
+//! Parse a xml configuration file to create the elements that are required by a [crate::solver::RootFinder]:
+//!
 //! ```xml
 //! <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 //! <nrf>
@@ -27,6 +28,7 @@
 //!     </residuals>
 //! </nrf>
 //! ```
+//!
 //! The values provided in the iteratives and residuals nodes will act as default values.
 //!
 //! These values are taken into account only if none are provided for a given iterative or residual

@@ -2,36 +2,26 @@ use std::fmt;
 
 /// Choice of the iterative algorithm for the resolution
 ///
-/// All of them are Newton based methods : (Newton or quasi-Newton)
+/// All of them are Newton based methods
 ///
-/// All Newton-based iterative methods have a local convergence.
+/// All Newton based iterative methods have a local convergence.
 /// They also assume that the jacobian is invertible at the root (simple root)
-///
-/// ## Newton-Raphson
-/// The classical Newton method \[1995\]
-///
-/// Requires a full jacobian evaluation at each iteration step
-///
-/// ### Quasi-Newton Methods
-///
-/// Quasi Newton methods are used when the computation of the jacobian is too computationnaly expensive.
-///
-/// Instead of using the jacobian, there are using a approximation of this matrix (or its inverse).
-/// In most of the case, a computation of the true jacobian is still required for initialization purpose.
-///
-/// ## Reference
-///
-/// ### Tjalling J. Ypma (1995)
-///
-/// Historical development of the Newton–Raphson method,
-///
-/// SIAM Review 37 (4), p 531–551, 1995.
-///
-/// doi:10.1137/1037125.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ResolutionMethod {
+    /// The classical Newton method
+    ///
+    /// See Tjalling J. Ypma (1995),
+    /// Historical development of the Newton–Raphson method,
+    /// SIAM Review 37 (4), p 531–551, 1995,
+    /// doi:10.1137/1037125
     NewtonRaphson,
+    /// Quasi-Newton methods (several are available through [QuasiNewtonMethod])
+    ///
+    /// Quasi Newton methods are used when the computation of the jacobian is too computationnaly expensive.
+    ///
+    /// Instead of using the jacobian, there are using a approximation of this matrix (or its inverse).
+    /// In most of the case, a computation of the true jacobian is still required for initialization purpose.
     QuasiNewton(QuasiNewtonMethod),
 }
 
@@ -49,14 +39,25 @@ impl fmt::Display for ResolutionMethod {
     }
 }
 
-/// Three class of methods:
-/// - no jacobian update: StationaryNewton
-/// - jacobian update
-/// - inverse of jacobian update
+/// Quasi-Newton methods are less computationnaly expensive than the Newton-Raphson method.
+///
+/// However, the most robust method is the Newton-Raphson one.
+///
+/// Quasi-newton methods do not evaluate the jacobian at each steps.
+///
+/// It is a trade off between recomputing the full jacobian matrix
+/// (which can take time, especially when using finite-differences)
+/// and the accuracy of the jacobian matrix used.
+/// Indeed, the more accurate the jacobian, fewer iterations will be needed.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum QuasiNewtonMethod {
+    /// The first computed jacobian will be used for all iterations.
     StationaryNewton,
+    /// The update of the methods will be performed on the jacobian matrix:
+    /// it will be inverted afterwards before applying the step update.
     JacobianUpdate(UpdateQuasiNewtonMethod),
+    /// The update of the methods will be performed directly on the inverse jacobian matrix:
+    /// Thus the jacobian won't be computed at all after the first step.
     InverseJacobianUpdate(UpdateQuasiNewtonMethod),
 }
 

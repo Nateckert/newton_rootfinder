@@ -19,7 +19,7 @@ use super::util::check_node_name_and_panic;
 /// - `dx_rel`
 /// - `perturbation_method`
 ///
-/// Otherwise, it works in exactly the same way as the `from_xml_jacobian` parser.
+/// Otherwise, it works in exactly the same way as the [super::from_xml_jacobian] parser.
 /// Refers to this doc for the general explanation. The differences are highlighted here
 ///
 /// The \<iteratives\> node takes the 3 extra arguments as default values. This values can be overwritten in the same way
