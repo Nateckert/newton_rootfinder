@@ -74,7 +74,7 @@ pub trait Model {
     ///
     /// This particularity has lead to the separation of left and right member of an equation for the implementation of this solver.
     ///
-    fn get_residuals(&self) -> residuals::ResidualsValues;
+    fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic>;
 
     /// This method allows the solver to know if the jacobian is provided by the user or not
     ///
@@ -86,7 +86,7 @@ pub trait Model {
     /// If overriden, the [Model::jacobian_provided] must also be overriden to return `true`.
     ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
-    fn get_jacobian(&self) -> residuals::JacobianValues {
+    fn get_jacobian(&self) -> residuals::JacobianValues<nalgebra::Dynamic> {
         let left = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         let right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         residuals::JacobianValues::new(left, right)

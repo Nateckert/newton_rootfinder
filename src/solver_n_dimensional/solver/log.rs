@@ -105,7 +105,7 @@ impl SolverLog {
     pub fn add_damping<D>(
         &self,
         iteratives: &nalgebra::OVector<f64, D>,
-        residuals: &ResidualsValues,
+        residuals: &ResidualsValues<D>,
         errors: &nalgebra::OVector<f64, D>,
     ) where
         D: nalgebra::Dim,
@@ -119,7 +119,7 @@ impl SolverLog {
     pub fn add_new_iteration<D>(
         &self,
         iteratives: &nalgebra::OVector<f64, D>,
-        residuals: &ResidualsValues,
+        residuals: &ResidualsValues<D>,
         errors: &nalgebra::OVector<f64, D>,
         iter: usize,
     ) where
@@ -136,7 +136,7 @@ impl SolverLog {
     fn add_iteration<D>(
         &self,
         iteratives: &nalgebra::OVector<f64, D>,
-        residuals: &ResidualsValues,
+        residuals: &ResidualsValues<D>,
         errors: &nalgebra::OVector<f64, D>,
     ) where
         D: nalgebra::Dim,

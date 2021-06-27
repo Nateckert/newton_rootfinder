@@ -103,7 +103,7 @@
 //! #       self.left =  y;
 //! #    }
 //! #
-//! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues {
+//! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dynamic> {
 //! #       let right = nalgebra::DVector::zeros(self.len_problem());
 //! #       nrf::residuals::ResidualsValues::new(self.left.clone(), right.clone())
 //! #    }
