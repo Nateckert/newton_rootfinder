@@ -71,12 +71,16 @@ where
     }
 
     /// Compute the perturbation for several iteratives
-    pub fn compute_perturbations(
+    pub fn compute_perturbations<D>(
         &self,
-        iterative_values: &nalgebra::DVector<f64>,
-        problem_size: usize,
-    ) -> nalgebra::DVector<f64> {
-        let mut perturbations: nalgebra::DVector<f64> = nalgebra::DVector::zeros(problem_size);
+        iterative_values: &nalgebra::OVector<f64, D>,
+    ) -> nalgebra::OVector<f64, D>
+    where
+        D: nalgebra::Dim,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    {
+        let mut perturbations: nalgebra::OVector<f64, D> =
+            super::super::ovector_zeros_like(iterative_values);
 
         for (i, iterative_var) in (self.iteratives_params).iter().enumerate() {
             perturbations[i] = iterative_var.compute_perturbation(iterative_values[i]);

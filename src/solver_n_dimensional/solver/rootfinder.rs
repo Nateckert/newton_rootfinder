@@ -158,9 +158,7 @@ where
     fn compute_jac_fd<M: model::Model>(&mut self, model: &mut M) {
         let iters_values = model.get_iteratives();
 
-        let perturbations = self
-            .iters_params
-            .compute_perturbations(&iters_values, self.parameters.get_problem_size());
+        let perturbations = self.iters_params.compute_perturbations(&iters_values);
 
         self.jacobian.update_jacobian(jacobian_evaluation(
             model,
