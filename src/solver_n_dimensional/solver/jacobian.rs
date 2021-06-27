@@ -5,7 +5,7 @@ where
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
- {
+{
     let lu_jac = matrix.to_owned().lu();
 
     match lu_jac.try_inverse() {

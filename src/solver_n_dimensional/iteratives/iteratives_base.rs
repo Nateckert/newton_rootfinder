@@ -53,13 +53,16 @@ where
     /// Return the new value after the application of the step limitation (and not the step).
     ///
     /// This is required as it can be limited by an interval for the iteratives.
-    pub fn step_limitations(
+    pub fn step_limitations<D>(
         &self,
-        values: &nalgebra::DVector<f64>,
-        raw_step: &nalgebra::DVector<f64>,
-        problem_size: usize,
-    ) -> nalgebra::DVector<f64> {
-        let mut step_lim: nalgebra::DVector<f64> = nalgebra::DVector::zeros(problem_size);
+        values: &nalgebra::OVector<f64, D>,
+        raw_step: &nalgebra::OVector<f64, D>,
+    ) -> nalgebra::OVector<f64, D>
+    where
+        D: nalgebra::Dim,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    {
+        let mut step_lim: nalgebra::OVector<f64, D> = super::super::ovector_zeros_like(values);
 
         for (i, iterative_params) in (self.iteratives_params).iter().enumerate() {
             step_lim[i] = iterative_params.step_limitation(values[i], raw_step[i]);
