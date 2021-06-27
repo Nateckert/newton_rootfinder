@@ -102,24 +102,30 @@ impl SolverLog {
         self.add_content(residuals_config);
     }
 
-    pub fn add_damping(
+    pub fn add_damping<D>(
         &self,
-        iteratives: &nalgebra::DVector<f64>,
+        iteratives: &nalgebra::OVector<f64, D>,
         residuals: &ResidualsValues,
-        errors: &nalgebra::DVector<f64>,
-    ) {
+        errors: &nalgebra::OVector<f64, D>,
+    ) where
+        D: nalgebra::Dim,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(&"Damping activated !\n\n".to_string());
         self.add_content(&iteration_log_header);
         self.add_iteration(iteratives, residuals, errors);
     }
-    pub fn add_new_iteration(
+    pub fn add_new_iteration<D>(
         &self,
-        iteratives: &nalgebra::DVector<f64>,
+        iteratives: &nalgebra::OVector<f64, D>,
         residuals: &ResidualsValues,
-        errors: &nalgebra::DVector<f64>,
+        errors: &nalgebra::OVector<f64, D>,
         iter: usize,
-    ) {
+    ) where
+        D: nalgebra::Dim,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(SEPARATION_ITER);
         iteration_log_header.push_str(&format!("Iteration: {}\n\n", iter.to_string()));
@@ -127,12 +133,15 @@ impl SolverLog {
         self.add_iteration(iteratives, residuals, errors);
     }
 
-    fn add_iteration(
+    fn add_iteration<D>(
         &self,
-        iteratives: &nalgebra::DVector<f64>,
+        iteratives: &nalgebra::OVector<f64, D>,
         residuals: &ResidualsValues,
-        errors: &nalgebra::DVector<f64>,
-    ) {
+        errors: &nalgebra::OVector<f64, D>,
+    ) where
+        D: nalgebra::Dim,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(&format!("Max error: {}\n\n", errors.amax()));
         self.add_content(&iteration_log_header);

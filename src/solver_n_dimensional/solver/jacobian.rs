@@ -1,7 +1,12 @@
 use std::fmt;
 
-fn compute_inverse(matrix: &nalgebra::DMatrix<f64>) -> nalgebra::DMatrix<f64> {
-    let lu_jac = nalgebra::linalg::LU::new(matrix.to_owned());
+fn compute_inverse<D>(matrix: &nalgebra::OMatrix<f64, D, D>) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+ {
+    let lu_jac = matrix.to_owned().lu();
 
     match lu_jac.try_inverse() {
         Some(inv_jac) => inv_jac,
