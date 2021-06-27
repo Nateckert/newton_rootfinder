@@ -1,6 +1,8 @@
 use super::{deriv_normalization, NormalizationMethod};
 use std::fmt;
 
+use nalgebra::storage::Storage;
+
 /// Residuals values outputs of the model
 ///
 /// This is the expected output of the model in order to be able to interact with the solver
@@ -42,6 +44,11 @@ impl ResidualsValues {
 
     pub fn get_values(&self, index: usize) -> (f64, f64) {
         (self.left[index], self.right[index])
+    }
+
+    pub fn shape(&self) -> nalgebra::Dynamic {
+        let (nrows, _ncols) = self.left.data.shape();
+        return nrows;
     }
 
     pub fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
