@@ -35,7 +35,7 @@ where
     // solver placeholder
     iter: usize,
     solver_log: Option<super::log::SolverLog>,
-    jacobian: JacobianMatrix,
+    jacobian: JacobianMatrix<nalgebra::Dynamic>,
     compute_jac_next_iter: bool,
     last_iter_with_computed_jacobian: usize,
     iteratives_step_size: Option<nalgebra::DVector<f64>>,

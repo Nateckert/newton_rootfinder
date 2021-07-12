@@ -26,7 +26,7 @@ name = "broyden_case8"
 harness = false
 
 [dependencies]
-nalgebra = "0.26"
+nalgebra = "0.28"
 minidom = "0.12"
 whoami = { version = "1.1", optional = true }
 rustc_version_runtime = { version = "0.2.0", optional = true }
