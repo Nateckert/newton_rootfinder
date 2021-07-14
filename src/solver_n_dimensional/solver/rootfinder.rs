@@ -140,13 +140,19 @@ where
         self.solver_log = Some(super::log::SolverLog::new(path));
     }
 
-    fn evaluate_errors<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
+    fn evaluate_errors<M>(&self, model: &M) -> nalgebra::DVector<f64>
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         let residuals_values = model.get_residuals();
         self.residuals_config
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    fn compute_jac_func<M: model::Model>(&mut self, model: &mut M) {
+    fn compute_jac_func<M>(&mut self, model: &mut M)
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         let residuals_values = model.get_residuals();
 
         let jacobians = model.get_jacobian();
@@ -155,7 +161,10 @@ where
             .update_jacobian(jacobians.normalize(&residuals_values, &normalization_method));
     }
 
-    fn compute_jac_fd<M: model::Model>(&mut self, model: &mut M) {
+    fn compute_jac_fd<M>(&mut self, model: &mut M)
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         let iters_values = model.get_iteratives();
 
         let perturbations = self.iters_params.compute_perturbations(&iters_values);
@@ -167,7 +176,10 @@ where
         ));
     }
 
-    fn compute_jac<M: model::Model>(&mut self, model: &mut M) {
+    fn compute_jac<M>(&mut self, model: &mut M)
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         if model.jacobian_provided() {
             self.compute_jac_func(model);
         } else {
@@ -178,10 +190,10 @@ where
         self.last_iter_with_computed_jacobian = self.iter;
     }
 
-    fn compute_newton_raphson_step<M: model::Model>(
-        &mut self,
-        model: &mut M,
-    ) -> nalgebra::DVector<f64> {
+    fn compute_newton_raphson_step<M>(&mut self, model: &mut M) -> nalgebra::DVector<f64>
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         self.compute_jac(model);
 
         if self.debug {
@@ -258,11 +270,14 @@ where
         self.jacobian.update_inverse(inv_jac_next);
     }
 
-    fn compute_quasi_newton_step<M: model::Model>(
+    fn compute_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
         resolution_method: QuasiNewtonMethod,
-    ) -> nalgebra::DVector<f64> {
+    ) -> nalgebra::DVector<f64>
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         if self.compute_jac_next_iter {
             self.compute_jac(model);
         } else {
@@ -284,7 +299,10 @@ where
         self.compute_next_from_inv_jac(model)
     }
 
-    fn compute_next_from_inv_jac<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
+    fn compute_next_from_inv_jac<M>(&self, model: &M) -> nalgebra::DVector<f64>
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&model.get_residuals());
@@ -296,14 +314,16 @@ where
         self.iters_params.step_limitations(&iter_values, &raw_step)
     }
 
-    fn damping<M: model::Model>(
+    fn damping<M>(
         &mut self,
         model: &mut M,
         max_error: f64,
         current_guess: &nalgebra::DVector<f64>,
         proposed_guess: &nalgebra::DVector<f64>,
         errors_next: &mut nalgebra::DVector<f64>,
-    ) {
+    ) where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         let max_error_next = errors_next.amax();
         if max_error_next > max_error {
             // see documentation of the `SolverParameters` struct
@@ -329,11 +349,14 @@ where
         }
     }
 
-    fn update_model<M: model::Model>(
+    fn update_model<M>(
         &mut self,
         model: &mut M,
         proposed_guess: &nalgebra::DVector<f64>,
-    ) -> nalgebra::DVector<f64> {
+    ) -> nalgebra::DVector<f64>
+    where
+        M: model::Model<nalgebra::Dynamic>,
+    {
         let errors = self.evaluate_errors(model);
         let max_error = errors.amax();
         let current_guess = model.get_iteratives();
@@ -372,7 +395,7 @@ where
     /// The core function performing the resolution on a given `Model`
     pub fn solve<M>(&mut self, model: &mut M)
     where
-        M: model::Model,
+        M: model::Model<nalgebra::Dynamic>,
     {
         model.set_iteratives(&self.initial_guess);
         model.evaluate();
@@ -424,7 +447,7 @@ where
 
     fn iteration_to_log<M>(&self, model: &M, errors: &nalgebra::DVector<f64>)
     where
-        M: model::Model,
+        M: model::Model<nalgebra::Dynamic>,
     {
         let iteratives = model.get_iteratives();
         let residuals = model.get_residuals();
@@ -444,7 +467,7 @@ where
 
     fn damping_to_log<M>(&self, model: &M, errors: &nalgebra::DVector<f64>)
     where
-        M: model::Model,
+        M: model::Model<nalgebra::Dynamic>,
     {
         let iteratives = model.get_iteratives();
         let residuals = model.get_residuals();

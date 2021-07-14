@@ -113,17 +113,20 @@ use crate::model;
 use crate::residuals;
 
 /// Evaluate a jacobian per forward finite difference when perturbation step eps is provided
-pub fn jacobian_evaluation<T>(
-    model: &mut T,
-    perturbations: &nalgebra::DVector<f64>,
+pub fn jacobian_evaluation<M, D>(
+    model: &mut M,
+    perturbations: &nalgebra::OVector<f64, D>,
     update_residuals: &residuals::ResidualsConfig,
-) -> nalgebra::DMatrix<f64>
+) -> nalgebra::OMatrix<f64, D, D>
 where
-    T: model::Model,
+    M: model::Model<D>,
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
 {
     let problem_size = model.len_problem();
-    let mut jacobian: nalgebra::DMatrix<f64> = nalgebra::DMatrix::zeros(problem_size, problem_size);
-
+    let mut jacobian: nalgebra::OMatrix<f64, D, D> =
+        super::super::omatrix_zeros_like_ovector(perturbations);
     let memory_ref = model.get_memory();
     let iteratives_ref = model.get_iteratives();
     let residuals_ref = update_residuals.evaluate_update_residuals(&model.get_residuals());

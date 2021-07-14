@@ -52,7 +52,7 @@ impl<'a> UserModelFromClosure<'a> {
     }
 }
 
-impl<'a> Model for UserModelFromClosure<'a> {
+impl<'a> Model<nalgebra::Dynamic> for UserModelFromClosure<'a> {
     fn evaluate(&mut self) {
         self.left = (self.closure)(&self.inputs);
     }
@@ -139,7 +139,7 @@ impl<'a, 'b> UserModelFromClosureAndJacobian<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Model for UserModelFromClosureAndJacobian<'a, 'b> {
+impl<'a, 'b> Model<nalgebra::Dynamic> for UserModelFromClosureAndJacobian<'a, 'b> {
     fn evaluate(&mut self) {
         self.left = (self.closure)(&self.inputs);
     }

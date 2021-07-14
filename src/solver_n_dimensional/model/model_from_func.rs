@@ -53,7 +53,7 @@ impl UserModelFromFunction {
     }
 }
 
-impl Model for UserModelFromFunction {
+impl Model<nalgebra::Dynamic> for UserModelFromFunction {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
@@ -139,7 +139,7 @@ impl UserModelFromFunctionAndJacobian {
     }
 }
 
-impl Model for UserModelFromFunctionAndJacobian {
+impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
