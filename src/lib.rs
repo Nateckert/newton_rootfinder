@@ -95,7 +95,7 @@
 //! #   }
 //! # }
 //! #
-//! impl Model for UserModel {
+//! impl Model<nalgebra::Dynamic> for UserModel {
 //! // ...
 //! #   fn evaluate(&mut self) {
 //! #       let mut y = self.inputs.clone() * self.inputs.clone();
