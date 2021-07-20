@@ -174,71 +174,113 @@ impl fmt::Display for UpdateQuasiNewtonMethod {
 }
 
 /// Broyden first method update formula
-pub fn broyden_first_method_udpate_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_first_method_udpate_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * s.transpose() / (s.norm_squared())
 }
 
 /// Broyden first method update formula
-pub fn broyden_first_method_udpate_inv_jac(
-    inv_jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_first_method_udpate_inv_jac<D>(
+    inv_jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     inv_jac - (inv_jac * y - s) * s.transpose() * inv_jac / ((s.transpose() * inv_jac * y)[(0, 0)])
 }
 
 /// Broyden second method update formula
-pub fn broyden_second_method_udpate_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_second_method_udpate_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * y.transpose() * jac / ((y.transpose() * jac * s)[(0, 0)])
 }
 
 /// Broyden Second method update formula
-pub fn broyden_second_method_udpate_inv_jac(
-    inv_jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_second_method_udpate_inv_jac<D>(
+    inv_jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     inv_jac - (inv_jac * y - s) * y.transpose() / (y.norm_squared())
 }
 
 /// Generic function for quasi method update.
 /// This implements Spedicato's formula.
 /// To be used when no formula simplification can be done before implementation
-pub fn quasi_method_update_inv_jac(
-    inv_jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-    c: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn quasi_method_update_inv_jac<D>(
+    inv_jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+    c: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     inv_jac - (inv_jac * y - s) * c.transpose() / ((c.transpose() * y)[(0, 0)])
 }
 
 /// Generic function for quasi method update.
 /// This implements Spedicato's formula.
 /// To be used when no formula simplification can be done before implementation
-pub fn quasi_method_update_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-    c: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn quasi_method_update_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+    c: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * c.transpose() * jac / ((c.transpose() * jac * s)[(0, 0)])
 }
 
 /// Greenstadt second method update formula
-pub fn greenstadt_second_method_udpate_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-    hy: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn greenstadt_second_method_udpate_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+    hy: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * hy.transpose() / ((hy.transpose() * s)[(0, 0)])
 }
