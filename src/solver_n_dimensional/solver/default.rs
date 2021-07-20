@@ -61,15 +61,20 @@ use crate::residuals;
 ///   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
 /// }
 /// ```
-pub fn default_with_guess<'a, T>(
-    initial_guess: nalgebra::DVector<f64>,
+pub fn default_with_guess<'a, T, D>(
+    initial_guess: nalgebra::OVector<f64, D>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
     resolution_method: ResolutionMethod,
     damping: bool,
-) -> RootFinder<'a, T>
+) -> RootFinder<'a, T, D>
 where
     T: Iterative + fmt::Display,
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
 {
     let problem_size = initial_guess.len();
     let tolerance: f64 = 1e-6;
