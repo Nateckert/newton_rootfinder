@@ -28,7 +28,7 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
 {
-    let (nrows, ncols) = input.data.shape();
+    let (nrows, _ncols) = input.data.shape();
 
     return nalgebra::OMatrix::zeros_generic(nrows, nrows);
 }

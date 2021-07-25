@@ -331,8 +331,7 @@ where
         current_guess: &nalgebra::OVector<f64, D>,
         proposed_guess: &nalgebra::OVector<f64, D>,
         errors_next: &mut nalgebra::OVector<f64, D>,
-    )
-    where
+    ) where
         M: model::Model<D>,
     {
         let max_error_next = errors_next.amax();

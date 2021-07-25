@@ -242,6 +242,21 @@
 //! }
 //! ```
 //!
+//! # Performance tricks
+//!
+//! `newton_rootfinder` provides several mecanisms to ease the use of the solver,
+//! such as `default_vec_iteratives_fd`, `default_with_guess`, `UserModelFromFunction`
+//!
+//! These mecanisms use underneath rust `Vec` and the `nalgebra` type `DVector` (dynamic vector)
+//!
+//! It is possible to use `newton_rootfinder` with statically sized type
+//! To do so, the user must not rely on the default mecanisms provided by the crate,
+//! but instead define manually in the its code each of its parameters
+//! The user must also implement directely the [model::Model] trait with static types.
+//!
+//! Full example :
+//!
+//! Benchmark static vs dynamic:
 
 pub use solver_n_dimensional::model;
 
