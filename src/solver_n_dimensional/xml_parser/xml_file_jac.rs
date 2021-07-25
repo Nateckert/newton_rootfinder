@@ -16,7 +16,7 @@ use super::util::check_node_name_and_panic;
 /// ## XML structure
 ///
 /// ### Root
-/// It is expected to be an xml document with a root node called nrf (newton root finder)
+/// It is expected to be an `.xml` document with a root node called `nrf` (newton root finder)
 ///
 /// Three child nodes are expected:
 ///```xml
@@ -29,23 +29,23 @@ use super::util::check_node_name_and_panic;
 ///```
 ///
 /// ### Solver node
-/// The \<solver\> node contains must contains the parameters of the `SolverParameters` struct,
+/// The \<solver\> node contains must contains the parameters of the [SolverParameters](crate::solver::SolverParameters) struct,
 /// i.e :
 /// - max_iter
 /// - damping (true or false)
 /// - tolerance
 /// - problem_size
-/// - resolution_method: (see `solver_advanced/solver/resolution_method`)
-///     - "NR" for Newton-Raphson
-///     - "SN" for Stationary Newton
-///     - "BROY1" for Broyden First Method approximating the jacobian
-///     - "BROY2" for Broyden Second Method approximating the jacobian
-///     - "GRST1" for Greenstadt First Method approximating the jacobian
-///     - "GRST2" for Greenstadt Second Method approximating the jacobian
-///     - "BROY1_INV" for Broyden First Method approximating the inverse of the jacobian
-///     - "BROY2_INV" for Broyden Second Method approximating the inverse of the jacobian
-///     - "GRST1_INV" for Greenstadt First Method approximating the inverse of the jacobian
-///     - "GRST2_INV" for Greenstadt Second Method approximating the inverse of the jacobian
+/// - resolution_method: (see [crate::solver::ResolutionMethod])
+///     - "NR" for [Newton-Raphson](crate::solver::ResolutionMethod::NewtonRaphson)
+///     - "SN" for [Stationary Newton](crate::solver::QuasiNewtonMethod::StationaryNewton)
+///     - "BROY1" for [Broyden First Method](crate::solver::UpdateQuasiNewtonMethod::BroydenFirstMethod) approximating the [jacobian](crate::solver::QuasiNewtonMethod::JacobianUpdate)
+///     - "BROY2" for [Broyden Second Method](crate::solver::UpdateQuasiNewtonMethod::BroydenSecondMethod) approximating the [jacobian](crate::solver::QuasiNewtonMethod::JacobianUpdate)
+///     - "GRST1" for [Greenstadt First Method](crate::solver::UpdateQuasiNewtonMethod::GreenstadtFirstMethod) approximating the [jacobian](crate::solver::QuasiNewtonMethod::JacobianUpdate)
+///     - "GRST2" for [Greenstadt Second Method](crate::solver::UpdateQuasiNewtonMethod::GreenstadtSecondMethod) approximating the [jacobian](crate::solver::QuasiNewtonMethod::JacobianUpdate)
+///     - "BROY1_INV" for [Broyden First Method](crate::solver::UpdateQuasiNewtonMethod::BroydenFirstMethod) approximating the [inverse jacobian](crate::solver::QuasiNewtonMethod::InverseJacobianUpdate)
+///     - "BROY2_INV" for [Broyden Second Method](crate::solver::UpdateQuasiNewtonMethod::BroydenSecondMethod) approximating the [inverse jacobian](crate::solver::QuasiNewtonMethod::InverseJacobianUpdate)
+///     - "GRST1_INV" for [Greenstadt First Method](crate::solver::UpdateQuasiNewtonMethod::GreenstadtFirstMethod) approximating the [inverse jacobian](crate::solver::QuasiNewtonMethod::InverseJacobianUpdate)
+///     - "GRST2_INV" for [Greenstadt Second Method](crate::solver::UpdateQuasiNewtonMethod::GreenstadtSecondMethod) approximating the [inverse jacobian](crate::solver::QuasiNewtonMethod::InverseJacobianUpdate)
 ///
 ///```xml
 /// <?xml version="1.0" encoding="UTF-8" standalone="no" ?>

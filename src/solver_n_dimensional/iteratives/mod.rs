@@ -23,6 +23,7 @@
 //! ```
 //!
 
+mod default;
 mod iterative_var;
 mod iterative_var_fd;
 mod iteratives_base;
@@ -33,47 +34,4 @@ pub use iterative_var_fd::PerturbationMethod; // enum re-export
 pub use iteratives_base::Iterative; // trait re-export
 pub use iteratives_base::Iteratives; // struct re-export
 
-/// Constructor with default values for iteratives parameters
-///
-/// # Examples
-///```
-/// extern crate newton_rootfinder;
-/// use newton_rootfinder as nrf;
-///
-/// let size = 2;
-/// let iteratives_vec = nrf::iteratives::default_vec_iteratives(size);
-/// assert_eq!(iteratives_vec.len(), size);
-/// for i in 0..size {
-///     assert_eq!(iteratives_vec[i].get_min_value(), f64::NEG_INFINITY);
-///     assert_eq!(iteratives_vec[i].get_max_value(), f64::INFINITY);
-///     assert_eq!(iteratives_vec[i].get_max_step_abs(), f64::INFINITY);
-///     assert_eq!(iteratives_vec[i].get_max_step_abs(), f64::INFINITY);
-/// }
-///```
-pub fn default_vec_iteratives(size: usize) -> Vec<IterativeParams> {
-    vec![IterativeParams::default(); size]
-}
-
-/// Constructor with default values for iteratives parameters with finite-differences
-///
-/// # Examples
-///```
-/// extern crate newton_rootfinder;
-/// use newton_rootfinder as nrf;
-///
-/// let size = 2;
-/// let iteratives_vec = nrf::iteratives::default_vec_iteratives_fd(size);
-/// assert_eq!(iteratives_vec.len(), size);
-/// for i in 0..size {
-///     assert_eq!(iteratives_vec[i].get_min_value(), f64::NEG_INFINITY);
-///     assert_eq!(iteratives_vec[i].get_max_value(), f64::INFINITY);
-///     assert_eq!(iteratives_vec[i].get_max_step_abs(), f64::INFINITY);
-///     assert_eq!(iteratives_vec[i].get_max_step_abs(), f64::INFINITY);
-///     assert_eq!(iteratives_vec[i].get_dx_abs(), 5e-8);
-///     assert_eq!(iteratives_vec[i].get_dx_rel(), 5e-8);
-///     assert_eq!(iteratives_vec[i].get_perturbation_method(), nrf::iteratives::PerturbationMethod::Max);
-/// }
-///```
-pub fn default_vec_iteratives_fd(size: usize) -> Vec<IterativeParamsFD> {
-    vec![IterativeParamsFD::default(); size]
-}
+pub use default::{default_vec_iteratives, default_vec_iteratives_fd};

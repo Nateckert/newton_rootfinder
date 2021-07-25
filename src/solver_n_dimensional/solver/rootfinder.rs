@@ -21,13 +21,18 @@ use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 /// The core functionnality is the `solve()` method
 ///
 /// The user can activate the debugging before the resolution thanks to the `set_debug()` method
-pub struct RootFinder<'a, T>
+pub struct RootFinder<'a, T, D>
 where
     T: Iterative + fmt::Display,
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
 {
     // user inputs
     parameters: SolverParameters,
-    initial_guess: nalgebra::DVector<f64>,
+    initial_guess: nalgebra::OVector<f64, D>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
     debug: bool,
@@ -35,21 +40,26 @@ where
     // solver placeholder
     iter: usize,
     solver_log: Option<super::log::SolverLog>,
-    jacobian: JacobianMatrix,
+    jacobian: JacobianMatrix<D>,
     compute_jac_next_iter: bool,
     last_iter_with_computed_jacobian: usize,
-    iteratives_step_size: Option<nalgebra::DVector<f64>>,
-    residuals_step_size: Option<nalgebra::DVector<f64>>,
-    residuals_values_current: Option<nalgebra::DVector<f64>>,
+    iteratives_step_size: Option<nalgebra::OVector<f64, D>>,
+    residuals_step_size: Option<nalgebra::OVector<f64, D>>,
+    residuals_values_current: Option<nalgebra::OVector<f64, D>>,
 }
 
-impl<'a, T> RootFinder<'a, T>
+impl<'a, T, D> RootFinder<'a, T, D>
 where
     T: Iterative + fmt::Display,
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
 {
     pub fn new(
         parameters: SolverParameters,
-        initial_guess: nalgebra::DVector<f64>,
+        initial_guess: nalgebra::OVector<f64, D>,
         iters_params: &'a iteratives::Iteratives<'a, T>,
         residuals_config: &'a residuals::ResidualsConfig<'a>,
     ) -> Self {
@@ -140,13 +150,19 @@ where
         self.solver_log = Some(super::log::SolverLog::new(path));
     }
 
-    fn evaluate_errors<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
+    fn evaluate_errors<M>(&self, model: &M) -> nalgebra::OVector<f64, D>
+    where
+        M: model::Model<D>,
+    {
         let residuals_values = model.get_residuals();
         self.residuals_config
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    fn compute_jac_func<M: model::Model>(&mut self, model: &mut M) {
+    fn compute_jac_func<M>(&mut self, model: &mut M)
+    where
+        M: model::Model<D>,
+    {
         let residuals_values = model.get_residuals();
 
         let jacobians = model.get_jacobian();
@@ -155,12 +171,13 @@ where
             .update_jacobian(jacobians.normalize(&residuals_values, &normalization_method));
     }
 
-    fn compute_jac_fd<M: model::Model>(&mut self, model: &mut M) {
+    fn compute_jac_fd<M>(&mut self, model: &mut M)
+    where
+        M: model::Model<D>,
+    {
         let iters_values = model.get_iteratives();
 
-        let perturbations = self
-            .iters_params
-            .compute_perturbations(&iters_values, self.parameters.get_problem_size());
+        let perturbations = self.iters_params.compute_perturbations(&iters_values);
 
         self.jacobian.update_jacobian(jacobian_evaluation(
             model,
@@ -169,7 +186,10 @@ where
         ));
     }
 
-    fn compute_jac<M: model::Model>(&mut self, model: &mut M) {
+    fn compute_jac<M>(&mut self, model: &mut M)
+    where
+        M: model::Model<D>,
+    {
         if model.jacobian_provided() {
             self.compute_jac_func(model);
         } else {
@@ -180,10 +200,10 @@ where
         self.last_iter_with_computed_jacobian = self.iter;
     }
 
-    fn compute_newton_raphson_step<M: model::Model>(
-        &mut self,
-        model: &mut M,
-    ) -> nalgebra::DVector<f64> {
+    fn compute_newton_raphson_step<M>(&mut self, model: &mut M) -> nalgebra::OVector<f64, D>
+    where
+        M: model::Model<D>,
+    {
         self.compute_jac(model);
 
         if self.debug {
@@ -260,11 +280,14 @@ where
         self.jacobian.update_inverse(inv_jac_next);
     }
 
-    fn compute_quasi_newton_step<M: model::Model>(
+    fn compute_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
         resolution_method: QuasiNewtonMethod,
-    ) -> nalgebra::DVector<f64> {
+    ) -> nalgebra::OVector<f64, D>
+    where
+        M: model::Model<D>,
+    {
         if self.compute_jac_next_iter {
             self.compute_jac(model);
         } else {
@@ -286,7 +309,10 @@ where
         self.compute_next_from_inv_jac(model)
     }
 
-    fn compute_next_from_inv_jac<M: model::Model>(&self, model: &M) -> nalgebra::DVector<f64> {
+    fn compute_next_from_inv_jac<M>(&self, model: &M) -> nalgebra::OVector<f64, D>
+    where
+        M: model::Model<D>,
+    {
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&model.get_residuals());
@@ -295,21 +321,19 @@ where
 
         let iter_values = model.get_iteratives();
 
-        self.iters_params.step_limitations(
-            &iter_values,
-            &raw_step,
-            self.parameters.get_problem_size(),
-        )
+        self.iters_params.step_limitations(&iter_values, &raw_step)
     }
 
-    fn damping<M: model::Model>(
+    fn damping<M>(
         &mut self,
         model: &mut M,
         max_error: f64,
-        current_guess: &nalgebra::DVector<f64>,
-        proposed_guess: &nalgebra::DVector<f64>,
-        errors_next: &mut nalgebra::DVector<f64>,
-    ) {
+        current_guess: &nalgebra::OVector<f64, D>,
+        proposed_guess: &nalgebra::OVector<f64, D>,
+        errors_next: &mut nalgebra::OVector<f64, D>,
+    ) where
+        M: model::Model<D>,
+    {
         let max_error_next = errors_next.amax();
         if max_error_next > max_error {
             // see documentation of the `SolverParameters` struct
@@ -335,11 +359,14 @@ where
         }
     }
 
-    fn update_model<M: model::Model>(
+    fn update_model<M>(
         &mut self,
         model: &mut M,
-        proposed_guess: &nalgebra::DVector<f64>,
-    ) -> nalgebra::DVector<f64> {
+        proposed_guess: &nalgebra::OVector<f64, D>,
+    ) -> nalgebra::OVector<f64, D>
+    where
+        M: model::Model<D>,
+    {
         let errors = self.evaluate_errors(model);
         let max_error = errors.amax();
         let current_guess = model.get_iteratives();
@@ -378,7 +405,7 @@ where
     /// The core function performing the resolution on a given `Model`
     pub fn solve<M>(&mut self, model: &mut M)
     where
-        M: model::Model,
+        M: model::Model<D>,
     {
         model.set_iteratives(&self.initial_guess);
         model.evaluate();
@@ -428,9 +455,9 @@ where
         );
     }
 
-    fn iteration_to_log<M>(&self, model: &M, errors: &nalgebra::DVector<f64>)
+    fn iteration_to_log<M>(&self, model: &M, errors: &nalgebra::OVector<f64, D>)
     where
-        M: model::Model,
+        M: model::Model<D>,
     {
         let iteratives = model.get_iteratives();
         let residuals = model.get_residuals();
@@ -448,9 +475,9 @@ where
         );
     }
 
-    fn damping_to_log<M>(&self, model: &M, errors: &nalgebra::DVector<f64>)
+    fn damping_to_log<M>(&self, model: &M, errors: &nalgebra::OVector<f64, D>)
     where
-        M: model::Model,
+        M: model::Model<D>,
     {
         let iteratives = model.get_iteratives();
         let residuals = model.get_residuals();

@@ -2,36 +2,26 @@ use std::fmt;
 
 /// Choice of the iterative algorithm for the resolution
 ///
-/// All of them are Newton based methods : (Newton or quasi-Newton)
+/// All of them are Newton based methods
 ///
-/// All Newton-based iterative methods have a local convergence.
+/// All Newton based iterative methods have a local convergence.
 /// They also assume that the jacobian is invertible at the root (simple root)
-///
-/// ## Newton-Raphson
-/// The classical Newton method \[1995\]
-///
-/// Requires a full jacobian evaluation at each iteration step
-///
-/// ### Quasi-Newton Methods
-///
-/// Quasi Newton methods are used when the computation of the jacobian is too computationnaly expensive.
-///
-/// Instead of using the jacobian, there are using a approximation of this matrix (or its inverse).
-/// In most of the case, a computation of the true jacobian is still required for initialization purpose.
-///
-/// ## Reference
-///
-/// ### Tjalling J. Ypma (1995)
-///
-/// Historical development of the Newton–Raphson method,
-///
-/// SIAM Review 37 (4), p 531–551, 1995.
-///
-/// doi:10.1137/1037125.
 ///
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ResolutionMethod {
+    /// The classical Newton method
+    ///
+    /// See Tjalling J. Ypma (1995),
+    /// Historical development of the Newton–Raphson method,
+    /// SIAM Review 37 (4), p 531–551, 1995,
+    /// doi:10.1137/1037125
     NewtonRaphson,
+    /// Quasi-Newton methods (several are available through [QuasiNewtonMethod])
+    ///
+    /// Quasi Newton methods are used when the computation of the jacobian is too computationnaly expensive.
+    ///
+    /// Instead of using the jacobian, there are using a approximation of this matrix (or its inverse).
+    /// In most of the case, a computation of the true jacobian is still required for initialization purpose.
     QuasiNewton(QuasiNewtonMethod),
 }
 
@@ -49,14 +39,25 @@ impl fmt::Display for ResolutionMethod {
     }
 }
 
-/// Three class of methods:
-/// - no jacobian update: StationaryNewton
-/// - jacobian update
-/// - inverse of jacobian update
+/// Quasi-Newton methods are less computationnaly expensive than the Newton-Raphson method.
+///
+/// However, the most robust method is the Newton-Raphson one.
+///
+/// Quasi-newton methods do not evaluate the jacobian at each steps.
+///
+/// It is a trade off between recomputing the full jacobian matrix
+/// (which can take time, especially when using finite-differences)
+/// and the accuracy of the jacobian matrix used.
+/// Indeed, the more accurate the jacobian, fewer iterations will be needed.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum QuasiNewtonMethod {
+    /// The first computed jacobian will be used for all iterations.
     StationaryNewton,
+    /// The update of the methods will be performed on the jacobian matrix:
+    /// it will be inverted afterwards before applying the step update.
     JacobianUpdate(UpdateQuasiNewtonMethod),
+    /// The update of the methods will be performed directly on the inverse jacobian matrix:
+    /// Thus the jacobian won't be computed at all after the first step.
     InverseJacobianUpdate(UpdateQuasiNewtonMethod),
 }
 
@@ -173,71 +174,113 @@ impl fmt::Display for UpdateQuasiNewtonMethod {
 }
 
 /// Broyden first method update formula
-pub fn broyden_first_method_udpate_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_first_method_udpate_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * s.transpose() / (s.norm_squared())
 }
 
 /// Broyden first method update formula
-pub fn broyden_first_method_udpate_inv_jac(
-    inv_jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_first_method_udpate_inv_jac<D>(
+    inv_jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     inv_jac - (inv_jac * y - s) * s.transpose() * inv_jac / ((s.transpose() * inv_jac * y)[(0, 0)])
 }
 
 /// Broyden second method update formula
-pub fn broyden_second_method_udpate_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_second_method_udpate_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * y.transpose() * jac / ((y.transpose() * jac * s)[(0, 0)])
 }
 
 /// Broyden Second method update formula
-pub fn broyden_second_method_udpate_inv_jac(
-    inv_jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn broyden_second_method_udpate_inv_jac<D>(
+    inv_jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     inv_jac - (inv_jac * y - s) * y.transpose() / (y.norm_squared())
 }
 
 /// Generic function for quasi method update.
 /// This implements Spedicato's formula.
 /// To be used when no formula simplification can be done before implementation
-pub fn quasi_method_update_inv_jac(
-    inv_jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-    c: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn quasi_method_update_inv_jac<D>(
+    inv_jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+    c: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     inv_jac - (inv_jac * y - s) * c.transpose() / ((c.transpose() * y)[(0, 0)])
 }
 
 /// Generic function for quasi method update.
 /// This implements Spedicato's formula.
 /// To be used when no formula simplification can be done before implementation
-pub fn quasi_method_update_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-    c: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn quasi_method_update_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+    c: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * c.transpose() * jac / ((c.transpose() * jac * s)[(0, 0)])
 }
 
 /// Greenstadt second method update formula
-pub fn greenstadt_second_method_udpate_jac(
-    jac: &nalgebra::DMatrix<f64>,
-    s: &nalgebra::DVector<f64>,
-    y: &nalgebra::DVector<f64>,
-    hy: &nalgebra::DVector<f64>,
-) -> nalgebra::DMatrix<f64> {
+pub fn greenstadt_second_method_udpate_jac<D>(
+    jac: &nalgebra::OMatrix<f64, D, D>,
+    s: &nalgebra::OVector<f64, D>,
+    y: &nalgebra::OVector<f64, D>,
+    hy: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+{
     jac - (jac * s - y) * hy.transpose() / ((hy.transpose() * s)[(0, 0)])
 }

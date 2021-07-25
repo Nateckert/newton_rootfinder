@@ -53,12 +53,12 @@ impl UserModelFromFunction {
     }
 }
 
-impl Model for UserModelFromFunction {
+impl Model<nalgebra::Dynamic> for UserModelFromFunction {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
 
-    fn get_residuals(&self) -> residuals::ResidualsValues {
+    fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
         residuals::ResidualsValues::new(self.left.clone(), self.right.clone())
     }
 
@@ -139,12 +139,12 @@ impl UserModelFromFunctionAndJacobian {
     }
 }
 
-impl Model for UserModelFromFunctionAndJacobian {
+impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
     fn evaluate(&mut self) {
         self.left = (self.func)(&self.inputs);
     }
 
-    fn get_residuals(&self) -> residuals::ResidualsValues {
+    fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
         residuals::ResidualsValues::new(self.left.clone(), self.right.clone())
     }
 
@@ -163,7 +163,7 @@ impl Model for UserModelFromFunctionAndJacobian {
     fn jacobian_provided(&self) -> bool {
         true
     }
-    fn get_jacobian(&self) -> residuals::JacobianValues {
+    fn get_jacobian(&self) -> residuals::JacobianValues<nalgebra::Dynamic> {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         residuals::JacobianValues::new(jac_left, jac_right)

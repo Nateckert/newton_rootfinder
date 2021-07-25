@@ -37,16 +37,21 @@ use crate::residuals;
 /// Instead of this previous value, a better value would be the value from the reference point of the jacobian calculation.
 /// In this case, the value of each column of the jacobian would not depend of the order of computation of the columns.
 ///
-pub trait Model {
+pub trait Model<D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+{
     /// This method defines the dimension of the problem.
     ///
     /// It should be consistent of the length of the [Model::set_iteratives], [Model::get_iteratives] and [Model::get_residuals] argument.
     fn len_problem(&self) -> usize;
     /// This method provides the solver a mecanism to set the iteratives values and perform the resolution
-    fn set_iteratives(&mut self, iteratives: &nalgebra::DVector<f64>);
+    fn set_iteratives(&mut self, iteratives: &nalgebra::OVector<f64, D>);
     /// This method is required to access the values of the iteratives variables during the resolution process.
     /// The values returned should be the same one as the one set by the [Model::set_iteratives] method.
-    fn get_iteratives(&self) -> nalgebra::DVector<f64>;
+    fn get_iteratives(&self) -> nalgebra::OVector<f64, D>;
     /// This method should update the values of the outputs of the model by using as inputs the values set by the [Model::set_iteratives] method.
     ///
     /// This method is the core that defines the computations from the user model.
@@ -74,7 +79,7 @@ pub trait Model {
     ///
     /// This particularity has lead to the separation of left and right member of an equation for the implementation of this solver.
     ///
-    fn get_residuals(&self) -> residuals::ResidualsValues;
+    fn get_residuals(&self) -> residuals::ResidualsValues<D>;
 
     /// This method allows the solver to know if the jacobian is provided by the user or not
     ///
@@ -86,9 +91,9 @@ pub trait Model {
     /// If overriden, the [Model::jacobian_provided] must also be overriden to return `true`.
     ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
-    fn get_jacobian(&self) -> residuals::JacobianValues {
-        let left = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
-        let right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
+    fn get_jacobian(&self) -> residuals::JacobianValues<D> {
+        let left = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
+        let right = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
         residuals::JacobianValues::new(left, right)
     }
 

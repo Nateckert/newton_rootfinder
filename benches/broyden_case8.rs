@@ -45,7 +45,7 @@ fn solvers_comparison(c: &mut Criterion) {
 
     group_function.finish();
 
-    let mut group_function = c.benchmark_group("Solver speed");
+    let mut group_function = c.benchmark_group("Advanced solver on Broyden test case 8");
 
     // Newton Raphson method
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =

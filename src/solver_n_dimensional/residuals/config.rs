@@ -97,8 +97,16 @@ impl<'a> ResidualsConfig<'a> {
     }
 
     /// Evaluation of the value of the update residuals thanks to the `normalization()` function
-    pub fn evaluate_update_residuals(&self, values: &ResidualsValues) -> nalgebra::DVector<f64> {
-        let mut update_residuals: nalgebra::DVector<f64> = nalgebra::DVector::zeros(self.len());
+    pub fn evaluate_update_residuals<D>(
+        &self,
+        values: &ResidualsValues<D>,
+    ) -> nalgebra::OVector<f64, D>
+    where
+        D: nalgebra::Dim,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    {
+        let mut update_residuals: nalgebra::OVector<f64, D> =
+            super::super::ovector_zeros_from_shape(values.shape());
 
         for (i, &update_method) in self.update_methods.iter().enumerate() {
             let (left, right) = values.get_values(i);
@@ -108,8 +116,16 @@ impl<'a> ResidualsConfig<'a> {
     }
 
     /// Evaluation of the value of the stopping residuals thanks to the `normalization()` function
-    pub fn evaluate_stopping_residuals(&self, values: &ResidualsValues) -> nalgebra::DVector<f64> {
-        let mut stopping_residuals: nalgebra::DVector<f64> = nalgebra::DVector::zeros(self.len());
+    pub fn evaluate_stopping_residuals<D>(
+        &self,
+        values: &ResidualsValues<D>,
+    ) -> nalgebra::OVector<f64, D>
+    where
+        D: nalgebra::Dim,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    {
+        let mut stopping_residuals: nalgebra::OVector<f64, D> =
+            super::super::ovector_zeros_from_shape(values.shape());
 
         for (i, &stopping_criteria) in self.stopping_criterias.iter().enumerate() {
             let (left, right) = values.get_values(i);

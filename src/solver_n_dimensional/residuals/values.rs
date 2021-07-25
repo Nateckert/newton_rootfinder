@@ -1,6 +1,8 @@
 use super::{deriv_normalization, NormalizationMethod};
 use std::fmt;
 
+use nalgebra::storage::Storage;
+
 /// Residuals values outputs of the model
 ///
 /// This is the expected output of the model in order to be able to interact with the solver
@@ -11,14 +13,22 @@ use std::fmt;
 ///
 /// Once converged, one should have left = right (with a tolerance)
 #[derive(Debug)]
-pub struct ResidualsValues {
-    left: nalgebra::DVector<f64>,
-    right: nalgebra::DVector<f64>,
+pub struct ResidualsValues<D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+{
+    left: nalgebra::OVector<f64, D>,
+    right: nalgebra::OVector<f64, D>,
     problem_size: usize,
 }
 
-impl ResidualsValues {
-    pub fn new(left: nalgebra::DVector<f64>, right: nalgebra::DVector<f64>) -> Self {
+impl<D> ResidualsValues<D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+{
+    pub fn new(left: nalgebra::OVector<f64, D>, right: nalgebra::OVector<f64, D>) -> Self {
         if left.len() != right.len() {
             panic!(
                 "Dimension mismatch in the residuals values {} != {} ",
@@ -44,6 +54,11 @@ impl ResidualsValues {
         (self.left[index], self.right[index])
     }
 
+    pub fn shape(&self) -> D {
+        let (nrows, _ncols) = self.left.data.shape();
+        nrows
+    }
+
     pub fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
         let mut str_eq = String::new();
         str_eq.push_str(&format!(
@@ -67,14 +82,24 @@ impl ResidualsValues {
 /// The jacobian of the left and right members are required,
 /// as the output jacobian value depends of the normalization method and both members are required to compute it
 #[derive(Debug)]
-pub struct JacobianValues {
-    left: nalgebra::DMatrix<f64>,
-    right: nalgebra::DMatrix<f64>,
+pub struct JacobianValues<D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+{
+    left: nalgebra::OMatrix<f64, D, D>,
+    right: nalgebra::OMatrix<f64, D, D>,
     problem_size: usize,
 }
 
-impl JacobianValues {
-    pub fn new(left: nalgebra::DMatrix<f64>, right: nalgebra::DMatrix<f64>) -> Self {
+impl<D> JacobianValues<D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+{
+    pub fn new(left: nalgebra::OMatrix<f64, D, D>, right: nalgebra::OMatrix<f64, D, D>) -> Self {
         if left.shape() != right.shape() {
             panic!(
                 "Dimension mismatch between the jacobians {:?} != {:?}",
@@ -96,11 +121,11 @@ impl JacobianValues {
 
     pub fn normalize(
         &self,
-        res_values: &ResidualsValues,
+        res_values: &ResidualsValues<D>,
         norm_methods: &[NormalizationMethod],
-    ) -> nalgebra::DMatrix<f64> {
-        let mut jac: nalgebra::DMatrix<f64> =
-            nalgebra::DMatrix::zeros(self.problem_size, self.problem_size);
+    ) -> nalgebra::OMatrix<f64, D, D> {
+        let mut jac: nalgebra::OMatrix<f64, D, D> =
+            super::super::omatrix_zeros_from_shape(res_values.shape());
 
         // iterate over rows
         for i in 0..self.problem_size {
@@ -119,12 +144,16 @@ impl JacobianValues {
         jac
     }
 
-    pub fn get_jacobians(&self) -> (&nalgebra::DMatrix<f64>, &nalgebra::DMatrix<f64>) {
+    pub fn get_jacobians(&self) -> (&nalgebra::OMatrix<f64, D, D>, &nalgebra::OMatrix<f64, D, D>) {
         (&self.left, &self.right)
     }
 }
 
-impl fmt::Display for ResidualsValues {
+impl<D> fmt::Display for ResidualsValues<D>
+where
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = String::from("Residuals values :\n\n");
 

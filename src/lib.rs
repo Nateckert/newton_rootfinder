@@ -45,7 +45,7 @@
 //! - Iterative variables : the variables on which the algorithm will iterate
 //! - Residuals : the equations that must be verified, each residual is separated into two expressions, the left member and the right member of the equation.
 //!
-//! For a well-defined problem, the must be as many iterative variables as residuals.
+//! For a well-defined problem, they must be as many iterative variables as residuals.
 //!
 //!
 //! The solver provided in this crate aims to solve the n-dimensional problem:
@@ -95,7 +95,7 @@
 //! #   }
 //! # }
 //! #
-//! impl Model for UserModel {
+//! impl Model<nalgebra::Dynamic> for UserModel {
 //! // ...
 //! #   fn evaluate(&mut self) {
 //! #       let mut y = self.inputs.clone() * self.inputs.clone();
@@ -103,7 +103,7 @@
 //! #       self.left =  y;
 //! #    }
 //! #
-//! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues {
+//! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dynamic> {
 //! #       let right = nalgebra::DVector::zeros(self.len_problem());
 //! #       nrf::residuals::ResidualsValues::new(self.left.clone(), right.clone())
 //! #    }
@@ -157,25 +157,27 @@
 //!
 //! To get improved interactions with the user problem,
 //! the user is required to provide a stuct implementing the [model::Model] trait.
-//! This trait allows for the solver to be integrated tightly with the use problem and optimized.
+//! This trait allows for the solver to be integrated tightly with the user problem and optimized.
 //!
 //! Check the documentation of the [model] module for more details.
 //!
 //!
 //! ## Numerical methods
 //!
-//! This crate implents several Newton based methods through the `ResolutionMethod` enum.
+//! This crate implents several Newton based methods.
+//! The method can be choosen from the variant of the [solver::ResolutionMethod] enum.
+//! Check its documentation to discover the methods available.
 //!
 //! ## Problem parametrization
 //!
-//! The parametrization of the resolution is a three step process in order to configure :
+//! The parametrization of the resolution is a three steps process in order to configure :
 //! - each one of the [iteratives] variables
 //! - each one of the [residuals] equations
 //! - the solver itself, by defining the [solver::SolverParameters]
 //!
 //! Once each of these element has been defined, the [solver::RootFinder] struct can be instanciated.
 //!
-//! It is this struct that will perform the resolution.
+//! This struct will perform the resolution.
 //!
 //! ## Debugging
 //!
@@ -183,13 +185,28 @@
 //!
 //! Check the [solver::RootFinder::activate_debug] method.
 //!
+//! The optional feature `additional_log_info` allows to add in the log informations such as:
+//! - the time of the computation (UTC and local time)
+//! - user information such as plateform, id, ...
+//! - the version of `rustc` used
+//!
+//! To enable this feature, add the following line into your `Cargo.toml` file:
+//! ```toml
+//! [dependencies]
+//! newton_rootfinder = { version = your_version, features = ["additional_log_info"] }
+//! ```
+//!
 //! ## User interface
 //!
 //! To ease the parametrization of the solver, it is possible to set up the parametrization through an external `.xml` configuration file.
 //! The parametrization will be read at runtime before launching the resolution.
+//! For more information, check the [xml_parser] module.
 //!
 //! It also possible to define the parametrization programmatically, in such case your programm will execute faster.
 //!
+//! It is recommanded to read this module's documentation,
+//! as it provides a clear overview of all the parameters that can be customized,
+//! even if the user intend to not use the xml configuration feature.
 //!
 //! ## Examples
 //! ```
@@ -241,6 +258,111 @@
 //! }
 //! ```
 //!
+//! # Performance tricks
+//!
+//! `newton_rootfinder` provides several mecanisms to ease the use of the solver,
+//! such as :
+//! - [default_vec_iteratives_fd](crate::iteratives::default_vec_iteratives_fd)
+//! - [default_with_guess](crate::solver::default_with_guess)
+//! - [UserModelFromFunction](crate::model::UserModelFromFunction)
+//!
+//! These mecanisms use underneath rust `Vec` and the `nalgebra` type `DVector` (dynamic vector)
+//!
+//! It is possible to use `newton_rootfinder` with statically sized type
+//! To do so, the user must not rely on the default mecanisms provided by the crate,
+//! but instead define manually in the its code each of its parameters
+//! The user must also implement directely the [model::Model] trait with static types.
+//!
+//! ## Full example :
+//! ```
+//! use newton_rootfinder as nrf;
+//!
+//! use nrf::model::Model;
+//!
+//! /// x**2 - 2 = 0
+//! /// Root: x = 2.sqrt() approx 1.4142
+//! pub fn square2(x: &nalgebra::SVector<f64, 1>) -> nalgebra::SVector<f64, 1> {
+//!     let y = nalgebra::SVector::<f64, 1>::new(x[0] * x[0] - 2.0);
+//!     y
+//! }
+//!
+//! struct UserModel {
+//!     iteratives: nalgebra::SVector<f64, 1>,
+//!     output: nalgebra::SVector<f64, 1>,
+//! }
+//!
+//! impl UserModel {
+//!     fn new(init: f64) -> Self {
+//!         let iteratives = nalgebra::SVector::<f64, 1>::new(init);
+//!         let output = square2(&iteratives);
+//!
+//!         UserModel { iteratives, output }
+//!     }
+//! }
+//!
+//! impl Model<nalgebra::Const<1>> for UserModel {
+//!     fn len_problem(&self) -> usize {
+//!         1
+//!     }
+//!     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
+//!         self.iteratives = *iteratives;
+//!     }
+//!
+//!     fn get_iteratives(&self) -> nalgebra::SVector<f64, 1> {
+//!         self.iteratives
+//!     }
+//!
+//!     fn evaluate(&mut self) {
+//!         self.output = square2(&self.iteratives)
+//!     }
+//!
+//!     fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Const<1>> {
+//!         nrf::residuals::ResidualsValues::new(self.output, nalgebra::SVector::<f64, 1>::new(0.0))
+//!     }
+//! }
+//!
+//! fn main() {
+//!     let solver_parameters = nrf::solver::SolverParameters::new(
+//!         1,
+//!         1e-6,
+//!         50,
+//!         nrf::solver::ResolutionMethod::NewtonRaphson,
+//!         false,
+//!    );
+//!
+//!     let iterative_param = nrf::iteratives::IterativeParamsFD::default();
+//!     let iteratives_param = [iterative_param];
+//!     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_param);
+//!     let residuals_config = nrf::residuals::ResidualsConfig::new(
+//!         &[nrf::residuals::NormalizationMethod::Abs],
+//!         &[nrf::residuals::NormalizationMethod::Abs],
+//!     );
+//!
+//!     let mut user_model = UserModel::new(1.0);
+//!
+//!     let mut rf = nrf::solver::RootFinder::new(
+//!         solver_parameters,
+//!         user_model.get_iteratives(),
+//!         &iteratives,
+//!         &residuals_config,
+//!     );
+//!
+//!    rf.solve(&mut user_model);
+//!
+//!     assert!(float_cmp::approx_eq!(
+//!         f64,
+//!         user_model.get_iteratives()[0],
+//!         std::f64::consts::SQRT_2,
+//!         epsilon = 1e-6
+//!     ));
+//! }
+//! ```
+//!
+//! ## Benchmark static vs dynamic:
+//!
+//! The use of static types provide a 30 times improvement versus dynamic type on 1D problems.
+//! For exact numbers, check :
+//! [RESULT.md](https://github.com/Nateckert/newton_rootfinder/blob/main/benches/RESULTS.md)
 
 pub use solver_n_dimensional::model;
 

@@ -1,7 +1,12 @@
 use std::fmt;
 
-fn compute_inverse(matrix: &nalgebra::DMatrix<f64>) -> nalgebra::DMatrix<f64> {
-    let lu_jac = nalgebra::linalg::LU::new(matrix.to_owned());
+fn compute_inverse<D>(matrix: &nalgebra::OMatrix<f64, D, D>) -> nalgebra::OMatrix<f64, D, D>
+where
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+{
+    let lu_jac = matrix.to_owned().lu();
 
     match lu_jac.try_inverse() {
         Some(inv_jac) => inv_jac,
@@ -9,18 +14,33 @@ fn compute_inverse(matrix: &nalgebra::DMatrix<f64>) -> nalgebra::DMatrix<f64> {
     }
 }
 
-pub struct JacobianMatrix {
-    matrix: Option<nalgebra::DMatrix<f64>>,
-    inverse: Option<nalgebra::DMatrix<f64>>,
+pub struct JacobianMatrix<D>
+where
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+{
+    matrix: Option<nalgebra::OMatrix<f64, D, D>>,
+    inverse: Option<nalgebra::OMatrix<f64, D, D>>,
 }
 
-impl Default for JacobianMatrix {
+impl<D> Default for JacobianMatrix<D>
+where
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+{
     fn default() -> Self {
         JacobianMatrix::new()
     }
 }
 
-impl JacobianMatrix {
+impl<D> JacobianMatrix<D>
+where
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+{
     pub fn new() -> Self {
         JacobianMatrix {
             matrix: None,
@@ -30,7 +50,7 @@ impl JacobianMatrix {
 
     /// When updating the jacobian,
     /// the inverse has to be recomputed
-    pub fn update_jacobian(&mut self, matrix: nalgebra::DMatrix<f64>) {
+    pub fn update_jacobian(&mut self, matrix: nalgebra::OMatrix<f64, D, D>) {
         self.inverse = Some(compute_inverse(&matrix));
         self.matrix = Some(matrix);
     }
@@ -38,23 +58,28 @@ impl JacobianMatrix {
     /// When updating the inverse,
     /// the jacobian does not have to be recomputed
     /// but becomes invalid
-    pub fn update_inverse(&mut self, inverse: nalgebra::DMatrix<f64>) {
+    pub fn update_inverse(&mut self, inverse: nalgebra::OMatrix<f64, D, D>) {
         self.matrix = None;
         self.inverse = Some(inverse);
     }
 
     /// Need to have Some and None for the inverse ?
     /// it is always valid !
-    pub fn get_inverse(&self) -> &Option<nalgebra::DMatrix<f64>> {
+    pub fn get_inverse(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
         &self.inverse
     }
 
-    pub fn get_jacobian(&self) -> &Option<nalgebra::DMatrix<f64>> {
+    pub fn get_jacobian(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
         &self.matrix
     }
 }
 
-impl fmt::Display for JacobianMatrix {
+impl<D> fmt::Display for JacobianMatrix<D>
+where
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut content = String::from("Jacobian matrix\n");
         content.push_str("=================\n\n");
@@ -88,17 +113,20 @@ use crate::model;
 use crate::residuals;
 
 /// Evaluate a jacobian per forward finite difference when perturbation step eps is provided
-pub fn jacobian_evaluation<T>(
-    model: &mut T,
-    perturbations: &nalgebra::DVector<f64>,
+pub fn jacobian_evaluation<M, D>(
+    model: &mut M,
+    perturbations: &nalgebra::OVector<f64, D>,
     update_residuals: &residuals::ResidualsConfig,
-) -> nalgebra::DMatrix<f64>
+) -> nalgebra::OMatrix<f64, D, D>
 where
-    T: model::Model,
+    M: model::Model<D>,
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
 {
     let problem_size = model.len_problem();
-    let mut jacobian: nalgebra::DMatrix<f64> = nalgebra::DMatrix::zeros(problem_size, problem_size);
-
+    let mut jacobian: nalgebra::OMatrix<f64, D, D> =
+        super::super::omatrix_zeros_like_ovector(perturbations);
     let memory_ref = model.get_memory();
     let iteratives_ref = model.get_iteratives();
     let residuals_ref = update_residuals.evaluate_update_residuals(&model.get_residuals());
