@@ -19,12 +19,14 @@ use crate::residuals;
 /// - damping = false
 ///
 /// This function works either for finite difference or not.
+///
 /// The difference between the two cases comes
 /// from the construction of the vector of iteratives parameters
 /// Either with `default_vec_iteratives_fd()` or `default_vec_iteratives()`
 ///
-/// It is required to create the vector in the scope of the main
-/// as the argument of `Iteratives::new()` takes a reference to a slice
+/// It is required to create the vector in the scope of the calling function
+/// as `Iteratives::new()` takes as argument a reference to a slice
+///
 /// This allows to of the iteratives variables defined either :
 /// - at compile-time (through an array)
 /// - at run-time (through the generation of a vector while parsing a configuration file)

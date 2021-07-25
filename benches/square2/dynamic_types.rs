@@ -5,8 +5,6 @@ extern crate nalgebra;
 extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
 
-
-
 fn square2_nalg(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut y = x * x;
     y[0] -= 2.0;
@@ -18,7 +16,6 @@ fn dsquare2_nalg(x: &nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64> {
     y[(0, 0)] = 2.0 * x[0];
     y
 }
-
 
 fn run(c: &mut Criterion) {
     let init_nalg = nalgebra::DVector::from_vec(vec![2.0]);
@@ -78,7 +75,7 @@ fn run(c: &mut Criterion) {
     group_solver.bench_function("Newton-Raphson with finite differences", |b| {
         b.iter(|| nrf.solve(&mut user_model))
     });
-    group_solver.bench_function("Stationary Newtonw ith finite differences", |b| {
+    group_solver.bench_function("Stationary Newton with finite differences", |b| {
         b.iter(|| nrf_stationary.solve(&mut user_model))
     });
     group_solver.bench_function("Newton-Raphson with derivative provided", |b| {
@@ -89,4 +86,3 @@ fn run(c: &mut Criterion) {
 
 criterion_group!(benches, run);
 criterion_main!(benches);
-

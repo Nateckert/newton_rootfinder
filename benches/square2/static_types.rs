@@ -64,7 +64,6 @@ fn solve_problem(
 }
 
 fn static_types(c: &mut Criterion) {
-
     let mut user_model = UserModel::new(1.0);
 
     let solver_parameters = nrf::solver::SolverParameters::new(
@@ -90,8 +89,7 @@ fn static_types(c: &mut Criterion) {
         &residuals_config,
     );
 
-
-    let mut group_solver = c.benchmark_group("Solver static types");
+    let mut group_solver = c.benchmark_group("Advanced solver with static types");
 
     group_solver.bench_function("Newton-Raphson with finite differences", |b| {
         b.iter(|| solve_problem(black_box(&mut user_model), black_box(&mut rf)))

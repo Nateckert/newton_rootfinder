@@ -26,11 +26,12 @@ The time taken for resolution should be in the same proportion
 as for the function evaluation test
 
 Reference results :
-- Solver 1D:                              [37.099 ns 37.350 ns 37.602 ns]
-- Solver 1D FD:                           [60.788 ns 61.595 ns 62.524 ns]
-- Advanced solver FD:                     [686.11 ns 691.50 ns 697.20 ns]
-- Advanced solver FD StationaryNewton :   [712.83 ns 719.00 ns 725.14 ns]
-- Advanced solver FD jacobian provided :  [718.22 ns 724.01 ns 729.89 ns]
+- Minimal 1D Solver :                              [37.099 ns 37.350 ns 37.602 ns]
+- Minimal 1D Solver FD (finite differences) :      [60.788 ns 61.595 ns 62.524 ns]
+- Newton-Raphson FD dynamic types:                 [686.11 ns 691.50 ns 697.20 ns]
+- StationaryNewton FD dynamic types :              [712.83 ns 719.00 ns 725.14 ns]
+- Newton-Raphson jacobian provided dynamic types:  [718.22 ns 724.01 ns 729.89 ns]
+- Newton-Raphson FD static types:                  [16.666 ns 17.390 ns 18.298 ns]
 
 Without derivatives is 1.6 times faster than with
 Minimal solver is 11 times faster than advanced solver
