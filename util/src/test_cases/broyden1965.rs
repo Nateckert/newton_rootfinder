@@ -63,8 +63,8 @@ pub fn solution_broyden1965_case5() -> nalgebra::DVector<f64> {
     solution[4] = 15.0 - 235.0_f64.sqrt(); // approx -0.32970971675589134
     solution[3] = 15.0 - (235.0 - 20.0 * solution[4]).sqrt(); // approx -0.5433006255144477
     solution[2] = 15.0 - (235.0 - 20.0 * solution[3]).sqrt(); // approx -0.6801151944202548
-    solution[1] = 15.0 - (235.0 - 20.0 * solution[2]).sqrt(); // approx -0.5433006255144477
-    solution[0] = 15.0 - (235.0 - 20.0 * solution[1]).sqrt(); // approx -0.32970971675589134
+    solution[1] = 15.0 - (235.0 - 20.0 * solution[2]).sqrt(); // approx -0.7671273188366534
+    solution[0] = 15.0 - (235.0 - 20.0 * solution[1]).sqrt(); // approx -0.822216860374942
     solution
 }
 

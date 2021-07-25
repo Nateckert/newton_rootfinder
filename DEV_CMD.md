@@ -5,4 +5,4 @@
 
 ## Benchmarking
 
-`cargo criterion`
+`cargo bench`
