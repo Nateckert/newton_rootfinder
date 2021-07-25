@@ -56,7 +56,7 @@ where
 
     pub fn shape(&self) -> D {
         let (nrows, _ncols) = self.left.data.shape();
-        return nrows;
+        nrows
     }
 
     pub fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
