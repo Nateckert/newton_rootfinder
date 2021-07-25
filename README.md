@@ -2,7 +2,7 @@
 
 
 ![crates.io](https://img.shields.io/crates/v/newton_rootfinder.svg)
-[![Build Status](https://travis-ci.com/Nateckert/newton_rootfinder.svg?branch=master)](https://travis-ci.com/Nateckert/newton_rootfinder)
+![Build Status](https://github.com/Nateckert/newton_rootfinder/actions/workflows/ci.yml/badge.svg)
 
 `newton_rootfinder` is a scientific computing rust crate to solve nonlinear equation systems thanks to [rootfinding methods](https://en.wikipedia.org/wiki/Root-finding_algorithms).
 
