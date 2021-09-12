@@ -55,7 +55,7 @@ where
     /// This method should update the values of the outputs of the model by using as inputs the values set by the [Model::set_iteratives] method.
     ///
     /// This method is the core that defines the computations from the user model.
-    fn evaluate(&mut self);
+    fn evaluate(&mut self) -> Result<(), super::ModelError>;
 
     /// This method gets the values of the output for the solver.
     /// The return argument is in a specific format, separating left and right member of an equation.
@@ -87,14 +87,23 @@ where
     fn jacobian_provided(&self) -> bool {
         false
     }
+
+    /// Method allowing to access the jacobian matrix
+    /// This method takes a *mutable* model, as it allows to compute
+    /// the jacobian when needed and not only when the model is evaluated.
+    ///
+    /// Doing so allows for saving unnecessary jacobian evaluation,
+    /// for example during the final evaluation of the model when convergence is reached
+    ///
     /// If this method is overriden, the solver will be able to use it to evaluate the jacobian, instead of using finite-difference.
     /// If overriden, the [Model::jacobian_provided] must also be overriden to return `true`.
+    /// If overriden, the [Model::evaluate_jacobian] must also be overriden to return `true`.
     ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
-    fn get_jacobian(&self) -> residuals::JacobianValues<D> {
+    fn get_jacobian(&mut self) ->  Result<residuals::JacobianValues<D>, super::ModelError> {
         let left = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
         let right = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
-        residuals::JacobianValues::new(left, right)
+        Ok(residuals::JacobianValues::new(left, right))
     }
 
     /// This method allow the solver to memorize information after calculating the reference point

@@ -54,8 +54,9 @@ impl UserModelFromFunction {
 }
 
 impl Model<nalgebra::Dynamic> for UserModelFromFunction {
-    fn evaluate(&mut self) {
+    fn evaluate(&mut self) -> Ok {
         self.left = (self.func)(&self.inputs);
+        Ok(())
     }
 
     fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {

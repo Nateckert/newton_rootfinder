@@ -5,6 +5,9 @@
 //!
 //! Don't hesitate to check the [Model] trait documentation !
 //!
+//! If you want your model to raise errors and the rootfinding algorithm to react properly to it,
+//! check the [error::ModelError] enum documentation.
+//!
 //! # Motivations
 //!
 //! ## Access to additional computed values
@@ -55,7 +58,9 @@
 mod model_definition;
 mod model_from_closure;
 mod model_from_func;
+mod error;
 
 pub use model_definition::Model;
 pub use model_from_closure::{UserModelFromClosure, UserModelFromClosureAndJacobian};
 pub use model_from_func::{UserModelFromFunction, UserModelFromFunctionAndJacobian};
+pub use error::ModelError;

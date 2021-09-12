@@ -53,8 +53,9 @@ impl<'a> UserModelFromClosure<'a> {
 }
 
 impl<'a> Model<nalgebra::Dynamic> for UserModelFromClosure<'a> {
-    fn evaluate(&mut self) {
+    fn evaluate(&mut self) -> Result<(), super::ModelError>{
         self.left = (self.closure)(&self.inputs);
+        Ok(())
     }
 
     fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
@@ -140,8 +141,9 @@ impl<'a, 'b> UserModelFromClosureAndJacobian<'a, 'b> {
 }
 
 impl<'a, 'b> Model<nalgebra::Dynamic> for UserModelFromClosureAndJacobian<'a, 'b> {
-    fn evaluate(&mut self) {
+    fn evaluate(&mut self) -> Ok(()) {
         self.left = (self.closure)(&self.inputs);
+        Ok(())
     }
 
     fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
@@ -163,10 +165,10 @@ impl<'a, 'b> Model<nalgebra::Dynamic> for UserModelFromClosureAndJacobian<'a, 'b
     fn jacobian_provided(&self) -> bool {
         true
     }
-    fn get_jacobian(&self) -> residuals::JacobianValues<nalgebra::Dynamic> {
+    fn get_jacobian(&mut self) -> Ok(residuals::JacobianValues<nalgebra::Dynamic>) {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
-        residuals::JacobianValues::new(jac_left, jac_right)
+        Ok(residuals::JacobianValues::new(jac_left, jac_right))
     }
 }
 
