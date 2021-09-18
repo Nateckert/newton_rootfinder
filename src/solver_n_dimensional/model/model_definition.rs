@@ -1,3 +1,5 @@
+use std::error::Error;
+
 extern crate nalgebra;
 
 use crate::residuals;
@@ -37,12 +39,16 @@ use crate::residuals;
 /// Instead of this previous value, a better value would be the value from the reference point of the jacobian calculation.
 /// In this case, the value of each column of the jacobian would not depend of the order of computation of the columns.
 ///
-pub trait Model<D>
+pub trait Model<D>: Sized
 where
     D: nalgebra::Dim,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
 {
+    type InaccurateValuesError: Error;
+    type UnusableValuesError: Error;
+    type UnrecoverableError: Error;
+
     /// This method defines the dimension of the problem.
     ///
     /// It should be consistent of the length of the [Model::set_iteratives], [Model::get_iteratives] and [Model::get_residuals] argument.
@@ -55,7 +61,7 @@ where
     /// This method should update the values of the outputs of the model by using as inputs the values set by the [Model::set_iteratives] method.
     ///
     /// This method is the core that defines the computations from the user model.
-    fn evaluate(&mut self) -> Result<(), super::ModelError>;
+    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, D>>;
 
     /// This method gets the values of the output for the solver.
     /// The return argument is in a specific format, separating left and right member of an equation.
@@ -100,7 +106,7 @@ where
     /// If overriden, the [Model::evaluate_jacobian] must also be overriden to return `true`.
     ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
-    fn get_jacobian(&mut self) ->  Result<residuals::JacobianValues<D>, super::ModelError> {
+    fn get_jacobian(&mut self) ->  Result<residuals::JacobianValues<D>, super::ModelError<Self, D>> {
         let left = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
         let right = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
         Ok(residuals::JacobianValues::new(left, right))

@@ -1,4 +1,4 @@
-use std;
+use std::fmt;
 /// User model error definition
 ///
 /// If the user model raise an error,
@@ -29,8 +29,42 @@ use std;
 ///
 /// The rootfinder algorithm will not act on the subclassification,
 /// but the information can be reported in errors logs.
-pub enum ModelError {
-    InaccurateValuesError(Box<dyn std::error::Error>),
-    InvalidValuesError(Box<dyn std::error::Error>),
-    UnrecoverableError(Box<dyn std::error::Error>)
+pub enum ModelError<M, D>
+where
+    M: super::Model<D>,
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+{
+    InaccurateValuesError(M::InaccurateValuesError),
+    UnusableValuesError(M::UnusableValuesError),
+    UnrecoverableError(M::UnrecoverableError),
+}
+
+impl<M, D> fmt::Display for ModelError<M, D>
+where
+    M: super::Model<D>,
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::InaccurateValuesError(error) => write!(f, "InaccurateValues Error: {}", error),
+            Self::UnusableValuesError(error) => write!(f, "UnusableValuesError Error: {}", error),
+            Self::UnrecoverableError(error) => write!(f, "UnrecoverableError Error: {}", error),
+        }
+    }
+}
+
+impl<M, D> fmt::Debug for ModelError<M, D>
+where
+    M: super::Model<D>,
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
 }

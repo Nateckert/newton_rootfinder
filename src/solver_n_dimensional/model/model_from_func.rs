@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use super::Model;
 
 use crate::residuals;
@@ -54,7 +56,11 @@ impl UserModelFromFunction {
 }
 
 impl Model<nalgebra::Dynamic> for UserModelFromFunction {
-    fn evaluate(&mut self) -> Ok {
+    type InaccurateValuesError = Infallible; 
+    type UnusableValuesError = Infallible;
+    type UnrecoverableError = Infallible;
+
+    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.func)(&self.inputs);
         Ok(())
     }
@@ -105,7 +111,7 @@ impl Model<nalgebra::Dynamic> for UserModelFromFunction {
 /// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 ///
 /// assert_eq!(user_model.jacobian_provided(), true);
-/// let jacobians_values = user_model.get_jacobian();
+/// let jacobians_values = user_model.get_jacobian().unwrap();
 /// let (jac_left, jac_right) = jacobians_values.get_jacobians();
 /// assert_eq!(jac_left[(0,0)], 4.0);
 /// assert_eq!(jac_right[(0,0)], 0.0);
@@ -141,8 +147,13 @@ impl UserModelFromFunctionAndJacobian {
 }
 
 impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
-    fn evaluate(&mut self) {
+    type InaccurateValuesError = Infallible; 
+    type UnusableValuesError = Infallible;
+    type UnrecoverableError = Infallible;
+
+    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.func)(&self.inputs);
+        Ok(())
     }
 
     fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
@@ -164,10 +175,10 @@ impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
     fn jacobian_provided(&self) -> bool {
         true
     }
-    fn get_jacobian(&self) -> residuals::JacobianValues<nalgebra::Dynamic> {
+    fn get_jacobian(&mut self) -> Result<residuals::JacobianValues<nalgebra::Dynamic>, super::ModelError<Self, nalgebra::Dynamic>> {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
-        residuals::JacobianValues::new(jac_left, jac_right)
+        Ok(residuals::JacobianValues::new(jac_left, jac_right))
     }
 }
 

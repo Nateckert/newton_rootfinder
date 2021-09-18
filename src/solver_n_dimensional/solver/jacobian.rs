@@ -137,7 +137,7 @@ where
         iteratives_perturbations[i] += perturbations[i];
 
         model.set_iteratives(&iteratives_perturbations);
-        model.evaluate();
+        model.evaluate().unwrap();
 
         let residuals_perturbation =
             update_residuals.evaluate_update_residuals(&model.get_residuals());

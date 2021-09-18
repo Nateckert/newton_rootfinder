@@ -165,7 +165,7 @@ where
     {
         let residuals_values = model.get_residuals();
 
-        let jacobians = model.get_jacobian();
+        let jacobians = model.get_jacobian().unwrap();
         let normalization_method = self.residuals_config.get_update_methods();
         self.jacobian
             .update_jacobian(jacobians.normalize(&residuals_values, &normalization_method));
@@ -349,7 +349,7 @@ where
                 let damped_guess =
                     current_guess * (1.0 - damping_factor) + proposed_guess * damping_factor;
                 model.set_iteratives(&damped_guess);
-                model.evaluate();
+                model.evaluate().unwrap();
                 *errors_next = self.evaluate_errors(model);
 
                 if self.debug {
@@ -372,7 +372,7 @@ where
         let current_guess = model.get_iteratives();
 
         model.set_iteratives(proposed_guess);
-        model.evaluate();
+        model.evaluate().unwrap();
         let mut errors_next = self.evaluate_errors(model);
 
         if self.debug {
@@ -408,7 +408,7 @@ where
         M: model::Model<D>,
     {
         model.set_iteratives(&self.initial_guess);
-        model.evaluate();
+        model.evaluate().unwrap();
 
         let mut errors = self.evaluate_errors(model);
         let mut max_error = errors.amax();
