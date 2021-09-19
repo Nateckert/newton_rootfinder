@@ -106,7 +106,7 @@ where
     /// If overriden, the [Model::evaluate_jacobian] must also be overriden to return `true`.
     ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
-    fn get_jacobian(&mut self) ->  Result<residuals::JacobianValues<D>, super::ModelError<Self, D>> {
+    fn get_jacobian(&mut self) -> Result<residuals::JacobianValues<D>, super::ModelError<Self, D>> {
         let left = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
         let right = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
         Ok(residuals::JacobianValues::new(left, right))

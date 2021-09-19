@@ -72,6 +72,12 @@ where
     pub fn get_jacobian(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
         &self.matrix
     }
+    /// Invalidate a jacobian
+    /// For example, if there is an error computing it
+    pub fn invalidate_jacobian(&mut self) {
+        self.matrix = None;
+        self.inverse = None;
+    }
 }
 
 impl<D> fmt::Display for JacobianMatrix<D>
@@ -110,6 +116,7 @@ where
 }
 
 use crate::model;
+use crate::model::ModelError;
 use crate::residuals;
 
 /// Evaluate a jacobian per forward finite difference when perturbation step eps is provided
@@ -117,7 +124,7 @@ pub fn jacobian_evaluation<M, D>(
     model: &mut M,
     perturbations: &nalgebra::OVector<f64, D>,
     update_residuals: &residuals::ResidualsConfig,
-) -> nalgebra::OMatrix<f64, D, D>
+) -> Result<nalgebra::OMatrix<f64, D, D>, ModelError<M, D>>
 where
     M: model::Model<D>,
     D: nalgebra::Dim,
@@ -137,7 +144,10 @@ where
         iteratives_perturbations[i] += perturbations[i];
 
         model.set_iteratives(&iteratives_perturbations);
-        model.evaluate().unwrap();
+        match model.evaluate() {
+            Ok(()) => (),
+            Err(model_error) => return Err(model_error),
+        }
 
         let residuals_perturbation =
             update_residuals.evaluate_update_residuals(&model.get_residuals());
@@ -156,5 +166,5 @@ where
         model.set_memory(&memory_ref); // restart from reference state
     }
 
-    jacobian
+    Ok(jacobian)
 }

@@ -96,7 +96,7 @@
 //! # }
 //! #
 //! impl Model<nalgebra::Dynamic> for UserModel {
-//! #   type InaccurateValuesError = Infallible; 
+//! #   type InaccurateValuesError = Infallible;
 //! #   type UnusableValuesError = Infallible;
 //! #   type UnrecoverableError = Infallible;
 //! // ...
@@ -306,7 +306,7 @@
 //! }
 //!
 //! impl Model<nalgebra::Const<1>> for UserModel {
-//!     type InaccurateValuesError = Infallible; 
+//!     type InaccurateValuesError = Infallible;
 //!     type UnusableValuesError = Infallible;
 //!     type UnrecoverableError = Infallible;
 //!     fn len_problem(&self) -> usize {
@@ -381,5 +381,7 @@ pub use solver_n_dimensional::residuals;
 pub use solver_n_dimensional::solver;
 
 pub use solver_n_dimensional::xml_parser;
+
+pub use solver_n_dimensional::errors;
 
 mod solver_n_dimensional;

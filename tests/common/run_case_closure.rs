@@ -8,7 +8,7 @@ use nrf::residuals;
 
 pub fn run_closure_case_fd(
     problem_size: usize,
-    closure: &dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
+    closure: &'static dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
     init: nalgebra::DVector<f64>,
     solution: nalgebra::DVector<f64>,
     resolution_method: nrf::solver::ResolutionMethod,
@@ -42,8 +42,8 @@ pub fn run_closure_case_fd(
 
 pub fn run_closure_case_jac(
     problem_size: usize,
-    closure: &dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
-    jac: &dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
+    closure: &'static dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
+    jac: &'static dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
     init: nalgebra::DVector<f64>,
     solution: nalgebra::DVector<f64>,
     resolution_method: nrf::solver::ResolutionMethod,

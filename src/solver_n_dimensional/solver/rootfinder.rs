@@ -5,6 +5,7 @@ extern crate nalgebra;
 use crate::iteratives;
 use crate::iteratives::Iterative;
 use crate::model;
+use crate::model::ModelError;
 use crate::residuals;
 
 use super::greenstadt_second_method_udpate_jac;
@@ -159,19 +160,29 @@ where
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    fn compute_jac_func<M>(&mut self, model: &mut M)
+    fn compute_jac_func<M>(&mut self, model: &mut M) -> Result<(), crate::model::ModelError<M, D>>
     where
         M: model::Model<D>,
     {
         let residuals_values = model.get_residuals();
 
-        let jacobians = model.get_jacobian().unwrap();
-        let normalization_method = self.residuals_config.get_update_methods();
-        self.jacobian
-            .update_jacobian(jacobians.normalize(&residuals_values, &normalization_method));
+        let jacobians = model.get_jacobian();
+        match jacobians {
+            Ok(valid_jacobians) => {
+                let normalization_method = self.residuals_config.get_update_methods();
+                self.jacobian.update_jacobian(
+                    valid_jacobians.normalize(&residuals_values, &normalization_method),
+                );
+                Ok(())
+            }
+            Err(error) => {
+                self.jacobian.invalidate_jacobian();
+                Err(error)
+            }
+        }
     }
 
-    fn compute_jac_fd<M>(&mut self, model: &mut M)
+    fn compute_jac_fd<M>(&mut self, model: &mut M) -> Result<(), crate::model::ModelError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -179,38 +190,60 @@ where
 
         let perturbations = self.iters_params.compute_perturbations(&iters_values);
 
-        self.jacobian.update_jacobian(jacobian_evaluation(
-            model,
-            &perturbations,
-            &(self.residuals_config),
-        ));
-    }
-
-    fn compute_jac<M>(&mut self, model: &mut M)
-    where
-        M: model::Model<D>,
-    {
-        if model.jacobian_provided() {
-            self.compute_jac_func(model);
-        } else {
-            self.compute_jac_fd(model);
+        let jacobian = jacobian_evaluation(model, &perturbations, &(self.residuals_config));
+        match jacobian {
+            Ok(valid_jacobian) => {
+                self.jacobian.update_jacobian(valid_jacobian);
+                Ok(())
+            }
+            Err(model_error) => Err(model_error),
         }
-
-        self.compute_jac_next_iter = false;
-        self.last_iter_with_computed_jacobian = self.iter;
     }
 
-    fn compute_newton_raphson_step<M>(&mut self, model: &mut M) -> nalgebra::OVector<f64, D>
+    fn compute_jac<M: 'static>(
+        &mut self,
+        model: &mut M,
+    ) -> Result<(), crate::errors::SolverInternalError>
     where
         M: model::Model<D>,
     {
-        self.compute_jac(model);
+        let successful_jac_computation = if model.jacobian_provided() {
+            self.compute_jac_func(model)
+        } else {
+            self.compute_jac_fd(model)
+        };
+
+        match successful_jac_computation {
+            Ok(()) | Err(ModelError::InaccurateValuesError(_)) => {
+                self.compute_jac_next_iter = false;
+                self.last_iter_with_computed_jacobian = self.iter;
+                Ok(())
+            }
+            Err(model_error) => {
+                self.compute_jac_next_iter = true;
+                Err(crate::errors::SolverInternalError::InvalidJacobianError(
+                    Box::new(model_error),
+                ))
+            }
+        }
+    }
+
+    fn compute_newton_raphson_step<M: 'static>(
+        &mut self,
+        model: &mut M,
+    ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError>
+    where
+        M: model::Model<D>,
+    {
+        let successful_jac_computation = self.compute_jac(model);
 
         if self.debug {
             self.jac_to_log();
         }
-
-        self.compute_next_from_inv_jac(model)
+        match successful_jac_computation {
+            Ok(()) => Ok(self.compute_next_from_inv_jac(model)),
+            Err(error) => Err(error),
+        }
     }
 
     fn approximate_jacobian(&mut self, method: UpdateQuasiNewtonMethod) {
@@ -280,16 +313,31 @@ where
         self.jacobian.update_inverse(inv_jac_next);
     }
 
-    fn compute_quasi_newton_step<M>(
+    /// Perform the jacobian evaluation
+    ///
+    /// Based on the resolution method:
+    /// - the jacobian can be computed and inverted
+    /// - the jacobian can be approximated and inverted
+    /// - the inverse of the jacobian can be approximated
+    fn evaluate_jacobian_quasi_newton_step<M: 'static>(
         &mut self,
         model: &mut M,
         resolution_method: QuasiNewtonMethod,
-    ) -> nalgebra::OVector<f64, D>
+    ) -> Result<(), crate::errors::SolverInternalError>
     where
         M: model::Model<D>,
     {
         if self.compute_jac_next_iter {
-            self.compute_jac(model);
+            let successful_jac_computation = self.compute_jac(model);
+            match successful_jac_computation {
+                Ok(()) => (),
+                Err(error) => {
+                    if self.debug {
+                        self.jac_to_log();
+                    }
+                    return Err(error);
+                }
+            }
         } else {
             match resolution_method {
                 QuasiNewtonMethod::StationaryNewton => (),
@@ -306,7 +354,23 @@ where
             self.jac_to_log();
         }
 
-        self.compute_next_from_inv_jac(model)
+        Ok(())
+    }
+
+    fn compute_quasi_newton_step<M: 'static>(
+        &mut self,
+        model: &mut M,
+        resolution_method: QuasiNewtonMethod,
+    ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError>
+    where
+        M: model::Model<D>,
+    {
+        match self.evaluate_jacobian_quasi_newton_step(model, resolution_method) {
+            Ok(()) => Ok(self.compute_next_from_inv_jac(model)),
+            Err(crate::errors::SolverInternalError::InvalidJacobianError(error)) => Err(
+                crate::errors::SolverInternalError::InvalidJacobianError(error),
+            ),
+        }
     }
 
     fn compute_next_from_inv_jac<M>(&self, model: &M) -> nalgebra::OVector<f64, D>
@@ -403,7 +467,7 @@ where
     }
 
     /// The core function performing the resolution on a given `Model`
-    pub fn solve<M>(&mut self, model: &mut M)
+    pub fn solve<M: 'static>(&mut self, model: &mut M)
     where
         M: model::Model<D>,
     {
@@ -442,7 +506,7 @@ where
                 }
             };
 
-            errors = self.update_model(model, &proposed_guess);
+            errors = self.update_model(model, &proposed_guess.unwrap());
             max_error = errors.amax();
         }
     }

@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fmt;
 /// User model error definition
 ///
@@ -67,4 +68,13 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self, f)
     }
+}
+
+impl<M, D> Error for ModelError<M, D>
+where
+    M: super::Model<D>,
+    D: nalgebra::Dim,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+{
 }

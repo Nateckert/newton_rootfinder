@@ -24,7 +24,7 @@ fn jacobian_evaluation_non_linear() {
     let update_residuals = stopping_residuals.clone();
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_residuals);
     let perturbations = nalgebra::DVector::from_vec(vec![0.0001; problem_size]);
-    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config);
+    let jac = jacobian_evaluation(&mut user_model, &perturbations, &res_config).unwrap();
 
     assert_eq!(jac[(0, 0)], 0.9999999999976694);
     assert_eq!(jac[(0, 1)], 4.000000000008441);

@@ -56,7 +56,7 @@ impl UserModelFromFunction {
 }
 
 impl Model<nalgebra::Dynamic> for UserModelFromFunction {
-    type InaccurateValuesError = Infallible; 
+    type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
     type UnrecoverableError = Infallible;
 
@@ -147,7 +147,7 @@ impl UserModelFromFunctionAndJacobian {
 }
 
 impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
-    type InaccurateValuesError = Infallible; 
+    type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
     type UnrecoverableError = Infallible;
 
@@ -175,7 +175,12 @@ impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
     fn jacobian_provided(&self) -> bool {
         true
     }
-    fn get_jacobian(&mut self) -> Result<residuals::JacobianValues<nalgebra::Dynamic>, super::ModelError<Self, nalgebra::Dynamic>> {
+    fn get_jacobian(
+        &mut self,
+    ) -> Result<
+        residuals::JacobianValues<nalgebra::Dynamic>,
+        super::ModelError<Self, nalgebra::Dynamic>,
+    > {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         Ok(residuals::JacobianValues::new(jac_left, jac_right))
@@ -201,7 +206,7 @@ mod tests {
         let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
         let mut user_model = UserModelFromFunction::new(1, square);
         user_model.set_iteratives(&iteratives);
-        user_model.evaluate();
+        user_model.evaluate().unwrap();
 
         assert_eq!(user_model.len_problem(), 1);
         assert_eq!(
@@ -216,7 +221,7 @@ mod tests {
         let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
         let mut user_model = UserModelFromFunctionAndJacobian::new(1, square, dsquare);
         user_model.set_iteratives(&iteratives);
-        user_model.evaluate();
+        user_model.evaluate().unwrap();
 
         assert_eq!(user_model.len_problem(), 1);
         assert_eq!(

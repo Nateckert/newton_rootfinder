@@ -1,5 +1,5 @@
-use std::convert::Infallible;
 use newton_rootfinder as nrf;
+use std::convert::Infallible;
 
 use nrf::{model::Model, residuals::NormalizationMethod};
 
@@ -25,7 +25,7 @@ impl UserModel {
 }
 
 impl Model<nalgebra::Const<1>> for UserModel {
-    type InaccurateValuesError = Infallible; 
+    type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
     type UnrecoverableError = Infallible;
 
@@ -40,7 +40,7 @@ impl Model<nalgebra::Const<1>> for UserModel {
         self.iteratives
     }
 
-    fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<Self, nalgebra::Const<1>>>{
+    fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<Self, nalgebra::Const<1>>> {
         self.output = square2(&self.iteratives);
         Ok(())
     }
