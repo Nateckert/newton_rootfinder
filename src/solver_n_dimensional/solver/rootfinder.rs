@@ -530,7 +530,7 @@ where
         }
 
         if max_error > self.parameters.get_tolerance() {
-            Err(crate::errors::SolverError::NonConvergence("Convergence not reached".to_string()))
+            Err(crate::errors::SolverError::NonConvergence)
         } else {
             Ok(())
         }

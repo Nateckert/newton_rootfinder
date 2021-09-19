@@ -1,4 +1,5 @@
 //! Solver errors
+use std::error::Error;
 use std::fmt;
 
 /// Errors for solver control flow
@@ -19,9 +20,22 @@ pub struct NonInvertibleJacobian;
 
 #[derive(Debug)]
 pub enum SolverError {
-    NonConvergence(String),
+    NonConvergence,
     ModelInitialEvaluationError(String),
 }
+
+impl fmt::Display for SolverError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::NonConvergence => write!(f, "Convergence not reached"),
+            Self::ModelInitialEvaluationError(error) => {
+                write!(f, "Initial model evaluation failed: {}", error)
+            }
+        }
+    }
+}
+
+impl Error for SolverError {}
 
 impl<M, D> fmt::Display for SolverInternalError<M, D>
 where

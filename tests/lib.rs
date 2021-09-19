@@ -1,5 +1,6 @@
 mod advanced_parametrization;
 mod common;
+mod errors;
 mod jacobian;
 mod log;
 mod model;
