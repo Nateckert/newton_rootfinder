@@ -200,10 +200,10 @@ where
         }
     }
 
-    fn compute_jac<M: 'static>(
+    fn compute_jac<M>(
         &mut self,
         model: &mut M,
-    ) -> Result<(), crate::errors::SolverInternalError>
+    ) -> Result<(), crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -222,16 +222,16 @@ where
             Err(model_error) => {
                 self.compute_jac_next_iter = true;
                 Err(crate::errors::SolverInternalError::InvalidJacobianError(
-                    Box::new(model_error),
+                    model_error,
                 ))
             }
         }
     }
 
-    fn compute_newton_raphson_step<M: 'static>(
+    fn compute_newton_raphson_step<M>(
         &mut self,
         model: &mut M,
-    ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError>
+    ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -319,11 +319,11 @@ where
     /// - the jacobian can be computed and inverted
     /// - the jacobian can be approximated and inverted
     /// - the inverse of the jacobian can be approximated
-    fn evaluate_jacobian_quasi_newton_step<M: 'static>(
+    fn evaluate_jacobian_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
         resolution_method: QuasiNewtonMethod,
-    ) -> Result<(), crate::errors::SolverInternalError>
+    ) -> Result<(), crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -357,11 +357,11 @@ where
         Ok(())
     }
 
-    fn compute_quasi_newton_step<M: 'static>(
+    fn compute_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
         resolution_method: QuasiNewtonMethod,
-    ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError>
+    ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -467,7 +467,7 @@ where
     }
 
     /// The core function performing the resolution on a given `Model`
-    pub fn solve<M: 'static>(&mut self, model: &mut M)
+    pub fn solve<M>(&mut self, model: &mut M)
     where
         M: model::Model<D>,
     {
