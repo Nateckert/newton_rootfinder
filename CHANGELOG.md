@@ -5,10 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## Unrealesed
 ## Added
-- Error definition
+- Error definition and handling
 ## Changed
-- *Breaking change*: method signature `evaluate_model(&mut self)` to `evaluate_model(&mut self) -> Result<(), model::ModelError>`
-- *Breaking change*: method signature `get_jacobian(&self) -> residuals::JacobianValues<D>` to `get_jacobian(&mut self) -> Result<residuals::JacobianValues<D>, model::ModelError>` in the model trait.
+- *Breaking change*: method signature `Rootfinder::solve(&mut self, model: &mut M)` to ``Rootfinder::solve(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError>`
+- *Breaking change*: method signature `Model::evaluate(&mut self)` to `Model::evaluate(&mut self) -> Result<(), model::ModelError>`
+- *Breaking change*: method signature `Model::get_jacobian(&self) -> residuals::JacobianValues<D>` to `Model::get_jacobian(&mut self) -> Result<residuals::JacobianValues<D>, model::ModelError>` in the model trait.
 ## [0.8.0] - 2021-07-25
 ### Changed
 - Upgrade to nalgebra 0.28
