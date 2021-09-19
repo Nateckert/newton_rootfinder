@@ -12,12 +12,16 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
 {
     InvalidJacobianError(crate::model::ModelError<M, D>),
+    InvalidJacobianInverseError,
 }
 
+pub struct NonInvertibleJacobian;
+
+#[derive(Debug)]
 pub enum SolverError {
-    NonConvergence,
+    NonConvergence(String),
+    ModelInitialEvaluationError(String),
 }
-
 
 impl<M, D> fmt::Display for SolverInternalError<M, D>
 where
@@ -29,7 +33,7 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::InvalidJacobianError(error) => write!(f, "Invalid jacobian: {}", error),
-
+            Self::InvalidJacobianInverseError => write!(f, "Non invertible jacobian"),
         }
     }
 }

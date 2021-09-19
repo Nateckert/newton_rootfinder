@@ -18,7 +18,7 @@ fn jacobian_evaluation_non_linear() {
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, non_linear);
     let inputs = nalgebra::DVector::from_vec(vec![1.0, 2.0]);
     user_model.set_iteratives(&inputs);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();

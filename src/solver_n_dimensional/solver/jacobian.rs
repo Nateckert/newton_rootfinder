@@ -1,6 +1,8 @@
 use std::fmt;
 
-fn compute_inverse<D>(matrix: &nalgebra::OMatrix<f64, D, D>) -> nalgebra::OMatrix<f64, D, D>
+fn compute_inverse<D>(
+    matrix: &nalgebra::OMatrix<f64, D, D>,
+) -> Result<nalgebra::OMatrix<f64, D, D>, crate::errors::NonInvertibleJacobian>
 where
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
@@ -9,8 +11,8 @@ where
     let lu_jac = matrix.to_owned().lu();
 
     match lu_jac.try_inverse() {
-        Some(inv_jac) => inv_jac,
-        None => panic!("The jacobian matrix is non invertible"),
+        Some(inv_jac) => Ok(inv_jac),
+        None => Err(crate::errors::NonInvertibleJacobian),
     }
 }
 
@@ -51,8 +53,15 @@ where
     /// When updating the jacobian,
     /// the inverse has to be recomputed
     pub fn update_jacobian(&mut self, matrix: nalgebra::OMatrix<f64, D, D>) {
-        self.inverse = Some(compute_inverse(&matrix));
-        self.matrix = Some(matrix);
+        match compute_inverse(&matrix) {
+            Ok(inverse_matrix) => {
+                self.inverse = Some(inverse_matrix);
+                self.matrix = Some(matrix);
+            }
+            Err(_) => {
+                self.invalidate_jacobian();
+            }
+        }
     }
 
     /// When updating the inverse,

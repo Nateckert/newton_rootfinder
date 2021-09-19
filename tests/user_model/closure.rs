@@ -22,7 +22,6 @@ fn solve_with_closure() {
         nrf::solver::ResolutionMethod::NewtonRaphson,
         damping,
     );
-
 }
 
 #[test]

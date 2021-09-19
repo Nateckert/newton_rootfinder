@@ -28,7 +28,7 @@ pub fn run_function_case_fd(
     );
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, func);
 
-    rf.solve(&mut user_model);
+    rf.solve(&mut user_model).unwrap();
 
     for i in 0..problem_size {
         assert!(float_cmp::approx_eq!(
@@ -63,7 +63,7 @@ pub fn run_function_case_jac(
     );
     let mut user_model = nrf::model::UserModelFromFunctionAndJacobian::new(problem_size, func, jac);
 
-    rf.solve(&mut user_model);
+    rf.solve(&mut user_model).unwrap();
 
     for i in 0..problem_size {
         assert!(float_cmp::approx_eq!(

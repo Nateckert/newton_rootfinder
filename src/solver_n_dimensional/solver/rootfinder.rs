@@ -370,6 +370,9 @@ where
             Err(crate::errors::SolverInternalError::InvalidJacobianError(error)) => Err(
                 crate::errors::SolverInternalError::InvalidJacobianError(error),
             ),
+            Err(crate::errors::SolverInternalError::InvalidJacobianInverseError) => {
+                Err(crate::errors::SolverInternalError::InvalidJacobianInverseError)
+            }
         }
     }
 
@@ -467,12 +470,28 @@ where
     }
 
     /// The core function performing the resolution on a given `Model`
-    pub fn solve<M>(&mut self, model: &mut M)
+    pub fn solve<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError>
     where
         M: model::Model<D>,
     {
         model.set_iteratives(&self.initial_guess);
-        model.evaluate().unwrap();
+
+        // The first evaluation must yield usuable values
+        // However, then don't need to be accurate
+        match model.evaluate() {
+            Ok(()) => (),
+            Err(ModelError::InaccurateValuesError(_)) => (),
+            Err(ModelError::UnusableValuesError(error)) => {
+                return Err(crate::errors::SolverError::ModelInitialEvaluationError(
+                    error.to_string(),
+                ))
+            }
+            Err(ModelError::UnrecoverableError(error)) => {
+                return Err(crate::errors::SolverError::ModelInitialEvaluationError(
+                    error.to_string(),
+                ))
+            }
+        }
 
         let mut errors = self.evaluate_errors(model);
         let mut max_error = errors.amax();
@@ -508,6 +527,12 @@ where
 
             errors = self.update_model(model, &proposed_guess.unwrap());
             max_error = errors.amax();
+        }
+
+        if max_error > self.parameters.get_tolerance() {
+            Err(crate::errors::SolverError::NonConvergence("Convergence not reached".to_string()))
+        } else {
+            Ok(())
         }
     }
 

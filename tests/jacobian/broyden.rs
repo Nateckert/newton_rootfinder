@@ -17,7 +17,7 @@ fn jacobian_evaluation_broyden1965_case5() {
     let mut user_model =
         nrf::model::UserModelFromFunction::new(problem_size, broyden1965::broyden1965_case5);
     user_model.set_iteratives(&inputs);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
@@ -36,7 +36,7 @@ fn jacobian_evaluation_broyden1965_case6() {
     let mut user_model =
         nrf::model::UserModelFromFunction::new(problem_size, broyden1965::broyden1965_case6);
     user_model.set_iteratives(&inputs);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
@@ -59,7 +59,7 @@ fn jacobian_evaluation_broyden1965_case7() {
         nrf::model::UserModelFromFunction::new(problem_size, broyden1965::broyden1965_case7);
 
     user_model.set_iteratives(&inputs);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
@@ -79,7 +79,7 @@ fn jacobian_evaluation_broyden1965_case8() {
         nrf::model::UserModelFromFunction::new(problem_size, broyden1965::broyden1965_case8);
 
     user_model.set_iteratives(&inputs);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
@@ -99,7 +99,7 @@ fn jacobian_evaluation_broyden1965_case9() {
         nrf::model::UserModelFromFunction::new(problem_size, broyden1965::broyden1965_case9);
 
     user_model.set_iteratives(&inputs);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();
@@ -119,7 +119,7 @@ fn jacobian_evaluation_broyden1965_case10() {
         nrf::model::UserModelFromFunction::new(problem_size, broyden1965::broyden1965_case10);
 
     user_model.set_iteratives(&inputs);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
 
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_residuals = stopping_residuals.clone();

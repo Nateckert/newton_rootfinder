@@ -77,7 +77,7 @@ fn static_types() {
         &residuals_config,
     );
 
-    rf.solve(&mut user_model);
+    rf.solve(&mut user_model).unwrap();
 
     assert!(float_cmp::approx_eq!(
         f64,

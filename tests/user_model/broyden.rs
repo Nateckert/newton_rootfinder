@@ -20,7 +20,7 @@ fn broyden_case5_jac() {
     );
 
     user_model.set_iteratives(&init_guess);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
     let jacobians = user_model.get_jacobian().unwrap();
     let (left_jac, right_jac) = jacobians.get_jacobians();
 
@@ -43,7 +43,7 @@ fn broyden_case6_jac() {
     );
 
     user_model.set_iteratives(&init_guess);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
     let jacobians = user_model.get_jacobian().unwrap();
     let (left_jac, right_jac) = jacobians.get_jacobians();
 
@@ -66,7 +66,7 @@ fn broyden_case7_jac() {
     );
 
     user_model.set_iteratives(&init_guess);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
     let jacobians = user_model.get_jacobian().unwrap();
     let (left_jac, right_jac) = jacobians.get_jacobians();
 
@@ -89,7 +89,7 @@ fn broyden_case8_jac() {
     );
 
     user_model.set_iteratives(&init_guess);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
     let jacobians = user_model.get_jacobian().unwrap();
     let (left_jac, right_jac) = jacobians.get_jacobians();
 
@@ -112,7 +112,7 @@ fn broyden_case9_jac() {
     );
 
     user_model.set_iteratives(&init_guess);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
     let jacobians = user_model.get_jacobian().unwrap();
     let (left_jac, right_jac) = jacobians.get_jacobians();
 
@@ -135,7 +135,7 @@ fn broyden_case10_jac() {
     );
 
     user_model.set_iteratives(&init_guess);
-    user_model.evaluate();
+    user_model.evaluate().unwrap();
     let jacobians = user_model.get_jacobian().unwrap();
     let (left_jac, right_jac) = jacobians.get_jacobians();
 

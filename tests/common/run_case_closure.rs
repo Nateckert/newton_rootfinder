@@ -28,7 +28,7 @@ pub fn run_closure_case_fd(
     );
     let mut user_model = nrf::model::UserModelFromClosure::new(problem_size, closure);
 
-    rf.solve(&mut user_model);
+    rf.solve(&mut user_model).unwrap();
 
     for i in 0..problem_size {
         assert!(float_cmp::approx_eq!(
@@ -64,7 +64,7 @@ pub fn run_closure_case_jac(
     let mut user_model =
         nrf::model::UserModelFromClosureAndJacobian::new(problem_size, closure, jac);
 
-    rf.solve(&mut user_model);
+    rf.solve(&mut user_model).unwrap();
 
     for i in 0..problem_size {
         assert!(float_cmp::approx_eq!(
