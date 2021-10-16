@@ -10,6 +10,8 @@
 
 This crate implements [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) and other derived methods.
 
+To see a visualization of this method, you can watch this video: [Newton's fractal](https://www.youtube.com/watch?v=-RdOwhmqP5s)
+
 This crate provides methods applicable for n-dimensional problems.
 
 It provides several parametrization options and a simulation log to monitor the resolution process.
