@@ -8,12 +8,13 @@ use crate::model;
 use crate::model::ModelError;
 use crate::residuals;
 
-use super::greenstadt_second_method_udpate_jac;
-use super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
-use super::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
-use super::{jacobian_evaluation, JacobianMatrix, SolverParameters};
-use super::{quasi_method_update_inv_jac, quasi_method_update_jac};
-use super::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
+use super::{
+    evaluate_jacobian_from_analytical_function, evaluate_jacobian_from_finite_difference,
+    approximate_jacobian, approximate_inv_jacobian,
+    JacobianMatrix, SolverParameters,
+};
+
+use super::{QuasiNewtonMethod, ResolutionMethod};
 
 /// Solver for rootfinding
 ///
@@ -160,46 +161,6 @@ where
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    fn compute_jac_func<M>(&mut self, model: &mut M) -> Result<(), crate::model::ModelError<M, D>>
-    where
-        M: model::Model<D>,
-    {
-        let residuals_values = model.get_residuals();
-
-        let jacobians = model.get_jacobian();
-        match jacobians {
-            Ok(valid_jacobians) => {
-                let normalization_method = self.residuals_config.get_update_methods();
-                self.jacobian.update_jacobian(
-                    valid_jacobians.normalize(&residuals_values, &normalization_method),
-                );
-                Ok(())
-            }
-            Err(error) => {
-                self.jacobian.invalidate_jacobian();
-                Err(error)
-            }
-        }
-    }
-
-    fn compute_jac_fd<M>(&mut self, model: &mut M) -> Result<(), crate::model::ModelError<M, D>>
-    where
-        M: model::Model<D>,
-    {
-        let iters_values = model.get_iteratives();
-
-        let perturbations = self.iters_params.compute_perturbations(&iters_values);
-
-        let jacobian = jacobian_evaluation(model, &perturbations, &(self.residuals_config));
-        match jacobian {
-            Ok(valid_jacobian) => {
-                self.jacobian.update_jacobian(valid_jacobian);
-                Ok(())
-            }
-            Err(model_error) => Err(model_error),
-        }
-    }
-
     fn compute_jac<M>(
         &mut self,
         model: &mut M,
@@ -208,9 +169,18 @@ where
         M: model::Model<D>,
     {
         let successful_jac_computation = if model.jacobian_provided() {
-            self.compute_jac_func(model)
+            evaluate_jacobian_from_analytical_function(
+                &mut self.jacobian,
+                model,
+                self.residuals_config,
+            )
         } else {
-            self.compute_jac_fd(model)
+            evaluate_jacobian_from_finite_difference(
+                &mut self.jacobian,
+                model,
+                self.iters_params,
+                self.residuals_config
+            )
         };
 
         match successful_jac_computation {
@@ -246,73 +216,6 @@ where
         }
     }
 
-    fn approximate_jacobian(&mut self, method: UpdateQuasiNewtonMethod) {
-        let jac_next = match method {
-            UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_jac(
-                self.jacobian.get_jacobian().as_ref().unwrap(),
-                self.iteratives_step_size.as_ref().unwrap(),
-                self.residuals_step_size.as_ref().unwrap(),
-            ),
-            UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_udpate_jac(
-                self.jacobian.get_jacobian().as_ref().unwrap(),
-                self.iteratives_step_size.as_ref().unwrap(),
-                self.residuals_step_size.as_ref().unwrap(),
-            ),
-            UpdateQuasiNewtonMethod::GreenstadtFirstMethod => quasi_method_update_jac(
-                self.jacobian.get_jacobian().as_ref().unwrap(),
-                self.iteratives_step_size.as_ref().unwrap(),
-                self.residuals_step_size.as_ref().unwrap(),
-                self.residuals_values_current.as_ref().unwrap(),
-            ),
-            UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
-                let c = self.jacobian.get_inverse().as_ref().unwrap()
-                    * self.residuals_step_size.as_ref().unwrap();
-                greenstadt_second_method_udpate_jac(
-                    self.jacobian.get_jacobian().as_ref().unwrap(),
-                    self.iteratives_step_size.as_ref().unwrap(),
-                    self.residuals_step_size.as_ref().unwrap(),
-                    &c,
-                )
-            }
-        };
-
-        self.jacobian.update_jacobian(jac_next);
-    }
-
-    fn approximate_inv_jacobian(&mut self, method: UpdateQuasiNewtonMethod) {
-        let inv_jac_next = match method {
-            UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_inv_jac(
-                self.jacobian.get_inverse().as_ref().unwrap(),
-                self.iteratives_step_size.as_ref().unwrap(),
-                self.residuals_step_size.as_ref().unwrap(),
-            ),
-            UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_udpate_inv_jac(
-                self.jacobian.get_inverse().as_ref().unwrap(),
-                self.iteratives_step_size.as_ref().unwrap(),
-                self.residuals_step_size.as_ref().unwrap(),
-            ),
-            UpdateQuasiNewtonMethod::GreenstadtFirstMethod => quasi_method_update_inv_jac(
-                self.jacobian.get_inverse().as_ref().unwrap(),
-                self.iteratives_step_size.as_ref().unwrap(),
-                self.residuals_step_size.as_ref().unwrap(),
-                self.residuals_values_current.as_ref().unwrap(),
-            ),
-            UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
-                let c = self.jacobian.get_inverse().as_ref().unwrap().transpose()
-                    * self.jacobian.get_inverse().as_ref().unwrap()
-                    * self.residuals_step_size.as_ref().unwrap();
-                quasi_method_update_inv_jac(
-                    self.jacobian.get_inverse().as_ref().unwrap(),
-                    self.iteratives_step_size.as_ref().unwrap(),
-                    self.residuals_step_size.as_ref().unwrap(),
-                    &c,
-                )
-            }
-        };
-
-        self.jacobian.update_inverse(inv_jac_next);
-    }
-
     /// Perform the jacobian evaluation
     ///
     /// Based on the resolution method:
@@ -342,10 +245,22 @@ where
             match resolution_method {
                 QuasiNewtonMethod::StationaryNewton => (),
                 QuasiNewtonMethod::JacobianUpdate(method) => {
-                    self.approximate_jacobian(method);
+                    approximate_jacobian(
+                        &mut self.jacobian,
+                        method,
+                        self.iteratives_step_size.as_ref().unwrap(),
+                        self.residuals_step_size.as_ref().unwrap(),
+                        self.residuals_values_current.as_ref().unwrap(),
+                    );
                 }
                 QuasiNewtonMethod::InverseJacobianUpdate(method) => {
-                    self.approximate_inv_jacobian(method);
+                    approximate_inv_jacobian(
+                        &mut self.jacobian,
+                        method,
+                        self.iteratives_step_size.as_ref().unwrap(),
+                        self.residuals_step_size.as_ref().unwrap(),
+                        self.residuals_values_current.as_ref().unwrap(),
+                    );
                 }
             };
         }
@@ -470,7 +385,7 @@ where
     }
 
     /// The core function performing the resolution on a given `Model`
-    pub fn solve<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError>
+    pub fn solve<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -530,7 +445,7 @@ where
         }
 
         if max_error > self.parameters.get_tolerance() {
-            Err(crate::errors::SolverError::NonConvergence)
+            Err(crate::errors::SolverError::NonConvergenceError)
         } else {
             Ok(())
         }

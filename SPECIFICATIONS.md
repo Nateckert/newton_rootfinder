@@ -31,3 +31,6 @@ The statregy for recovering is the following one:
 - if the attempted step was using a quasi-newton method, redo that step with the classical Newton-Raphson method
 - if the attempted step was already a Newton-Raphson step, rollback one iteration and redo it with damping
 
+## Performance
+
+- Have the possibility to move as much information possible to compile-time. If not possible, set that information at instanciation time to avoid unnecessary operations during the iterations.
