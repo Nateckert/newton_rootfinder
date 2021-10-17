@@ -1,21 +1,16 @@
 use super::JacobianMatrix;
 
-use super::super::UpdateQuasiNewtonMethod;
-use super::super::{
-    broyden_first_method_udpate_inv_jac,
-    broyden_second_method_udpate_inv_jac
-};
 use super::super::quasi_method_update_inv_jac;
-
+use super::super::UpdateQuasiNewtonMethod;
+use super::super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
 
 pub fn approximate_inv_jacobian<D>(
     jacobian: &mut JacobianMatrix<D>,
     method: UpdateQuasiNewtonMethod,
     iteratives_step_size: &nalgebra::OVector<f64, D>,
     residuals_step_size: &nalgebra::OVector<f64, D>,
-    residuals_values_current: &nalgebra::OVector<f64, D> 
-)
-where
+    residuals_values_current: &nalgebra::OVector<f64, D>,
+) where
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,

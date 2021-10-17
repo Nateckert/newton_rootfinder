@@ -6,6 +6,7 @@ use crate::iteratives::Iterative;
 use crate::model;
 use crate::model::ModelError;
 use crate::residuals;
+use crate::errors;
 
 /// Evaluate a jacobian per forward finite difference when perturbation step eps is provided
 ///
@@ -64,7 +65,7 @@ pub fn evaluate_jacobian_from_finite_difference<'a, M, D, T>(
     model: &mut M,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
-) -> Result<(), crate::model::ModelError<M, D>>
+) -> Result<(), crate::errors::SolverInternalError<M, D>>
 where
     M: model::Model<D>,
     T: Iterative + fmt::Display,
@@ -77,13 +78,14 @@ where
 
     let perturbations = iters_params.compute_perturbations(&iters_values);
 
-    let matrix =
-        compute_jacobian_from_finite_difference(model, &perturbations, &residuals_config);
+    let matrix = compute_jacobian_from_finite_difference(model, &perturbations, &residuals_config);
     match matrix {
         Ok(valid_jacobian) => {
-            jacobian.update_jacobian(valid_jacobian);
-            Ok(())
+            match jacobian.update_jacobian_with_exact_value(valid_jacobian) {
+                Ok(()) => Ok(()),
+                Err(errors::NonInvertibleJacobian) => Err(errors::SolverInternalError::InvalidJacobianInverseError)
+            }
         }
-        Err(model_error) => Err(model_error),
+        Err(model_error) => Err(errors::SolverInternalError::InvalidJacobianError(model_error)),
     }
 }

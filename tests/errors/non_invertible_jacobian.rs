@@ -10,7 +10,7 @@ fn cannot_converge(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut outputs = nalgebra::DVector::zeros(n);
 
     for i in 0..n {
-        outputs[i] = x[i].cos() + 10.0; // cannot be zero
+        outputs[i] = 10.0; // zero derivative
     }
 
     outputs
@@ -38,7 +38,6 @@ fn non_convergence_case() {
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, cannot_converge);
 
     let result = rf.solve(&mut user_model).unwrap_err();
-    let expected: nrf::errors::SolverError<nrf::model::UserModelFromFunction, nalgebra::Dynamic> =
-        nrf::errors::SolverError::NonConvergenceError;
-    assert_eq!(expected.to_string(), result.to_string());
+    let expected = "Jacobian error: Non invertible jacobian";
+    assert_eq!(result.to_string(), expected);
 }

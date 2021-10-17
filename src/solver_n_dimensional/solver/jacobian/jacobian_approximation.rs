@@ -2,10 +2,8 @@ use super::JacobianMatrix;
 
 use super::super::UpdateQuasiNewtonMethod;
 use super::super::{
-    broyden_first_method_udpate_jac,
-    broyden_second_method_udpate_jac,
-    quasi_method_update_jac,
-    greenstadt_second_method_udpate_jac,
+    broyden_first_method_udpate_jac, broyden_second_method_udpate_jac,
+    greenstadt_second_method_udpate_jac, quasi_method_update_jac,
 };
 
 pub fn approximate_jacobian<D>(
@@ -14,7 +12,7 @@ pub fn approximate_jacobian<D>(
     iteratives_step_size: &nalgebra::OVector<f64, D>,
     residuals_step_size: &nalgebra::OVector<f64, D>,
     residuals_values_current: &nalgebra::OVector<f64, D>,
-)
+) -> Result<(), crate::errors::NonInvertibleJacobian>
 where
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
@@ -40,8 +38,7 @@ where
             residuals_values_current,
         ),
         UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
-            let c =jacobian.get_inverse().as_ref().unwrap()
-                * residuals_step_size;
+            let c = jacobian.get_inverse().as_ref().unwrap() * residuals_step_size;
             greenstadt_second_method_udpate_jac(
                 jacobian.get_jacobian().as_ref().unwrap(),
                 iteratives_step_size,
@@ -51,5 +48,5 @@ where
         }
     };
 
-    jacobian.update_jacobian(jac_next);
+    jacobian.update_jacobian_with_approximated_value(jac_next)
 }

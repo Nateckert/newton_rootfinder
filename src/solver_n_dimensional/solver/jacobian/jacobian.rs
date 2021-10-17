@@ -24,6 +24,8 @@ where
 {
     matrix: Option<nalgebra::OMatrix<f64, D, D>>,
     inverse: Option<nalgebra::OMatrix<f64, D, D>>,
+    compute_jacobian_at_next_iteration: bool,
+    is_current_jacobian_approximated: bool,
 }
 
 impl<D> Default for JacobianMatrix<D>
@@ -47,21 +49,57 @@ where
         JacobianMatrix {
             matrix: None,
             inverse: None,
+            compute_jacobian_at_next_iteration: true,
+            is_current_jacobian_approximated: false,
         }
+    }
+
+    pub fn force_jacobian_computation(&mut self) {
+        self.compute_jacobian_at_next_iteration = true
+    }
+
+    pub fn compute_jacobian(&self) -> bool {
+        self.compute_jacobian_at_next_iteration
+    }
+
+    pub fn is_jacobian_approximated(&self) -> bool {
+        self.is_current_jacobian_approximated
     }
 
     /// When updating the jacobian,
     /// the inverse has to be recomputed
-    pub fn update_jacobian(&mut self, matrix: nalgebra::OMatrix<f64, D, D>) {
+    fn update_jacobian(
+        &mut self,
+        matrix: nalgebra::OMatrix<f64, D, D>,
+    ) -> Result<(), crate::errors::NonInvertibleJacobian> {
         match compute_inverse(&matrix) {
             Ok(inverse_matrix) => {
                 self.inverse = Some(inverse_matrix);
                 self.matrix = Some(matrix);
+                self.compute_jacobian_at_next_iteration = false;
+                Ok(())
             }
             Err(_) => {
                 self.invalidate_jacobian();
+                Err(crate::errors::NonInvertibleJacobian)
             }
         }
+    }
+
+    pub fn update_jacobian_with_exact_value(
+        &mut self,
+        matrix: nalgebra::OMatrix<f64, D, D>,
+    ) -> Result<(), crate::errors::NonInvertibleJacobian> {
+        self.is_current_jacobian_approximated = false;
+        self.update_jacobian(matrix)
+    }
+
+    pub fn update_jacobian_with_approximated_value(
+        &mut self,
+        matrix: nalgebra::OMatrix<f64, D, D>,
+    ) -> Result<(), crate::errors::NonInvertibleJacobian> {
+        self.is_current_jacobian_approximated = true;
+        self.update_jacobian(matrix)
     }
 
     /// When updating the inverse,
@@ -70,6 +108,7 @@ where
     pub fn update_inverse(&mut self, inverse: nalgebra::OMatrix<f64, D, D>) {
         self.matrix = None;
         self.inverse = Some(inverse);
+        self.is_current_jacobian_approximated = true;
     }
 
     /// Need to have Some and None for the inverse ?

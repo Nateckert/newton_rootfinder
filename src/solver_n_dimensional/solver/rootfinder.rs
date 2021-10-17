@@ -2,6 +2,7 @@ use std::fmt;
 
 extern crate nalgebra;
 
+use crate::errors;
 use crate::iteratives;
 use crate::iteratives::Iterative;
 use crate::model;
@@ -9,9 +10,8 @@ use crate::model::ModelError;
 use crate::residuals;
 
 use super::{
-    evaluate_jacobian_from_analytical_function, evaluate_jacobian_from_finite_difference,
-    approximate_jacobian, approximate_inv_jacobian,
-    JacobianMatrix, SolverParameters,
+    approximate_inv_jacobian, approximate_jacobian, evaluate_jacobian_from_analytical_function,
+    evaluate_jacobian_from_finite_difference, JacobianMatrix, SolverParameters,
 };
 
 use super::{QuasiNewtonMethod, ResolutionMethod};
@@ -43,8 +43,6 @@ where
     iter: usize,
     solver_log: Option<super::log::SolverLog>,
     jacobian: JacobianMatrix<D>,
-    compute_jac_next_iter: bool,
-    last_iter_with_computed_jacobian: usize,
     iteratives_step_size: Option<nalgebra::OVector<f64, D>>,
     residuals_step_size: Option<nalgebra::OVector<f64, D>>,
     residuals_values_current: Option<nalgebra::OVector<f64, D>>,
@@ -92,8 +90,6 @@ where
         }
 
         let jacobian = JacobianMatrix::new();
-        let compute_jac_next_iter = true;
-        let last_iter_with_computed_jacobian = 0;
         let iteratives_step_size = None;
         let residuals_step_size = None;
         let residuals_values_current = None;
@@ -107,8 +103,6 @@ where
             iter,
             solver_log,
             jacobian,
-            compute_jac_next_iter,
-            last_iter_with_computed_jacobian,
             iteratives_step_size,
             residuals_step_size,
             residuals_values_current,
@@ -164,7 +158,7 @@ where
     fn compute_jac<M>(
         &mut self,
         model: &mut M,
-    ) -> Result<(), crate::errors::SolverInternalError<M, D>>
+    ) -> Result<(), errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -179,22 +173,13 @@ where
                 &mut self.jacobian,
                 model,
                 self.iters_params,
-                self.residuals_config
+                self.residuals_config,
             )
         };
 
         match successful_jac_computation {
-            Ok(()) | Err(ModelError::InaccurateValuesError(_)) => {
-                self.compute_jac_next_iter = false;
-                self.last_iter_with_computed_jacobian = self.iter;
-                Ok(())
-            }
-            Err(model_error) => {
-                self.compute_jac_next_iter = true;
-                Err(crate::errors::SolverInternalError::InvalidJacobianError(
-                    model_error,
-                ))
-            }
+            Ok(()) | Err(errors::SolverInternalError::InvalidJacobianError(ModelError::InaccurateValuesError(_))) => Ok(()),
+            Err(model_error) => Err(model_error)
         }
     }
 
@@ -230,7 +215,7 @@ where
     where
         M: model::Model<D>,
     {
-        if self.compute_jac_next_iter {
+        if self.jacobian.compute_jacobian() {
             let successful_jac_computation = self.compute_jac(model);
             match successful_jac_computation {
                 Ok(()) => (),
@@ -245,13 +230,16 @@ where
             match resolution_method {
                 QuasiNewtonMethod::StationaryNewton => (),
                 QuasiNewtonMethod::JacobianUpdate(method) => {
-                    approximate_jacobian(
+                    match approximate_jacobian(
                         &mut self.jacobian,
                         method,
                         self.iteratives_step_size.as_ref().unwrap(),
                         self.residuals_step_size.as_ref().unwrap(),
                         self.residuals_values_current.as_ref().unwrap(),
-                    );
+                    ) {
+                        Ok(()) => (),
+                        Err(_) => return Err(errors::SolverInternalError::InvalidJacobianInverseError)
+                    }
                 }
                 QuasiNewtonMethod::InverseJacobianUpdate(method) => {
                     approximate_inv_jacobian(
@@ -320,9 +308,9 @@ where
         if max_error_next > max_error {
             // see documentation of the `SolverParameters` struct
             if self.parameters.get_resolution_method() != ResolutionMethod::NewtonRaphson
-                && self.last_iter_with_computed_jacobian != self.iter
+                && self.jacobian.is_jacobian_approximated()
             {
-                self.compute_jac_next_iter = true;
+                self.jacobian.force_jacobian_computation();
                 if self.debug {
                     self.recompute_jacobian_to_log();
                 }
@@ -416,18 +404,8 @@ where
             self.iteration_to_log(model, &errors);
         }
 
-        // Warning: unrolling by hand the first iteration as the following code does
+        // Warning: unrolling by hand the first iteration (which is always a Newton-Raphson step)
         //          is actually slowing down the code (run benchmarks to see it)
-        //
-        // first iteration: always a Newton-Raphson step
-        //    if max_error > self.parameters.get_tolerance() {
-        //        self.iter += 1;
-        //        let proposed_guess = self.compute_newton_raphson_step(model);
-        //        errors = self.update_model(model, &proposed_guess);
-        //        max_error = errors.amax();
-        //    }
-
-        // other iterations
         while max_error > self.parameters.get_tolerance()
             && self.iter < self.parameters.get_max_iter()
         {
@@ -440,7 +418,15 @@ where
                 }
             };
 
-            errors = self.update_model(model, &proposed_guess.unwrap());
+            match proposed_guess {
+                Ok(value) => {
+                    errors = self.update_model(model, &value);
+                }
+                Err(error) => {
+                    return Err(errors::SolverError::JacobianError(error));
+                }
+            }
+
             max_error = errors.amax();
         }
 
