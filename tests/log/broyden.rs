@@ -27,7 +27,7 @@ fn broyden_case10_fd() {
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case10);
 
-    rf.solve(&mut user_model);
+    rf.solve(&mut user_model).unwrap();
 
     #[cfg(not(feature = "additional_log_info"))]
     let log_ref = File::open(&"./tests/log/log_ref_without_additional_infos.txt").unwrap();

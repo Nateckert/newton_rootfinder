@@ -60,8 +60,12 @@ mod resolution_method;
 mod rootfinder;
 
 pub use default::default_with_guess;
-pub use jacobian::jacobian_evaluation;
+pub use jacobian::evaluate_jacobian_from_analytical_function;
 pub use jacobian::JacobianMatrix;
+pub use jacobian::{
+    approximate_inv_jacobian, approximate_jacobian, compute_jacobian_from_finite_difference,
+    evaluate_jacobian_from_finite_difference,
+};
 pub use parameters::SolverParameters;
 pub use resolution_method::greenstadt_second_method_udpate_jac;
 pub use resolution_method::{

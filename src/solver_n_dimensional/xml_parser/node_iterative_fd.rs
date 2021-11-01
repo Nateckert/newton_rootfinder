@@ -4,7 +4,7 @@ use minidom::Element;
 pub fn parse_iteratives_fd_node(iteratives_node: &Element) -> Vec<iteratives::IterativeParamsFD> {
     let mut iteratives = Vec::new();
 
-    let iterative_fd_default = parse_iterative_fd_node(&iteratives_node, &"iteratives node");
+    let iterative_fd_default = parse_iterative_fd_node(iteratives_node, "iteratives node");
 
     for (expected_id, iterative_node) in iteratives_node.children().enumerate() {
         if iterative_node.name() != "iterative" {
@@ -13,13 +13,10 @@ pub fn parse_iteratives_fd_node(iteratives_node: &Element) -> Vec<iteratives::It
                 iterative_node.name()
             );
         }
-        let id = super::util::parse_id(iterative_node, expected_id, &"iterative node");
+        let id = super::util::parse_id(iterative_node, expected_id, "iterative node");
         let node_info = format!("iterative node id = {}", id);
-        let iterative = parse_iterative_fd_node_with_default(
-            &iterative_node,
-            &iterative_fd_default,
-            &node_info,
-        );
+        let iterative =
+            parse_iterative_fd_node_with_default(iterative_node, &iterative_fd_default, &node_info);
 
         iteratives.push(iterative);
     }
@@ -33,11 +30,11 @@ fn parse_iterative_fd_node(
 ) -> iteratives::IterativeParamsFD {
     let iterative = super::node_iterative_jac::parse_iterative_jac_node(iterative_node, node_info);
 
-    let dx_abs = super::util::parse_float_attribute(iterative_node, &"dx_abs", &node_info);
-    let dx_rel = super::util::parse_float_attribute(iterative_node, &"dx_rel", &node_info);
+    let dx_abs = super::util::parse_float_attribute(iterative_node, "dx_abs", node_info);
+    let dx_rel = super::util::parse_float_attribute(iterative_node, "dx_rel", node_info);
 
     let perturbation_method =
-        super::node_iterative::parse_perturbation_method(iterative_node, &node_info);
+        super::node_iterative::parse_perturbation_method(iterative_node, node_info);
 
     iteratives::IterativeParamsFD::extend(iterative, dx_abs, dx_rel, perturbation_method)
 }
@@ -49,27 +46,27 @@ fn parse_iterative_fd_node_with_default(
 ) -> iteratives::IterativeParamsFD {
     let iterative = super::node_iterative_jac::parse_iterative_jac_node_with_default(
         iterative_node,
-        &iterative_default.get_iterative_params(),
+        iterative_default.get_iterative_params(),
         node_info,
     );
 
     let dx_abs = super::util::parse_float_attribute_with_default(
         iterative_node,
         iterative_default.get_dx_abs(),
-        &"dx_abs",
-        &node_info,
+        "dx_abs",
+        node_info,
     );
     let dx_rel = super::util::parse_float_attribute_with_default(
         iterative_node,
         iterative_default.get_dx_rel(),
-        &"dx_rel",
-        &node_info,
+        "dx_rel",
+        node_info,
     );
 
     let perturbation_method = super::node_iterative::parse_perturbation_method_with_default(
         iterative_node,
         iterative_default.get_perturbation_method(),
-        &node_info,
+        node_info,
     );
 
     iteratives::IterativeParamsFD::extend(iterative, dx_abs, dx_rel, perturbation_method)

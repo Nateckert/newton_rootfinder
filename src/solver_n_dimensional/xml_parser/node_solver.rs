@@ -7,12 +7,12 @@ use crate::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod
 /// Parse a solver node
 pub fn parse_solver_node(solver_node: &Element) -> SolverParameters {
     let node_info = "solver node";
-    let problem_size = util::parse_int_attribute(solver_node, &"problem_size", &node_info);
-    let max_iter = util::parse_int_attribute(solver_node, &"max_iter", &node_info);
-    let tolerance = util::parse_float_attribute(solver_node, &"tolerance", &node_info);
-    let resolution_method = parse_resolution_method(solver_node, &node_info);
+    let problem_size = util::parse_int_attribute(solver_node, "problem_size", node_info);
+    let max_iter = util::parse_int_attribute(solver_node, "max_iter", node_info);
+    let tolerance = util::parse_float_attribute(solver_node, "tolerance", node_info);
+    let resolution_method = parse_resolution_method(solver_node, node_info);
 
-    let damping: bool = match solver_node.attr(&"damping") {
+    let damping: bool = match solver_node.attr("damping") {
         Some(value) => value.parse().expect("The attribute \"damping\" is not a valid boolean, valid values are \"true\" and \"false\" (case sensitive)"),
         None => false,
     };
@@ -28,7 +28,7 @@ pub fn parse_solver_node(solver_node: &Element) -> SolverParameters {
 
 fn parse_resolution_method(node: &Element, node_info: &str) -> ResolutionMethod {
     match node
-            .attr(&"resolution_method")
+            .attr("resolution_method")
             .unwrap_or_else(|| panic!("The attribute \"resolution_method\" is missing in {}", node_info)) {
                 "NR" => ResolutionMethod::NewtonRaphson,
                 "SN" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),

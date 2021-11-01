@@ -137,7 +137,7 @@ where
             content.push_str(&format!("| {:width$}", &"dx_abs", width = width));
             content.push_str(&format!("| {:width$}|", &"dx_rel", width = width));
         } else {
-            content.push_str(&"|");
+            content.push('|');
         }
 
         content.push('\n');

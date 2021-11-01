@@ -25,7 +25,7 @@ fn broyden_case10_fd() {
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case10);
 
-    rf.solve(&mut user_model);
+    rf.solve(&mut user_model).unwrap();
 
     let solution = solution_broyden1965_case10();
 

@@ -52,7 +52,7 @@ pub fn check_node_name_and_panic(node: &Element, expected_name: &str) {
 }
 
 pub fn parse_id(node: &Element, expected_id: usize, node_info: &str) -> usize {
-    let id = parse_int_attribute(node, &"id", node_info);
+    let id = parse_int_attribute(node, "id", node_info);
     if expected_id != id {
         panic!(
             "The ids must be in order starting from 0, got id {} when the expected one was {}",

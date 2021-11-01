@@ -6,7 +6,7 @@ pub fn parse_perturbation_method(
     node_info: &str,
 ) -> iteratives::PerturbationMethod {
     match node
-            .attr(&"perturbation_method")
+            .attr("perturbation_method")
             .unwrap_or_else(|| panic!("The attribute \"perturbation_method\" is missing in {}", node_info)) {
                 "Max" => iteratives::PerturbationMethod::Max,
                 "Sum" => iteratives::PerturbationMethod::Sum,
@@ -20,7 +20,7 @@ pub fn parse_perturbation_method_with_default(
     node_info: &str,
 ) -> iteratives::PerturbationMethod {
     match node
-            .attr(&"perturbation_method") {
+            .attr("perturbation_method") {
                 None => default,
                 Some(value) => match value {
                     "Max" => iteratives::PerturbationMethod::Max,

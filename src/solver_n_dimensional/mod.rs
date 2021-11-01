@@ -1,5 +1,6 @@
 //! Advanced solver
 
+pub mod errors;
 pub mod iteratives;
 pub mod model;
 pub mod residuals;
