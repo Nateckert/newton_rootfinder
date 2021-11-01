@@ -4,10 +4,7 @@ use minidom::Element;
 pub fn parse_iteratives_fd_node(iteratives_node: &Element) -> Vec<iteratives::IterativeParamsFD> {
     let mut iteratives = Vec::new();
 
-    let iterative_fd_default = parse_iterative_fd_node(
-        iteratives_node, 
-        "iteratives node"
-    );
+    let iterative_fd_default = parse_iterative_fd_node(iteratives_node, "iteratives node");
 
     for (expected_id, iterative_node) in iteratives_node.children().enumerate() {
         if iterative_node.name() != "iterative" {
@@ -18,11 +15,8 @@ pub fn parse_iteratives_fd_node(iteratives_node: &Element) -> Vec<iteratives::It
         }
         let id = super::util::parse_id(iterative_node, expected_id, "iterative node");
         let node_info = format!("iterative node id = {}", id);
-        let iterative = parse_iterative_fd_node_with_default(
-            iterative_node,
-            &iterative_fd_default,
-            &node_info,
-        );
+        let iterative =
+            parse_iterative_fd_node_with_default(iterative_node, &iterative_fd_default, &node_info);
 
         iteratives.push(iterative);
     }
@@ -34,10 +28,7 @@ fn parse_iterative_fd_node(
     iterative_node: &Element,
     node_info: &str,
 ) -> iteratives::IterativeParamsFD {
-    let iterative = super::node_iterative_jac::parse_iterative_jac_node(
-        iterative_node,
-        node_info
-    );
+    let iterative = super::node_iterative_jac::parse_iterative_jac_node(iterative_node, node_info);
 
     let dx_abs = super::util::parse_float_attribute(iterative_node, "dx_abs", node_info);
     let dx_rel = super::util::parse_float_attribute(iterative_node, "dx_rel", node_info);

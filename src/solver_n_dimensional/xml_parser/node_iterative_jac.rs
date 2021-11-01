@@ -4,10 +4,7 @@ use minidom::Element;
 pub fn parse_iteratives_jac_node(iteratives_node: &Element) -> Vec<iteratives::IterativeParams> {
     let mut iteratives = Vec::new();
 
-    let iterative_default = parse_iterative_jac_node(
-        iteratives_node, 
-        "iteratives node"
-    );
+    let iterative_default = parse_iterative_jac_node(iteratives_node, "iteratives node");
 
     for (expected_id, iterative_node) in iteratives_node.children().enumerate() {
         if iterative_node.name() != "iterative" {
@@ -31,28 +28,12 @@ pub fn parse_iterative_jac_node(
     iterative_node: &Element,
     node_info: &str,
 ) -> iteratives::IterativeParams {
-    let min_value = super::util::parse_float_attribute(
-        iterative_node, 
-        "min_value",
-        node_info
-    );
-    let max_value = super::util::parse_float_attribute(
-        iterative_node, 
-        "max_value",
-        node_info
-    );
+    let min_value = super::util::parse_float_attribute(iterative_node, "min_value", node_info);
+    let max_value = super::util::parse_float_attribute(iterative_node, "max_value", node_info);
     let max_step_abs =
-        super::util::parse_float_attribute(
-            iterative_node, 
-            "max_step_abs",
-            node_info
-        );
+        super::util::parse_float_attribute(iterative_node, "max_step_abs", node_info);
     let max_step_rel =
-        super::util::parse_float_attribute(
-            iterative_node, 
-            "max_step_rel",
-            node_info
-        );
+        super::util::parse_float_attribute(iterative_node, "max_step_rel", node_info);
 
     iteratives::IterativeParams::new(max_step_abs, max_step_rel, min_value, max_value)
 }

@@ -23,10 +23,7 @@ where
             let normalization_method = residuals_config.get_update_methods();
 
             match jacobian_matrix.update_jacobian_with_exact_value(
-                valid_jacobians.normalize(
-                    &residuals_values, 
-                    normalization_method
-                ),
+                valid_jacobians.normalize(&residuals_values, normalization_method),
             ) {
                 Ok(()) => Ok(()),
                 Err(errors::NonInvertibleJacobian) => {

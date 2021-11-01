@@ -9,10 +9,7 @@ pub fn parse_residuals_node(
     Vec<residuals::NormalizationMethod>,
 ) {
     //Parsing of default values
-    let residuals_config_default = parse_residual_node(
-        residuals_node,
-        "residuals node"
-    );
+    let residuals_config_default = parse_residual_node(residuals_node, "residuals node");
 
     let mut residuals = Vec::new();
 
@@ -27,11 +24,7 @@ pub fn parse_residuals_node(
         let id = util::parse_id(residual_node, expected_id, "residual_node");
         let node_info = format!("residual node id = {}", id);
         let residual =
-            parse_residual_node_with_default(
-                residual_node,
-                residuals_config_default,
-                &node_info
-            );
+            parse_residual_node_with_default(residual_node, residuals_config_default, &node_info);
 
         residuals.push(residual);
     }

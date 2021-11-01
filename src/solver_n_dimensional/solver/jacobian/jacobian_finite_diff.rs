@@ -79,11 +79,7 @@ where
 
     let perturbations = iters_params.compute_perturbations(&iters_values);
 
-    let matrix = compute_jacobian_from_finite_difference(
-        model,
-        &perturbations, 
-        residuals_config
-    );
+    let matrix = compute_jacobian_from_finite_difference(model, &perturbations, residuals_config);
     match matrix {
         Ok(valid_jacobian) => match jacobian.update_jacobian_with_exact_value(valid_jacobian) {
             Ok(()) => Ok(()),
