@@ -329,7 +329,7 @@ where
                 *errors_next = self.evaluate_errors(model);
 
                 if self.debug {
-                    self.damping_to_log(model, &errors_next);
+                    self.damping_to_log(model, errors_next);
                 }
             }
         }
@@ -371,7 +371,7 @@ where
                 model,
                 max_error,
                 &current_guess,
-                &proposed_guess,
+                proposed_guess,
                 &mut errors_next,
             );
         }
@@ -450,12 +450,10 @@ where
 
         if max_error > self.parameters.get_tolerance() {
             Err(crate::errors::SolverError::NonConvergenceError)
+        } else if self.valid_last_model_evaluation {
+            Ok(())
         } else {
-            if self.valid_last_model_evaluation {
-                Ok(())
-            } else {
-                Err(crate::errors::SolverError::FinalEvaluationError)
-            }
+            Err(crate::errors::SolverError::FinalEvaluationError)
         }
     }
 
@@ -483,7 +481,7 @@ where
 
     fn recompute_jacobian_to_log(&self) {
         self.solver_log.as_ref().unwrap().add_content(
-            &"Iteration refused, the jacobian will be recomputed at the next iteration\n\n",
+            "Iteration refused, the jacobian will be recomputed at the next iteration\n\n",
         );
     }
 

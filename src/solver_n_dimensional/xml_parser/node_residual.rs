@@ -9,7 +9,10 @@ pub fn parse_residuals_node(
     Vec<residuals::NormalizationMethod>,
 ) {
     //Parsing of default values
-    let residuals_config_default = parse_residual_node(&residuals_node, &"residuals node");
+    let residuals_config_default = parse_residual_node(
+        residuals_node,
+        "residuals node"
+    );
 
     let mut residuals = Vec::new();
 
@@ -21,10 +24,14 @@ pub fn parse_residuals_node(
             );
         }
 
-        let id = util::parse_id(&residual_node, expected_id, &"residual_node");
+        let id = util::parse_id(residual_node, expected_id, "residual_node");
         let node_info = format!("residual node id = {}", id);
         let residual =
-            parse_residual_node_with_default(&residual_node, residuals_config_default, &node_info);
+            parse_residual_node_with_default(
+                residual_node,
+                residuals_config_default,
+                &node_info
+            );
 
         residuals.push(residual);
     }
@@ -36,9 +43,9 @@ pub fn parse_residuals_node(
 
 fn parse_residual_node(residual_node: &Element, node_info: &str) -> residuals::ResidualConfig {
     let stopping_critera =
-        parse_normalization_method_attribute(residual_node, &"stopping_criteria", &node_info);
+        parse_normalization_method_attribute(residual_node, "stopping_criteria", node_info);
     let update_method =
-        parse_normalization_method_attribute(residual_node, &"update_method", &node_info);
+        parse_normalization_method_attribute(residual_node, "update_method", node_info);
 
     residuals::ResidualConfig::new(stopping_critera, update_method)
 }
@@ -51,14 +58,14 @@ fn parse_residual_node_with_default(
     let stopping_critera = parse_normalization_method_attribute_with_default(
         residual_node,
         residuals_config_default.get_stopping_criteria(),
-        &"stopping_criteria",
-        &node_info,
+        "stopping_criteria",
+        node_info,
     );
     let update_method = parse_normalization_method_attribute_with_default(
         residual_node,
         residuals_config_default.get_update_method(),
-        &"update_method",
-        &node_info,
+        "update_method",
+        node_info,
     );
 
     residuals::ResidualConfig::new(stopping_critera, update_method)

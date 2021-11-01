@@ -1,10 +1,10 @@
-mod jacobian;
+mod jacobian_struct;
 mod jacobian_analytic;
 mod jacobian_approximation;
 mod jacobian_finite_diff;
 mod jacobian_inverse_approximation;
 
-pub use jacobian::JacobianMatrix;
+pub use jacobian_struct::JacobianMatrix;
 pub use jacobian_analytic::evaluate_jacobian_from_analytical_function;
 pub use jacobian_finite_diff::{
     compute_jacobian_from_finite_difference, evaluate_jacobian_from_finite_difference,

@@ -157,7 +157,7 @@ where
             None => content.push_str("Inverse jacobian matrix not yet computed"),
         }
 
-        content.push_str(&"\n");
+        content.push('\n');
 
         write!(f, "{}", content)
     }
