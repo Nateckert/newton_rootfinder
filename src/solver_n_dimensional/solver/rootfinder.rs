@@ -46,6 +46,7 @@ where
     iteratives_step_size: Option<nalgebra::OVector<f64, D>>,
     residuals_step_size: Option<nalgebra::OVector<f64, D>>,
     residuals_values_current: Option<nalgebra::OVector<f64, D>>,
+    valid_last_model_evaluation: bool
 }
 
 impl<'a, T, D> RootFinder<'a, T, D>
@@ -93,6 +94,7 @@ where
         let iteratives_step_size = None;
         let residuals_step_size = None;
         let residuals_values_current = None;
+        let valid_last_model_evaluation = true;
 
         RootFinder {
             parameters,
@@ -106,6 +108,7 @@ where
             iteratives_step_size,
             residuals_step_size,
             residuals_values_current,
+            valid_last_model_evaluation,
         }
     }
 
@@ -217,6 +220,7 @@ where
     {
         if self.jacobian.compute_jacobian() {
             let successful_jac_computation = self.compute_jac(model);
+
             match successful_jac_computation {
                 Ok(()) => (),
                 Err(error) => {
@@ -333,7 +337,7 @@ where
         &mut self,
         model: &mut M,
         proposed_guess: &nalgebra::OVector<f64, D>,
-    ) -> nalgebra::OVector<f64, D>
+    ) -> Result<nalgebra::OVector<f64, D>, errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -342,7 +346,18 @@ where
         let current_guess = model.get_iteratives();
 
         model.set_iteratives(proposed_guess);
-        model.evaluate().unwrap();
+        match model.evaluate() {
+            Ok(()) => {
+                self.valid_last_model_evaluation = true;
+            }
+            Err(ModelError::InaccurateValuesError(_)) => {
+                self.valid_last_model_evaluation = false;
+            },
+            Err(e) => {
+                self.valid_last_model_evaluation = false;
+                return Err(errors::SolverError::ModelEvaluationError(e))
+            }
+        }
         let mut errors_next = self.evaluate_errors(model);
 
         if self.debug {
@@ -369,7 +384,7 @@ where
             }
         };
 
-        errors_next
+        Ok(errors_next)
     }
 
     /// The core function performing the resolution on a given `Model`
@@ -420,7 +435,13 @@ where
 
             match proposed_guess {
                 Ok(value) => {
-                    errors = self.update_model(model, &value);
+                    match self.update_model(model, &value) {
+                        Ok(value) => {
+                            errors = value
+                        },
+                        Err(e) => return Err(e)
+
+                    }
                 }
                 Err(error) => {
                     return Err(errors::SolverError::JacobianError(error));
@@ -433,7 +454,12 @@ where
         if max_error > self.parameters.get_tolerance() {
             Err(crate::errors::SolverError::NonConvergenceError)
         } else {
-            Ok(())
+            if self.valid_last_model_evaluation {
+                Ok(())
+            }
+            else {
+                Err(crate::errors::SolverError::FinalEvaluationError)
+            }
         }
     }
 

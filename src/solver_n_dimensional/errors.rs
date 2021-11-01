@@ -54,6 +54,7 @@ where
 {
     NonConvergenceError,
     ModelInitialEvaluationError(String),
+    ModelEvaluationError(crate::model::ModelError<M, D>),
     JacobianError(SolverInternalError<M, D>),
     FinalEvaluationError,
 }
@@ -70,6 +71,9 @@ where
             Self::NonConvergenceError => write!(f, "Convergence not reached"),
             Self::ModelInitialEvaluationError(error) => {
                 write!(f, "Initial model evaluation failed: {}", error)
+            }
+            Self::ModelEvaluationError(error) => {
+                write!(f, "Model evaluation failed: {}", error)
             }
             Self::JacobianError(error) => {
                 write!(f, "Jacobian error: {}", error)
