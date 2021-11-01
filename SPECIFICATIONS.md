@@ -27,9 +27,9 @@ There are 2 kinds of errors expected from the model:
 For other errors it is recoverable if it does not happen at the first or last iteration.
 For inaccurate values it is always recoverable unless it happens at the last iteration.
 
-The statregy for recovering is the following one:
+The stategy for recovering of other errors is the following one:
 - if the attempted step was using a quasi-newton method, redo that step with the classical Newton-Raphson method
-- if the attempted step was already a Newton-Raphson step, rollback one iteration and redo it with damping
+- if the attempted step was already a Newton-Raphson step, apply damping to it, if it happened during the evaluation of the jacobian, it is unrecoverable.
 
 ## Performance
 
