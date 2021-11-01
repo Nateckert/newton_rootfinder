@@ -103,7 +103,6 @@ where
     ///
     /// If this method is overriden, the solver will be able to use it to evaluate the jacobian, instead of using finite-difference.
     /// If overriden, the [Model::jacobian_provided] must also be overriden to return `true`.
-    /// If overriden, the [Model::evaluate_jacobian] must also be overriden to return `true`.
     ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
     fn get_jacobian(&mut self) -> Result<residuals::JacobianValues<D>, super::ModelError<Self, D>> {

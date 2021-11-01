@@ -1,7 +1,7 @@
 use super::JacobianMatrix;
+use crate::errors;
 use crate::model;
 use crate::residuals;
-use crate::errors;
 
 pub fn evaluate_jacobian_from_analytical_function<'a, M, D>(
     jacobian_matrix: &mut JacobianMatrix<D>,
@@ -26,7 +26,9 @@ where
                 valid_jacobians.normalize(&residuals_values, &normalization_method),
             ) {
                 Ok(()) => Ok(()),
-                Err(errors::NonInvertibleJacobian) => Err(errors::SolverInternalError::InvalidJacobianInverseError)
+                Err(errors::NonInvertibleJacobian) => {
+                    Err(errors::SolverInternalError::InvalidJacobianInverseError)
+                }
             }
         }
         Err(error) => {

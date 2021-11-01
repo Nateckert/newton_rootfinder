@@ -2,10 +2,9 @@ use std::error::Error;
 use std::fmt;
 
 use newton_rootfinder as nrf;
-use nrf::model::Model;
 use nrf::iteratives;
+use nrf::model::Model;
 use nrf::residuals;
-
 
 struct MyDummyModel {
     iteratives: nalgebra::DVector<f64>,
@@ -18,14 +17,14 @@ impl MyDummyModel {
         let residuals = nalgebra::DVector::zeros(1);
         MyDummyModel {
             iteratives,
-            residuals
+            residuals,
         }
     }
 }
 
 #[derive(Debug)]
 pub enum MyCustomErrors {
-    NotAGoodValue
+    NotAGoodValue,
 }
 
 impl fmt::Display for MyCustomErrors {
@@ -39,7 +38,6 @@ impl fmt::Display for MyCustomErrors {
 impl Error for MyCustomErrors {}
 
 impl Model<nalgebra::Dynamic> for MyDummyModel {
-
     type InaccurateValuesError = MyCustomErrors;
     type UnusableValuesError = MyCustomErrors;
     type UnrecoverableError = MyCustomErrors;
@@ -58,16 +56,17 @@ impl Model<nalgebra::Dynamic> for MyDummyModel {
 
     fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dynamic> {
         return nrf::residuals::ResidualsValues::new(
-            self.residuals.clone(), 
-            nalgebra::DVector::zeros(1)
-        )
+            self.residuals.clone(),
+            nalgebra::DVector::zeros(1),
+        );
     }
 
     fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<Self, nalgebra::Dynamic>> {
         self.residuals[0] = self.iteratives[0].powi(2) - 2.0;
-        Err(nrf::model::ModelError::InaccurateValuesError(MyCustomErrors::NotAGoodValue))
+        Err(nrf::model::ModelError::InaccurateValuesError(
+            MyCustomErrors::NotAGoodValue,
+        ))
     }
-
 }
 
 #[test]
@@ -75,9 +74,9 @@ fn test_convergence_with_error_from_model() {
     let problem_size = 1;
     let mut init = nalgebra::DVector::zeros(problem_size);
     init[0] = 1.0;
-    
+
     let damping = false;
-    
+
     let vec_iter_params = iteratives::default_vec_iteratives_fd(problem_size);
     let iter_params = iteratives::Iteratives::new(&vec_iter_params);
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];

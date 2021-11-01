@@ -46,7 +46,7 @@ where
     iteratives_step_size: Option<nalgebra::OVector<f64, D>>,
     residuals_step_size: Option<nalgebra::OVector<f64, D>>,
     residuals_values_current: Option<nalgebra::OVector<f64, D>>,
-    valid_last_model_evaluation: bool
+    valid_last_model_evaluation: bool,
 }
 
 impl<'a, T, D> RootFinder<'a, T, D>
@@ -158,10 +158,7 @@ where
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    fn compute_jac<M>(
-        &mut self,
-        model: &mut M,
-    ) -> Result<(), errors::SolverInternalError<M, D>>
+    fn compute_jac<M>(&mut self, model: &mut M) -> Result<(), errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -181,8 +178,11 @@ where
         };
 
         match successful_jac_computation {
-            Ok(()) | Err(errors::SolverInternalError::InvalidJacobianError(ModelError::InaccurateValuesError(_))) => Ok(()),
-            Err(model_error) => Err(model_error)
+            Ok(())
+            | Err(errors::SolverInternalError::InvalidJacobianError(
+                ModelError::InaccurateValuesError(_),
+            )) => Ok(()),
+            Err(model_error) => Err(model_error),
         }
     }
 
@@ -242,7 +242,9 @@ where
                         self.residuals_values_current.as_ref().unwrap(),
                     ) {
                         Ok(()) => (),
-                        Err(_) => return Err(errors::SolverInternalError::InvalidJacobianInverseError)
+                        Err(_) => {
+                            return Err(errors::SolverInternalError::InvalidJacobianInverseError)
+                        }
                     }
                 }
                 QuasiNewtonMethod::InverseJacobianUpdate(method) => {
@@ -352,10 +354,10 @@ where
             }
             Err(ModelError::InaccurateValuesError(_)) => {
                 self.valid_last_model_evaluation = false;
-            },
+            }
             Err(e) => {
                 self.valid_last_model_evaluation = false;
-                return Err(errors::SolverError::ModelEvaluationError(e))
+                return Err(errors::SolverError::ModelEvaluationError(e));
             }
         }
         let mut errors_next = self.evaluate_errors(model);
@@ -434,15 +436,10 @@ where
             };
 
             match proposed_guess {
-                Ok(value) => {
-                    match self.update_model(model, &value) {
-                        Ok(value) => {
-                            errors = value
-                        },
-                        Err(e) => return Err(e)
-
-                    }
-                }
+                Ok(value) => match self.update_model(model, &value) {
+                    Ok(value) => errors = value,
+                    Err(e) => return Err(e),
+                },
                 Err(error) => {
                     return Err(errors::SolverError::JacobianError(error));
                 }
@@ -456,8 +453,7 @@ where
         } else {
             if self.valid_last_model_evaluation {
                 Ok(())
-            }
-            else {
+            } else {
                 Err(crate::errors::SolverError::FinalEvaluationError)
             }
         }

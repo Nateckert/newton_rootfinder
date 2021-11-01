@@ -5,7 +5,10 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use newton_rootfinder as nrf;
 
-use nrf::{model::{Model, ModelError}, residuals::NormalizationMethod};
+use nrf::{
+    model::{Model, ModelError},
+    residuals::NormalizationMethod,
+};
 
 /// x**2 - 2 = 0
 /// Root: x = 2.sqrt() approx 1.4142
