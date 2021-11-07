@@ -37,5 +37,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: doc
-        run: cargo doc --no-deps
+        run: cargo doc --no-deps; cargo doc --no-deps --all-features;
   

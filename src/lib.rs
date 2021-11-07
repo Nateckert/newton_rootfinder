@@ -56,7 +56,7 @@
 //!
 //! In the litterature, the problem is often described as ```f(X) = 0```,
 //! as the mathematical expressions of the residual equations can be rearranged.
-//! 
+//!
 //! This solver does not use the same description,
 //! as with floating point operation for scientific computing,
 //! the numerical accuracy does play an important role.
@@ -186,9 +186,9 @@
 //! Once each of these element has been defined, the [solver::RootFinder] struct can be instanciated.
 //!
 //! This struct will perform the resolution.
-//! 
+//!
 //! ## Error handling
-//! 
+//!
 //! If defined in the user model, the solver can react to specific errors and propage them, without any panic.
 //! Check the [errors] module for more details
 //!
@@ -386,11 +386,10 @@
 //! [RESULT.md](https://github.com/Nateckert/newton_rootfinder/blob/main/benches/RESULTS.md)
 //!
 //! ## Vectors and matrix representations
-//! 
+//!
 //! Linear algebra operations are performed using the crate [nalgebra](https://crates.io/crates/nalgebra).
-//! 
+//!
 //! The values returned by a user model must be such vectors and matrix
-
 
 pub use solver_n_dimensional::model;
 

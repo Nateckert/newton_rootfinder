@@ -44,7 +44,6 @@ impl Error for MyCustomErrors {}
 impl Model<nalgebra::Const<1>> for UserModel {
     type InaccurateValuesError = MyCustomErrors;
     type UnusableValuesError = MyCustomErrors;
-    type UnrecoverableError = MyCustomErrors;
     fn len_problem(&self) -> usize {
         1
     }
@@ -67,8 +66,8 @@ impl Model<nalgebra::Const<1>> for UserModel {
 }
 
 const INITIALIZATION: nalgebra::SVector<f64, 1> = nalgebra::SVector::<f64, 1>::new(1.0);
-const UNRESOLVED_OUTPUT: nalgebra::SVector<f64, 1> = nalgebra::SVector::<f64, 1>::new(9999.0);
-// A function to change the model in-between to calls,
+const UNRESOLVED_OUTPUT: nalgebra::SVector<f64, 1> = nalgebra::SVector::<f64, 1>::new(-1.0);
+// A function to change the model in-between two calls,
 // otherwise it would always be in a solved state after the first evaluation
 // The issue is that the time of the this operation is also included in the benchmark
 fn solve_problem(
@@ -80,7 +79,7 @@ fn solve_problem(
 ) {
     user_model.iteratives = INITIALIZATION;
     user_model.output = UNRESOLVED_OUTPUT;
-    rf.solve(user_model);
+    rf.solve(user_model).unwrap();
 }
 
 fn static_types(c: &mut Criterion) {

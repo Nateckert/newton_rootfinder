@@ -1,1 +1,1 @@
-cargo bench
+cargo bench --all-features
