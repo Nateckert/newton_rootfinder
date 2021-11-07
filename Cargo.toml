@@ -48,3 +48,7 @@ chrono = { version = "0.4", optional = true }
 [features]
 additional_log_info = ["chrono", "rustc_version_runtime", "whoami"]
 xml_config_file = ["minidom"]
+
+[package.metadata.docs.rs]
+# Enable certain features when building docs for docs.rs
+features = ["xml_config_file", "additional_log_info"]
