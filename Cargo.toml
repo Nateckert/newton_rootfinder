@@ -19,24 +19,9 @@ criterion = "0.3"
 util = { path = "./util" }
 
 [[bench]]
-path = "benches/square2/minimal_solver_ref.rs"
-name = "minimal_solver_ref"
-harness = false
-
-[[bench]]
-path = "benches/square2/dynamic_types.rs"
-name = "dynamic_types"
-harness = false
-
-[[bench]]
 path = "benches/square2/static_types.rs"
 name = "static_types"
 harness = false
-
-[[bench]]
-name = "broyden_case8"
-harness = false
-
 
 [dependencies]
 nalgebra = "0.29"
