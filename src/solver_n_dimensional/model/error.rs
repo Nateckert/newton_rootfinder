@@ -21,7 +21,6 @@ use std::fmt;
 ///   - recoverable if it happens during the iterations phase,
 ///     the algorithm will forget this iteration and try to perform a new one
 ///     with slightly changed inputs
-/// - unrecoverable (but not a panic), the algorithm stops if that happens.
 ///
 /// The `ModelError` enum is wrapping the `Error` trait from the standard library,
 /// so that the user can sub-classify its error, such as:
@@ -39,7 +38,6 @@ where
 {
     InaccurateValuesError(M::InaccurateValuesError),
     UnusableValuesError(M::UnusableValuesError),
-    UnrecoverableError(M::UnrecoverableError),
 }
 
 impl<M, D> fmt::Display for ModelError<M, D>
@@ -53,7 +51,6 @@ where
         match self {
             Self::InaccurateValuesError(error) => write!(f, "InaccurateValues Error: {}", error),
             Self::UnusableValuesError(error) => write!(f, "UnusableValuesError Error: {}", error),
-            Self::UnrecoverableError(error) => write!(f, "UnrecoverableError Error: {}", error),
         }
     }
 }

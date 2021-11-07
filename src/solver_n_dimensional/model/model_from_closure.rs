@@ -57,7 +57,7 @@ impl<'a> UserModelFromClosure<'a> {
 impl<'a> Model<nalgebra::Dynamic> for UserModelFromClosure<'a> {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
-    type UnrecoverableError = Infallible;
+
     fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.closure)(&self.inputs);
         Ok(())
@@ -148,7 +148,7 @@ impl<'a, 'b> UserModelFromClosureAndJacobian<'a, 'b> {
 impl<'a, 'b> Model<nalgebra::Dynamic> for UserModelFromClosureAndJacobian<'a, 'b> {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
-    type UnrecoverableError = Infallible;
+
     fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.closure)(&self.inputs);
         Ok(())

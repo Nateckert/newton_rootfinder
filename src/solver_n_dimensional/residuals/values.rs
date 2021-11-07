@@ -1,7 +1,7 @@
 use super::{deriv_normalization, NormalizationMethod};
 use std::fmt;
 
-use nalgebra::storage::Storage;
+use nalgebra::RawStorage;
 
 /// Residuals values outputs of the model
 ///

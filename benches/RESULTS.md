@@ -11,6 +11,7 @@ Trying to find the solution to x^2 = 2.
 ### Model definition evaluation
 
 Functions evaluation time measurements (no changes over time expected)
+
 As the solver is using nalgebra types (to work with n-dimensional problems),
 that are more complex than the basic f64,
 it can cause an overhead that is measured.
@@ -21,7 +22,7 @@ Results : f64 function is 137 times faster than DVector (expected)
 
 ### Solver speeds
 
-If the solver speed is driven by the function evaluation,
+If the solver speed is driven by the function evaluation.
 The time taken for resolution should be in the same proportion
 as for the function evaluation test
 
@@ -34,8 +35,11 @@ Reference results :
 - Newton-Raphson FD static types:                  [16.666 ns 17.390 ns 18.298 ns]
 
 Without derivatives is 1.6 times faster than with
+
 Minimal solver is 11 times faster than advanced solver
+
 Expected times was 137 times
+
 The advanced solver is roughly 10 times faster than the minimal implementation
 
 ## Broyden case 8

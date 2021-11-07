@@ -1,5 +1,6 @@
 [package]
 name = "newton_rootfinder"
+rust-version = "1.56"
 version = "0.8.0"
 authors = ["nathan.eckert <nathan.eckert@polytechnique.edu>"]
 edition = "2018"
@@ -38,11 +39,12 @@ harness = false
 
 
 [dependencies]
-nalgebra = "0.28"
-minidom = "0.12"
-whoami = { version = "1.1", optional = true }
-rustc_version_runtime = { version = "0.2.0", optional = true }
+nalgebra = "0.29"
+minidom = { version = "0.12", optional = true }
+whoami = { version = "1.2", optional = true }
+rustc_version_runtime = { version = "0.2", optional = true }
 chrono = { version = "0.4", optional = true }
 
 [features]
 additional_log_info = ["chrono", "rustc_version_runtime", "whoami"]
+xml_config_file = ["minidom"]

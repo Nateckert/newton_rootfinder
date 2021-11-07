@@ -40,7 +40,6 @@ impl Error for MyCustomErrors {}
 impl Model<nalgebra::Dynamic> for MyDummyModel {
     type InaccurateValuesError = MyCustomErrors;
     type UnusableValuesError = MyCustomErrors;
-    type UnrecoverableError = MyCustomErrors;
 
     fn len_problem(&self) -> usize {
         1

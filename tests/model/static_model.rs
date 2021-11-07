@@ -27,7 +27,6 @@ impl UserModel {
 impl Model<nalgebra::Const<1>> for UserModel {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
-    type UnrecoverableError = Infallible;
 
     fn len_problem(&self) -> usize {
         1

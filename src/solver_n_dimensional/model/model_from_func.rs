@@ -58,7 +58,6 @@ impl UserModelFromFunction {
 impl Model<nalgebra::Dynamic> for UserModelFromFunction {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
-    type UnrecoverableError = Infallible;
 
     fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.func)(&self.inputs);
@@ -149,7 +148,6 @@ impl UserModelFromFunctionAndJacobian {
 impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
-    type UnrecoverableError = Infallible;
 
     fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.func)(&self.inputs);

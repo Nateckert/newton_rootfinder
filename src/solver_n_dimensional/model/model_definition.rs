@@ -47,7 +47,6 @@ where
 {
     type InaccurateValuesError: Error;
     type UnusableValuesError: Error;
-    type UnrecoverableError: Error;
 
     /// This method defines the dimension of the problem.
     ///

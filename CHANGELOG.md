@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## Added
 - Error definition and handling
 ## Changed
+- Upgrade to edition 2021
+- Upgrade dependancies to nalgebra 0.29, whoami 1.2
+- *Breaking change*: add minidom as optional under the feature name "xml_config_file"
+- Relax dependancy constrant rustc_version_runtime from 0.2.0 to 0.2
 - *Breaking change*: method signature `Rootfinder::solve(&mut self, model: &mut M)` to ``Rootfinder::solve(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError>`
 - *Breaking change*: method signature `Model::evaluate(&mut self)` to `Model::evaluate(&mut self) -> Result<(), model::ModelError>`
 - *Breaking change*: method signature `Model::get_jacobian(&self) -> residuals::JacobianValues<D>` to `Model::get_jacobian(&mut self) -> Result<residuals::JacobianValues<D>, model::ModelError>` in the model trait.

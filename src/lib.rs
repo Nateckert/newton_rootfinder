@@ -98,7 +98,6 @@
 //! impl Model<nalgebra::Dynamic> for UserModel {
 //! #   type InaccurateValuesError = Infallible;
 //! #   type UnusableValuesError = Infallible;
-//! #   type UnrecoverableError = Infallible;
 //! // ...
 //! #   fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<UserModel, nalgebra::Dynamic>> {
 //! #       let mut y = self.inputs.clone() * self.inputs.clone();
@@ -206,6 +205,12 @@
 //! The parametrization will be read at runtime before launching the resolution.
 //! For more information, check the [xml_parser] module.
 //!
+//! To enable this feature, add the following line into your `Cargo.toml` file:
+//! ```toml
+//! [dependencies]
+//! newton_rootfinder = { version = your_version, features = ["xml_config_file"] }
+//! ```
+//!
 //! It also possible to define the parametrization programmatically, in such case your programm will execute faster.
 //!
 //! It is recommanded to read this module's documentation,
@@ -308,7 +313,6 @@
 //! impl Model<nalgebra::Const<1>> for UserModel {
 //!     type InaccurateValuesError = Infallible;
 //!     type UnusableValuesError = Infallible;
-//!     type UnrecoverableError = Infallible;
 //!     fn len_problem(&self) -> usize {
 //!         1
 //!     }
@@ -380,6 +384,7 @@ pub use solver_n_dimensional::residuals;
 
 pub use solver_n_dimensional::solver;
 
+#[cfg(feature = "xml_config_file")]
 pub use solver_n_dimensional::xml_parser;
 
 pub use solver_n_dimensional::errors;

@@ -406,11 +406,6 @@ where
                     error.to_string(),
                 ))
             }
-            Err(ModelError::UnrecoverableError(error)) => {
-                return Err(crate::errors::SolverError::ModelInitialEvaluationError(
-                    error.to_string(),
-                ))
-            }
         }
 
         let mut errors = self.evaluate_errors(model);
