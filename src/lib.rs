@@ -57,6 +57,11 @@
 //! In the litterature, the problem is often described as ```f(X) = 0```,
 //! as the mathematical expressions of the residual equations can be rearranged.
 //!
+//! This solver does not use the same description,
+//! as with floating point operation for scientific computing,
+//! the numerical accuracy does play an important role.
+//! The (left, right) equation framework allows further user parametrization in order to control numerical aspects
+//!
 //! ## Resolution principle
 //!
 //! Check the wikipedia article on [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) !
@@ -74,7 +79,7 @@
 //! ```
 //! use newton_rootfinder as nrf;
 //! use nrf::model::Model; // trait import
-//! #
+//! # use std::convert::Infallible;
 //! # use nalgebra;
 //!
 //! struct UserModel {
@@ -96,11 +101,14 @@
 //! # }
 //! #
 //! impl Model<nalgebra::Dynamic> for UserModel {
+//! #   type InaccurateValuesError = Infallible;
+//! #   type UnusableValuesError = Infallible;
 //! // ...
-//! #   fn evaluate(&mut self) {
+//! #   fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<UserModel, nalgebra::Dynamic>> {
 //! #       let mut y = self.inputs.clone() * self.inputs.clone();
 //! #       y[0] -= 2.0;
 //! #       self.left =  y;
+//! #       Ok(())
 //! #    }
 //! #
 //! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dynamic> {
@@ -146,7 +154,7 @@
 //!
 //!     let mut user_model = UserModel::new();
 //!
-//!     rootfinder.solve(&mut user_model);
+//!     rootfinder.solve(&mut user_model).unwrap();
 //!
 //!     println!("{}", user_model.get_outputs());
 //! }
@@ -179,6 +187,11 @@
 //!
 //! This struct will perform the resolution.
 //!
+//! ## Error handling
+//!
+//! If defined in the user model, the solver can react to specific errors and propage them, without any panic.
+//! Check the [errors] module for more details
+//!
 //! ## Debugging
 //!
 //! In order to be able to debug more easily the resolution process, it is possible to generate a simulation log.
@@ -202,6 +215,12 @@
 //! The parametrization will be read at runtime before launching the resolution.
 //! For more information, check the [xml_parser] module.
 //!
+//! To enable this feature, add the following line into your `Cargo.toml` file:
+//! ```toml
+//! [dependencies]
+//! newton_rootfinder = { version = your_version, features = ["xml_config_file"] }
+//! ```
+//!
 //! It also possible to define the parametrization programmatically, in such case your programm will execute faster.
 //!
 //! It is recommanded to read this module's documentation,
@@ -210,11 +229,9 @@
 //!
 //! ## Examples
 //! ```
-//! extern crate newton_rootfinder;
 //! use newton_rootfinder as nrf;
 //! use nrf::model::Model; // trait import
 //!
-//! extern crate nalgebra;
 //!
 //! // Function to optimize: x**2 = 2
 //! pub fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
@@ -251,7 +268,7 @@
 //!     // Adpatation of the function to solve to the Model trait.
 //!     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
 //!
-//!     rf.solve(&mut user_model);
+//!     rf.solve(&mut user_model).unwrap();
 //!
 //!     println!("{}", user_model.get_iteratives()[0]); // 1.4142135623747443
 //!     println!("{}", std::f64::consts::SQRT_2);       // 1.4142135623730951
@@ -275,6 +292,7 @@
 //!
 //! ## Full example :
 //! ```
+//! use std::convert::Infallible;
 //! use newton_rootfinder as nrf;
 //!
 //! use nrf::model::Model;
@@ -301,6 +319,8 @@
 //! }
 //!
 //! impl Model<nalgebra::Const<1>> for UserModel {
+//!     type InaccurateValuesError = Infallible;
+//!     type UnusableValuesError = Infallible;
 //!     fn len_problem(&self) -> usize {
 //!         1
 //!     }
@@ -312,8 +332,9 @@
 //!         self.iteratives
 //!     }
 //!
-//!     fn evaluate(&mut self) {
-//!         self.output = square2(&self.iteratives)
+//!     fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<Self, nalgebra::Const<1>>> {
+//!         self.output = square2(&self.iteratives);
+//!         Ok(())
 //!     }
 //!
 //!     fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Const<1>> {
@@ -347,7 +368,7 @@
 //!         &residuals_config,
 //!     );
 //!
-//!    rf.solve(&mut user_model);
+//!    rf.solve(&mut user_model).unwrap();
 //!
 //!     assert!(float_cmp::approx_eq!(
 //!         f64,
@@ -363,6 +384,12 @@
 //! The use of static types provide a 30 times improvement versus dynamic type on 1D problems.
 //! For exact numbers, check :
 //! [RESULT.md](https://github.com/Nateckert/newton_rootfinder/blob/main/benches/RESULTS.md)
+//!
+//! ## Vectors and matrix representations
+//!
+//! Linear algebra operations are performed using the crate [nalgebra](https://crates.io/crates/nalgebra).
+//!
+//! The values returned by a user model must be such vectors and matrix
 
 pub use solver_n_dimensional::model;
 
@@ -371,6 +398,9 @@ pub use solver_n_dimensional::residuals;
 
 pub use solver_n_dimensional::solver;
 
+#[cfg(feature = "xml_config_file")]
 pub use solver_n_dimensional::xml_parser;
+
+pub use solver_n_dimensional::errors;
 
 mod solver_n_dimensional;

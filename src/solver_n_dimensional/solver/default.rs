@@ -1,7 +1,5 @@
 use std::fmt;
 
-extern crate nalgebra;
-
 use super::ResolutionMethod;
 use super::RootFinder;
 use super::SolverParameters;
@@ -35,7 +33,6 @@ use crate::residuals;
 /// ## Examples
 ///
 /// ```
-/// extern crate newton_rootfinder;
 /// use newton_rootfinder as nrf;
 /// use nrf::iteratives;
 /// use nrf::residuals;

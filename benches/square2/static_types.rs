@@ -1,8 +1,14 @@
+use std::error::Error;
+use std::fmt;
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use newton_rootfinder as nrf;
 
-use nrf::{model::Model, residuals::NormalizationMethod};
+use nrf::{
+    model::{Model, ModelError},
+    residuals::NormalizationMethod,
+};
 
 /// x**2 - 2 = 0
 /// Root: x = 2.sqrt() approx 1.4142
@@ -25,7 +31,19 @@ impl UserModel {
     }
 }
 
+#[derive(Debug)]
+pub struct MyCustomErrors;
+impl fmt::Display for MyCustomErrors {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", "Not a good value")
+    }
+}
+
+impl Error for MyCustomErrors {}
+
 impl Model<nalgebra::Const<1>> for UserModel {
+    type InaccurateValuesError = MyCustomErrors;
+    type UnusableValuesError = MyCustomErrors;
     fn len_problem(&self) -> usize {
         1
     }
@@ -37,8 +55,9 @@ impl Model<nalgebra::Const<1>> for UserModel {
         self.iteratives
     }
 
-    fn evaluate(&mut self) {
-        self.output = square2(&self.iteratives)
+    fn evaluate(&mut self) -> Result<(), ModelError<Self, nalgebra::Const<1>>> {
+        self.output = square2(&self.iteratives);
+        Ok(())
     }
 
     fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Const<1>> {
@@ -47,8 +66,8 @@ impl Model<nalgebra::Const<1>> for UserModel {
 }
 
 const INITIALIZATION: nalgebra::SVector<f64, 1> = nalgebra::SVector::<f64, 1>::new(1.0);
-const UNRESOLVED_OUTPUT: nalgebra::SVector<f64, 1> = nalgebra::SVector::<f64, 1>::new(9999.0);
-// A function to change the model in-between to calls,
+const UNRESOLVED_OUTPUT: nalgebra::SVector<f64, 1> = nalgebra::SVector::<f64, 1>::new(-1.0);
+// A function to change the model in-between two calls,
 // otherwise it would always be in a solved state after the first evaluation
 // The issue is that the time of the this operation is also included in the benchmark
 fn solve_problem(
@@ -60,7 +79,7 @@ fn solve_problem(
 ) {
     user_model.iteratives = INITIALIZATION;
     user_model.output = UNRESOLVED_OUTPUT;
-    rf.solve(user_model);
+    rf.solve(user_model).unwrap();
 }
 
 fn static_types(c: &mut Criterion) {

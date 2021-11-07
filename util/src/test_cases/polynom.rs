@@ -1,5 +1,3 @@
-extern crate nalgebra;
-
 /// x**2 - 2 = 0
 /// Root: x = 2.sqrt() approx 1.4142
 pub fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {

@@ -2,13 +2,15 @@
 
 
 ![crates.io](https://img.shields.io/crates/v/newton_rootfinder.svg)
-[![Build Status](https://travis-ci.com/Nateckert/newton_rootfinder.svg?branch=master)](https://travis-ci.com/Nateckert/newton_rootfinder)
+![Build Status](https://github.com/Nateckert/newton_rootfinder/actions/workflows/ci.yml/badge.svg)
 
 `newton_rootfinder` is a scientific computing rust crate to solve nonlinear equation systems thanks to [rootfinding methods](https://en.wikipedia.org/wiki/Root-finding_algorithms).
 
 ## Focus of the crate
 
 This crate implements [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method) and other derived methods.
+
+To see a visualization of this method, you can watch this video: [Newton's fractal](https://www.youtube.com/watch?v=-RdOwhmqP5s)
 
 This crate provides methods applicable for n-dimensional problems.
 
@@ -41,14 +43,14 @@ The following crates are providing solvers based on Newton's method for n-dimens
 
 | crate  | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
 |--------|--------:|:-----------------------------:|:-------------------:|:------------------------------:|
-| `newton_rootfinder`         |   0.5.0 |  ✔️  |  ✔️  |  ✔️    |
-| peroxide::numerical::newton |  0.30.6 |  ❌ |  ❌  |   ❌  |
-| bacon_sci::roots::newton    |  0.11.0 |  ❌ |  ❌  |   ❌  |
+| `newton_rootfinder`         |   0.9.0 |  ✔️  |  ✔️  |  ✔️    |
+| peroxide::numerical::newton |  0.30.9 |  ❌ |  ❌  |   ❌  |
 
+bacon_sci::roots (0.12.0) also implements n-dimensional methods, but only for polynomials.
 
 ### 1-dimensional solver
 
-If you are looking for one dimensional crates, `newton_rootfinder` is not the right one for you, but the rust ecosystem has several options :
+If you are looking crates for one dimensional solver, `newton_rootfinder` is not the right one for you, but the rust ecosystem has several options :
 
 
 | crate | version | Newton-Raphson | Other Iterative methods | Analytical methods  | Error handling |

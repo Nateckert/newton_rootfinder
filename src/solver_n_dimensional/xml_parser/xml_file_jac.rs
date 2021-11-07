@@ -115,10 +115,7 @@ use super::util::check_node_name_and_panic;
 ///
 /// ## Examples
 ///```no_run
-/// extern crate nalgebra;
-/// extern crate newton_rootfinder;
 /// use newton_rootfinder as nrf;
-///
 ///
 /// const FILEPATH: &'static str = "./my_path/my_configuration_file.xml";
 /// let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -166,15 +163,15 @@ fn parse_root_node_jac(
     let mut tree = root.children();
 
     let solver_node = tree.next().unwrap();
-    check_node_name_and_panic(solver_node, &"solver");
+    check_node_name_and_panic(solver_node, "solver");
     let parameters = parse_solver_node(solver_node);
 
     let iteratives_node = tree.next().unwrap();
-    check_node_name_and_panic(iteratives_node, &"iteratives");
+    check_node_name_and_panic(iteratives_node, "iteratives");
     let iteratives = parse_iteratives_jac_node(iteratives_node);
 
     let residuals_node = tree.next().unwrap();
-    check_node_name_and_panic(residuals_node, &"residuals");
+    check_node_name_and_panic(residuals_node, "residuals");
     let (stopping_criterias, update_methods) = parse_residuals_node(residuals_node);
 
     if parameters.get_problem_size() != iteratives.len() {

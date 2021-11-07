@@ -1,4 +1,4 @@
-use nalgebra::storage::Storage;
+use nalgebra::RawStorage;
 
 pub fn ovector_zeros_like<D>(input: &nalgebra::OVector<f64, D>) -> nalgebra::OVector<f64, D>
 where

@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use super::Model;
 use crate::residuals;
 
@@ -53,8 +55,12 @@ impl<'a> UserModelFromClosure<'a> {
 }
 
 impl<'a> Model<nalgebra::Dynamic> for UserModelFromClosure<'a> {
-    fn evaluate(&mut self) {
+    type InaccurateValuesError = Infallible;
+    type UnusableValuesError = Infallible;
+
+    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.closure)(&self.inputs);
+        Ok(())
     }
 
     fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
@@ -104,7 +110,7 @@ impl<'a> Model<nalgebra::Dynamic> for UserModelFromClosure<'a> {
 /// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 ///
 /// assert_eq!(user_model.jacobian_provided(), true);
-/// let jacobians_values = user_model.get_jacobian();
+/// let jacobians_values = user_model.get_jacobian().unwrap();
 /// let (jac_left, jac_right) = jacobians_values.get_jacobians();
 /// assert_eq!(jac_left[(0,0)], 4.0);
 /// assert_eq!(jac_right[(0,0)], 0.0);
@@ -140,8 +146,12 @@ impl<'a, 'b> UserModelFromClosureAndJacobian<'a, 'b> {
 }
 
 impl<'a, 'b> Model<nalgebra::Dynamic> for UserModelFromClosureAndJacobian<'a, 'b> {
-    fn evaluate(&mut self) {
+    type InaccurateValuesError = Infallible;
+    type UnusableValuesError = Infallible;
+
+    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
         self.left = (self.closure)(&self.inputs);
+        Ok(())
     }
 
     fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
@@ -163,10 +173,15 @@ impl<'a, 'b> Model<nalgebra::Dynamic> for UserModelFromClosureAndJacobian<'a, 'b
     fn jacobian_provided(&self) -> bool {
         true
     }
-    fn get_jacobian(&self) -> residuals::JacobianValues<nalgebra::Dynamic> {
+    fn get_jacobian(
+        &mut self,
+    ) -> Result<
+        residuals::JacobianValues<nalgebra::Dynamic>,
+        super::ModelError<Self, nalgebra::Dynamic>,
+    > {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
-        residuals::JacobianValues::new(jac_left, jac_right)
+        Ok(residuals::JacobianValues::new(jac_left, jac_right))
     }
 }
 
@@ -183,7 +198,7 @@ mod tests {
         let iteratives = nalgebra::DVector::from_vec(vec![2.0]);
         let mut user_model = UserModelFromClosure::new(1, &square_closure);
         user_model.set_iteratives(&iteratives);
-        user_model.evaluate();
+        user_model.evaluate().unwrap();
 
         assert_eq!(user_model.len_problem(), 1);
         assert_eq!(
@@ -210,7 +225,7 @@ mod tests {
         let mut user_model =
             UserModelFromClosureAndJacobian::new(1, &square_closure, &derivative_closure);
         user_model.set_iteratives(&iteratives);
-        user_model.evaluate();
+        user_model.evaluate().unwrap();
 
         assert_eq!(user_model.len_problem(), 1);
         assert_eq!(

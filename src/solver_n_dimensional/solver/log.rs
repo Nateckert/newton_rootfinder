@@ -60,8 +60,8 @@ impl SolverLog {
         let mut file = File::create(path).unwrap();
 
         let mut content = String::new();
-        content.push_str(&"Runner informations\n");
-        content.push_str(&"===================\n\n");
+        content.push_str("Runner informations\n");
+        content.push_str("===================\n\n");
 
         #[cfg(feature = "additional_log_info")]
         {
@@ -72,12 +72,12 @@ impl SolverLog {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         content.push_str("newton_rootfinder version: ");
         content.push_str(VERSION);
-        content.push_str(&"\n");
+        content.push('\n');
 
         #[cfg(feature = "additional_log_info")]
         write_time(&mut content);
 
-        content.push_str(&"\n");
+        content.push('\n');
 
         write!(file, "{}", content).unwrap();
 
@@ -145,9 +145,9 @@ impl SolverLog {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(&format!("Max error: {}\n\n", errors.amax()));
         self.add_content(&iteration_log_header);
-        self.add_content(&SEPARATION_LINE);
-        self.add_content(&TITLE_LINE);
-        self.add_content(&SEPARATION_LINE);
+        self.add_content(SEPARATION_LINE);
+        self.add_content(TITLE_LINE);
+        self.add_content(SEPARATION_LINE);
         for (i, (iterative, error)) in iteratives.iter().zip(errors.iter()).enumerate() {
             let mut entry = String::new();
             entry.push_str(&format!("| {:width$}", i.to_string(), width = INT_WIDTH));
@@ -166,10 +166,10 @@ impl SolverLog {
                 error.to_string(),
                 width = FLOAT_WIDTH
             ));
-            entry.push_str(&"\n");
-            entry.push_str(&SEPARATION_LINE);
+            entry.push('\n');
+            entry.push_str(SEPARATION_LINE);
             self.add_content(&entry);
         }
-        self.add_content(&"\n");
+        self.add_content("\n");
     }
 }

@@ -1,8 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-extern crate nalgebra;
-
-extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
 
 fn square2_nalg(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {

@@ -2,7 +2,6 @@
 ///
 /// # Examples
 ///```
-/// extern crate newton_rootfinder;
 /// use newton_rootfinder as nrf;
 ///
 /// let size = 2;
@@ -23,7 +22,6 @@ pub fn default_vec_iteratives(size: usize) -> Vec<super::IterativeParams> {
 ///
 /// # Examples
 ///```
-/// extern crate newton_rootfinder;
 /// use newton_rootfinder as nrf;
 ///
 /// let size = 2;

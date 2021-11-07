@@ -1,6 +1,3 @@
-extern crate float_cmp;
-extern crate nalgebra;
-
 pub fn float_matrix_comparison(
     jac: &nalgebra::DMatrix<f64>,
     jac_ref: &nalgebra::DMatrix<f64>,

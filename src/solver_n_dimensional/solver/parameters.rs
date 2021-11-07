@@ -125,9 +125,9 @@ impl fmt::Display for SolverParameters {
             self.resolution_method.to_string(),
             width = 20
         ));
-        content.push_str(&"|\n");
+        content.push_str("|\n");
         content.push_str(separation_line);
-        content.push_str(&"\n");
+        content.push('\n');
 
         write!(f, "{}", content)
     }

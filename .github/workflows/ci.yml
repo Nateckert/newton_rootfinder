@@ -24,6 +24,8 @@ jobs:
       run: cargo build
     - name: Build additional_log_info
       run: cargo build --features additional_log_info
+    - name: Build xml_config_file
+      run: cargo build --features xml_config_file
   test-nrf:
     runs-on: ubuntu-latest
     steps:
@@ -35,5 +37,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: doc
-        run: cargo doc --no-deps
+        run: cargo doc --no-deps; cargo doc --no-deps --all-features;
   

@@ -1,5 +1,3 @@
-extern crate nalgebra;
-extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
 
 use crate::common::{run_function_case_fd, run_function_case_jac};

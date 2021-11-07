@@ -1,5 +1,4 @@
 use std::fs;
-extern crate minidom;
 
 use minidom::Element;
 
@@ -15,7 +14,6 @@ use crate::solver::{
 #[cfg(test)]
 mod tests {
     use super::*;
-    extern crate minidom;
     use crate::solver_advanced::iteratives;
     use crate::solver_advanced::solver::ResolutionMethod;
     use minidom::Element;

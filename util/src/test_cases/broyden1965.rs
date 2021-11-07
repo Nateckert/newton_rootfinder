@@ -53,8 +53,6 @@
 //! |    Negative     |    Positive     |  Negative  |
 //!
 
-extern crate nalgebra;
-
 pub fn init_broyden1965_case5() -> nalgebra::DVector<f64> {
     nalgebra::DVector::from_vec(vec![-1.0; 5])
 }

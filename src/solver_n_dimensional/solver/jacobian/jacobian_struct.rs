@@ -1,6 +1,8 @@
 use std::fmt;
 
-fn compute_inverse<D>(matrix: &nalgebra::OMatrix<f64, D, D>) -> nalgebra::OMatrix<f64, D, D>
+fn compute_inverse<D>(
+    matrix: &nalgebra::OMatrix<f64, D, D>,
+) -> Result<nalgebra::OMatrix<f64, D, D>, crate::errors::NonInvertibleJacobian>
 where
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
@@ -9,8 +11,8 @@ where
     let lu_jac = matrix.to_owned().lu();
 
     match lu_jac.try_inverse() {
-        Some(inv_jac) => inv_jac,
-        None => panic!("The jacobian matrix is non invertible"),
+        Some(inv_jac) => Ok(inv_jac),
+        None => Err(crate::errors::NonInvertibleJacobian),
     }
 }
 
@@ -22,6 +24,8 @@ where
 {
     matrix: Option<nalgebra::OMatrix<f64, D, D>>,
     inverse: Option<nalgebra::OMatrix<f64, D, D>>,
+    compute_jacobian_at_next_iteration: bool,
+    is_current_jacobian_approximated: bool,
 }
 
 impl<D> Default for JacobianMatrix<D>
@@ -45,14 +49,57 @@ where
         JacobianMatrix {
             matrix: None,
             inverse: None,
+            compute_jacobian_at_next_iteration: true,
+            is_current_jacobian_approximated: false,
         }
+    }
+
+    pub fn force_jacobian_computation(&mut self) {
+        self.compute_jacobian_at_next_iteration = true
+    }
+
+    pub fn compute_jacobian(&self) -> bool {
+        self.compute_jacobian_at_next_iteration
+    }
+
+    pub fn is_jacobian_approximated(&self) -> bool {
+        self.is_current_jacobian_approximated
     }
 
     /// When updating the jacobian,
     /// the inverse has to be recomputed
-    pub fn update_jacobian(&mut self, matrix: nalgebra::OMatrix<f64, D, D>) {
-        self.inverse = Some(compute_inverse(&matrix));
-        self.matrix = Some(matrix);
+    fn update_jacobian(
+        &mut self,
+        matrix: nalgebra::OMatrix<f64, D, D>,
+    ) -> Result<(), crate::errors::NonInvertibleJacobian> {
+        match compute_inverse(&matrix) {
+            Ok(inverse_matrix) => {
+                self.inverse = Some(inverse_matrix);
+                self.matrix = Some(matrix);
+                self.compute_jacobian_at_next_iteration = false;
+                Ok(())
+            }
+            Err(_) => {
+                self.invalidate_jacobian();
+                Err(crate::errors::NonInvertibleJacobian)
+            }
+        }
+    }
+
+    pub fn update_jacobian_with_exact_value(
+        &mut self,
+        matrix: nalgebra::OMatrix<f64, D, D>,
+    ) -> Result<(), crate::errors::NonInvertibleJacobian> {
+        self.is_current_jacobian_approximated = false;
+        self.update_jacobian(matrix)
+    }
+
+    pub fn update_jacobian_with_approximated_value(
+        &mut self,
+        matrix: nalgebra::OMatrix<f64, D, D>,
+    ) -> Result<(), crate::errors::NonInvertibleJacobian> {
+        self.is_current_jacobian_approximated = true;
+        self.update_jacobian(matrix)
     }
 
     /// When updating the inverse,
@@ -61,6 +108,7 @@ where
     pub fn update_inverse(&mut self, inverse: nalgebra::OMatrix<f64, D, D>) {
         self.matrix = None;
         self.inverse = Some(inverse);
+        self.is_current_jacobian_approximated = true;
     }
 
     /// Need to have Some and None for the inverse ?
@@ -71,6 +119,12 @@ where
 
     pub fn get_jacobian(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
         &self.matrix
+    }
+    /// Invalidate a jacobian
+    /// For example, if there is an error computing it
+    pub fn invalidate_jacobian(&mut self) {
+        self.matrix = None;
+        self.inverse = None;
     }
 }
 
@@ -103,58 +157,8 @@ where
             None => content.push_str("Inverse jacobian matrix not yet computed"),
         }
 
-        content.push_str(&"\n");
+        content.push('\n');
 
         write!(f, "{}", content)
     }
-}
-
-use crate::model;
-use crate::residuals;
-
-/// Evaluate a jacobian per forward finite difference when perturbation step eps is provided
-pub fn jacobian_evaluation<M, D>(
-    model: &mut M,
-    perturbations: &nalgebra::OVector<f64, D>,
-    update_residuals: &residuals::ResidualsConfig,
-) -> nalgebra::OMatrix<f64, D, D>
-where
-    M: model::Model<D>,
-    D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-{
-    let problem_size = model.len_problem();
-    let mut jacobian: nalgebra::OMatrix<f64, D, D> =
-        super::super::omatrix_zeros_like_ovector(perturbations);
-    let memory_ref = model.get_memory();
-    let iteratives_ref = model.get_iteratives();
-    let residuals_ref = update_residuals.evaluate_update_residuals(&model.get_residuals());
-
-    for i in 0..problem_size {
-        // Finite-difference column evaluation
-        let mut iteratives_perturbations = iteratives_ref.clone();
-        iteratives_perturbations[i] += perturbations[i];
-
-        model.set_iteratives(&iteratives_perturbations);
-        model.evaluate();
-
-        let residuals_perturbation =
-            update_residuals.evaluate_update_residuals(&model.get_residuals());
-
-        // First order forward difference
-        let col = (residuals_perturbation - &residuals_ref) / perturbations[i];
-
-        jacobian.set_column(i, &col);
-
-        // Restart from reference state, needed for :
-        // - next iteration of the loop :
-        //          jacobian evaluation independant of column order
-        // - next model evaluation after jacobian computation :
-        //          in case of step rejection
-        //          to make the memory of next step independant of column order
-        model.set_memory(&memory_ref); // restart from reference state
-    }
-
-    jacobian
 }

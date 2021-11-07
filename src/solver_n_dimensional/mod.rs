@@ -1,10 +1,13 @@
 //! Advanced solver
 
+pub mod errors;
 pub mod iteratives;
 pub mod model;
 pub mod residuals;
 pub mod solver;
 mod util_nalgebra;
+
+#[cfg(feature = "xml_config_file")]
 pub mod xml_parser;
 
 pub use util_nalgebra::{
