@@ -1,11 +1,9 @@
-extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
 
 use util::test_cases::broyden1965::*;
 
 use crate::common::float_matrix_comparison;
 
-extern crate nalgebra;
 use nrf::model::Model;
 
 #[test]

@@ -1,7 +1,5 @@
 use std::error::Error;
 
-extern crate nalgebra;
-
 use crate::residuals;
 
 /// The [Model] trait is the minimal requirement that ensures the capacity of a given model

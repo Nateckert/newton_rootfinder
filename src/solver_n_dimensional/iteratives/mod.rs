@@ -13,7 +13,6 @@
 //!
 //! # Examples
 //! ```
-//! extern crate newton_rootfinder;
 //! use newton_rootfinder as nrf;
 //! use nrf::iteratives::{Iteratives, IterativeParams, IterativeParamsFD};
 //!

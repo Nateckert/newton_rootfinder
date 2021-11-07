@@ -1,7 +1,5 @@
 use std::fmt;
 
-extern crate nalgebra;
-
 use crate::errors;
 use crate::iteratives;
 use crate::iteratives::Iterative;
@@ -120,7 +118,6 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// extern crate newton_rootfinder;
     /// use newton_rootfinder as nrf;
     /// # use nrf::iteratives;
     /// # use nrf::residuals;

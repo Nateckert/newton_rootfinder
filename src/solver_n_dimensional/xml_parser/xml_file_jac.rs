@@ -115,10 +115,7 @@ use super::util::check_node_name_and_panic;
 ///
 /// ## Examples
 ///```no_run
-/// extern crate nalgebra;
-/// extern crate newton_rootfinder;
 /// use newton_rootfinder as nrf;
-///
 ///
 /// const FILEPATH: &'static str = "./my_path/my_configuration_file.xml";
 /// let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =

@@ -16,14 +16,11 @@
 //! ## Examples
 //!
 //! ```
-//! extern crate newton_rootfinder;
 //! use newton_rootfinder as nrf;
 //! use nrf::model::Model;
 //! use nrf::iteratives;
 //! use nrf::residuals;
 //! use nrf::solver::ResolutionMethod;
-//!
-//! extern crate nalgebra;
 //!
 //! /// Equation : x**2 - 2 = 0
 //! fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
@@ -45,7 +42,7 @@
 //!   let mut user_model =
 //!       nrf::model::UserModelFromFunction::new(problem_size, square2);
 //!
-//!   rf.solve(&mut user_model);
+//!   rf.solve(&mut user_model).unwrap();
 //!
 //!   println!("{}", user_model.get_iteratives()[0]);
 //!   // print 1.4142135623747443

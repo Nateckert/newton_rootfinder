@@ -56,6 +56,11 @@
 //!
 //! In the litterature, the problem is often described as ```f(X) = 0```,
 //! as the mathematical expressions of the residual equations can be rearranged.
+//! 
+//! This solver does not use the same description,
+//! as with floating point operation for scientific computing,
+//! the numerical accuracy does play an important role.
+//! The (left, right) equation framework allows further user parametrization in order to control numerical aspects
 //!
 //! ## Resolution principle
 //!
@@ -149,7 +154,7 @@
 //!
 //!     let mut user_model = UserModel::new();
 //!
-//!     rootfinder.solve(&mut user_model);
+//!     rootfinder.solve(&mut user_model).unwrap();
 //!
 //!     println!("{}", user_model.get_outputs());
 //! }
@@ -181,6 +186,11 @@
 //! Once each of these element has been defined, the [solver::RootFinder] struct can be instanciated.
 //!
 //! This struct will perform the resolution.
+//! 
+//! ## Error handling
+//! 
+//! If defined in the user model, the solver can react to specific errors and propage them, without any panic.
+//! Check the [errors] module for more details
 //!
 //! ## Debugging
 //!
@@ -219,11 +229,9 @@
 //!
 //! ## Examples
 //! ```
-//! extern crate newton_rootfinder;
 //! use newton_rootfinder as nrf;
 //! use nrf::model::Model; // trait import
 //!
-//! extern crate nalgebra;
 //!
 //! // Function to optimize: x**2 = 2
 //! pub fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
@@ -260,7 +268,7 @@
 //!     // Adpatation of the function to solve to the Model trait.
 //!     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
 //!
-//!     rf.solve(&mut user_model);
+//!     rf.solve(&mut user_model).unwrap();
 //!
 //!     println!("{}", user_model.get_iteratives()[0]); // 1.4142135623747443
 //!     println!("{}", std::f64::consts::SQRT_2);       // 1.4142135623730951
@@ -360,7 +368,7 @@
 //!         &residuals_config,
 //!     );
 //!
-//!    rf.solve(&mut user_model);
+//!    rf.solve(&mut user_model).unwrap();
 //!
 //!     assert!(float_cmp::approx_eq!(
 //!         f64,
@@ -376,6 +384,13 @@
 //! The use of static types provide a 30 times improvement versus dynamic type on 1D problems.
 //! For exact numbers, check :
 //! [RESULT.md](https://github.com/Nateckert/newton_rootfinder/blob/main/benches/RESULTS.md)
+//!
+//! ## Vectors and matrix representations
+//! 
+//! Linear algebra operations are performed using the crate [nalgebra](https://crates.io/crates/nalgebra).
+//! 
+//! The values returned by a user model must be such vectors and matrix
+
 
 pub use solver_n_dimensional::model;
 

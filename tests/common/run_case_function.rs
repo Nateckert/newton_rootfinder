@@ -1,7 +1,5 @@
-extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
 
-extern crate nalgebra;
 use nrf::iteratives;
 use nrf::model::Model;
 use nrf::residuals;

@@ -20,9 +20,6 @@
 
 use criterion::{criterion_group, criterion_main, Criterion};
 
-extern crate nalgebra;
-
-extern crate newton_rootfinder;
 use newton_rootfinder as nrf;
 use util::test_cases::broyden1965::{broyden1965_case8, init_broyden1965_case8};
 

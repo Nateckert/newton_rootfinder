@@ -1,11 +1,9 @@
-extern crate newton_rootfinder;
-
 use newton_rootfinder as nrf;
 
 use nrf::iteratives;
 use nrf::residuals;
 
-fn cannot_converge(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
+fn constant_problem(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let n = x.len();
     let mut outputs = nalgebra::DVector::zeros(n);
 
@@ -35,7 +33,7 @@ fn non_convergence_case() {
         nrf::solver::ResolutionMethod::NewtonRaphson,
         damping,
     );
-    let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, cannot_converge);
+    let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, constant_problem);
 
     let result = rf.solve(&mut user_model).unwrap_err();
     let expected = "Jacobian error: Non invertible jacobian";
