@@ -68,7 +68,7 @@ pub fn default_with_guess<'a, T, D>(
     damping: bool,
 ) -> RootFinder<'a, T, D>
 where
-    T: Iterative + fmt::Display,
+    T: Iterative + fmt::Display + fmt::Debug,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,

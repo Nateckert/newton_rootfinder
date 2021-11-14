@@ -162,3 +162,25 @@ where
         write!(f, "{}", content)
     }
 }
+
+impl<D> fmt::Debug for JacobianMatrix<D>
+where
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Jacobian matrix")
+            .field("Matrix", &self.matrix)
+            .field("Matrix Inverse", &self.inverse)
+            .field(
+                "Compute jacobian at next iteration: ",
+                &self.compute_jacobian_at_next_iteration,
+            )
+            .field(
+                "Is current jacobian approximated: ",
+                &self.is_current_jacobian_approximated,
+            )
+            .finish()
+    }
+}

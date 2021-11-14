@@ -23,7 +23,7 @@ use super::{QuasiNewtonMethod, ResolutionMethod};
 /// The user can activate the debugging before the resolution thanks to the `set_debug()` method
 pub struct RootFinder<'a, T, D>
 where
-    T: Iterative + fmt::Display,
+    T: Iterative + fmt::Display + fmt::Debug,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
@@ -49,7 +49,7 @@ where
 
 impl<'a, T, D> RootFinder<'a, T, D>
 where
-    T: Iterative + fmt::Display,
+    T: Iterative + fmt::Display + fmt::Debug,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
@@ -494,5 +494,37 @@ where
             .as_ref()
             .unwrap()
             .add_content(&self.jacobian.to_string());
+    }
+}
+
+impl<'a, T, D> fmt::Debug for RootFinder<'a, T, D>
+where
+    T: Iterative + fmt::Display + fmt::Debug,
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Rootfinder")
+            .field("Solver parameters", &self.parameters)
+            .field("Initial Guess", &self.initial_guess)
+            .field("Iterative configuration", &self.iters_params)
+            .field("Residual configuration", &self.residuals_config)
+            .field("Debug option activated", &self.debug)
+            .field("Current iteration", &self.iter)
+            .field(
+                "Status last model evaluation",
+                &self.valid_last_model_evaluation,
+            )
+            .field("Placeholder jacobian", &self.jacobian)
+            .field("Placeholder iterative step", &self.iteratives_step_size)
+            .field("Placeholder residual step", &self.residuals_step_size)
+            .field(
+                "Placeholder current residual",
+                &self.residuals_values_current,
+            )
+            .finish()
     }
 }
