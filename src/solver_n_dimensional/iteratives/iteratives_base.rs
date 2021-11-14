@@ -154,3 +154,14 @@ where
         write!(f, "{}", content)
     }
 }
+
+impl<'a, T> fmt::Debug for Iteratives<'a, T>
+where
+    T: Iterative + fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_list()
+            .entries(self.iteratives_params.iter())
+            .finish()
+    }
+}

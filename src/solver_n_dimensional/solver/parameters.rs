@@ -132,3 +132,15 @@ impl fmt::Display for SolverParameters {
         write!(f, "{}", content)
     }
 }
+
+impl fmt::Debug for SolverParameters {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Solver parameters")
+            .field("Problem size", &self.problem_size)
+            .field("Max iteration", &self.max_iter)
+            .field("Solver tolerance", &self.tolerance)
+            .field("Resolution method", &self.resolution_method)
+            .field("Damping activated", &self.damping)
+            .finish()
+    }
+}
