@@ -43,10 +43,10 @@ The following crates are providing solvers based on Newton's method for n-dimens
 
 | crate  | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
 |--------|--------:|:-----------------------------:|:-------------------:|:------------------------------:|
-| `newton_rootfinder`         |   0.9.0 |  ✔️  |  ✔️  |  ✔️    |
-| peroxide::numerical::newton |  0.30.9 |  ❌ |  ❌  |   ❌  |
+| `newton_rootfinder`         |   0.10.0 |  ✔️  |  ✔️  |  ✔️    |
+| peroxide::numerical::newton |  0.31.7 |  ❌ |  ❌  |   ❌  |
 
-bacon_sci::roots (0.12.0) also implements n-dimensional methods, but only for polynomials.
+bacon_sci::roots (0.13.1) also implements n-dimensional methods, but only for polynomials.
 
 ### 1-dimensional solver
 
@@ -58,8 +58,8 @@ If you are looking crates for one dimensional solver, `newton_rootfinder` is not
 | newton-raphson |   0.1.0 |  ✔️    |  ❌  |  ❌  |  ❌  |
 | nrfind         |   1.0.3 |  ✔️    |  ❌  |  ❌  |  ✔️   |
 | rootfind       |   0.7.0 |  ✔️    |  ✔️   |  ❌  |  ✔️   |
-| roots          |   0.6.0 |  ✔️    |  ✔️   |  ✔️  |   ✔️  |
-| bacon_sci      |  0.11.0 |  ✔️    |  ✔️   |  ❌  |  ✔️   |
+| roots          |   0.0.7 |  ✔️    |  ✔️   |  ✔️  |   ✔️  |
+| bacon_sci      |  0.13.1 |  ✔️    |  ✔️   |  ❌  |  ✔️   |
 
 ## Contribution
 
