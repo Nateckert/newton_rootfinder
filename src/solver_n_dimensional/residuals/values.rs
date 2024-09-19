@@ -52,8 +52,13 @@ where
         (self.left[index], self.right[index])
     }
 
-    pub fn shape(&self) -> D {
+    pub fn shape(&self) -> usize {
         let (nrows, _ncols) = self.left.shape();
+        nrows
+    }
+
+    pub fn shape_generic(&self) -> D {
+        let (nrows, _ncols) = self.left.shape_generic();
         nrows
     }
 
@@ -123,7 +128,7 @@ where
         norm_methods: &[NormalizationMethod],
     ) -> nalgebra::OMatrix<f64, D, D> {
         let mut jac: nalgebra::OMatrix<f64, D, D> =
-            super::super::omatrix_zeros_from_shape(res_values.shape());
+            super::super::omatrix_zeros_from_shape(res_values.shape_generic());
 
         // iterate over rows
         for i in 0..self.problem_size {

@@ -3,7 +3,7 @@ where
     D: nalgebra::Dim,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
 {
-    let (nrows, ncols) = input.shape();
+    let (nrows, ncols) = input.shape_generic();
 
     nalgebra::OMatrix::zeros_generic(nrows, ncols)
 }
@@ -13,7 +13,7 @@ where
     D: nalgebra::Dim,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
-    let (nrows, ncols) = input.shape();
+    let (nrows, ncols) = input.shape_generic();
 
     nalgebra::OMatrix::zeros_generic(nrows, ncols)
 }
@@ -24,7 +24,7 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
-    let (nrows, _ncols) = input.shape();
+    let (nrows, _ncols) = input.shape_generic();
 
     nalgebra::OMatrix::zeros_generic(nrows, nrows)
 }
