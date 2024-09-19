@@ -36,7 +36,7 @@ fn non_convergence_case() {
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, cannot_converge);
 
     let result = rf.solve(&mut user_model).unwrap_err();
-    let expected: nrf::errors::SolverError<nrf::model::UserModelFromFunction, nalgebra::Dynamic> =
+    let expected: nrf::errors::SolverError<nrf::model::UserModelFromFunction, nalgebra::Dyn> =
         nrf::errors::SolverError::NonConvergenceError;
     assert_eq!(expected.to_string(), result.to_string());
 }
