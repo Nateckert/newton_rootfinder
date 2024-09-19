@@ -19,8 +19,8 @@ pub fn compute_jacobian_from_finite_difference<M, D>(
 where
     M: model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     let problem_size = model.len_problem();
     let mut jacobian: nalgebra::OMatrix<f64, D, D> =
@@ -71,9 +71,9 @@ where
     M: model::Model<D>,
     T: Iterative + fmt::Display,
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     let iters_values = model.get_iteratives();
 

@@ -60,7 +60,7 @@ where
     ) -> nalgebra::OVector<f64, D>
     where
         D: nalgebra::Dim,
-        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         let mut step_lim: nalgebra::OVector<f64, D> = super::super::ovector_zeros_like(values);
 
@@ -77,7 +77,7 @@ where
     ) -> nalgebra::OVector<f64, D>
     where
         D: nalgebra::Dim,
-        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         let mut perturbations: nalgebra::OVector<f64, D> =
             super::super::ovector_zeros_like(iterative_values);
