@@ -18,7 +18,9 @@ where
     nalgebra::OMatrix::zeros_generic(nrows, ncols)
 }
 
-pub fn omatrix_zeros_like_ovector<D>(input: &nalgebra::OVector<f64, D>) -> nalgebra::OMatrix<f64, D, D>
+pub fn omatrix_zeros_like_ovector<D>(
+    input: &nalgebra::OVector<f64, D>,
+) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,

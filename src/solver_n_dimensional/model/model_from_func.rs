@@ -175,10 +175,8 @@ impl Model<nalgebra::Dyn> for UserModelFromFunctionAndJacobian {
     }
     fn get_jacobian(
         &mut self,
-    ) -> Result<
-        residuals::JacobianValues<nalgebra::Dyn>,
-        super::ModelError<Self, nalgebra::Dyn>,
-    > {
+    ) -> Result<residuals::JacobianValues<nalgebra::Dyn>, super::ModelError<Self, nalgebra::Dyn>>
+    {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         Ok(residuals::JacobianValues::new(jac_left, jac_right))

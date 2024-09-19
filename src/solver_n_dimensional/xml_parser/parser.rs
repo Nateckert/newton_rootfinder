@@ -5,11 +5,7 @@ use minidom::Element;
 use crate::iteratives;
 use crate::residuals;
 use crate::solver::SolverParameters;
-use crate::solver::{
-    QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod,
-};
-
-
+use crate::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 
 #[cfg(test)]
 mod tests {
@@ -42,8 +38,6 @@ mod tests {
         let iteratives_node: Element = DATA.parse().unwrap();
         let _iteratives = parse_iteratives_node(&iteratives_node);
     }
-
-  
 
     #[test]
     fn parsing_root_1() {
