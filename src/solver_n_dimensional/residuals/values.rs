@@ -53,7 +53,7 @@ where
     }
 
     pub fn shape(&self) -> D {
-        let (nrows, _ncols) = self.left.data.shape();
+        let (nrows, _ncols) = self.left.shape();
         nrows
     }
 
