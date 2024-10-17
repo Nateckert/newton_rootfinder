@@ -11,9 +11,9 @@ pub fn evaluate_jacobian_from_analytical_function<'a, M, D>(
 where
     M: model::Model<D>,
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     let residuals_values = model.get_residuals();
 

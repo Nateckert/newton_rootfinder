@@ -60,7 +60,7 @@
 //!
 //! impl Error for MyCustomErrors {}
 //!
-//! impl Model<nalgebra::Dynamic> for MyDummyModel {
+//! impl Model<nalgebra::Dyn> for MyDummyModel {
 //!     type InaccurateValuesError = MyCustomErrors;
 //!     type UnusableValuesError = MyCustomErrors;
 //!
@@ -76,14 +76,14 @@
 //!         self.iteratives = iteratives.clone();
 //!     }
 //!
-//!     fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dynamic> {
+//!     fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dyn> {
 //!         return nrf::residuals::ResidualsValues::new(
 //!             self.residuals.clone(),
 //!             nalgebra::DVector::zeros(1),
 //!         );
 //!     }
 //!
-//!     fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<Self, nalgebra::Dynamic>> {
+//!     fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<Self, nalgebra::Dyn>> {
 //!         self.residuals[0] = self.iteratives[0].powi(2) - 2.0;
 //!         Err(nrf::model::ModelError::InaccurateValuesError(
 //!             MyCustomErrors::NotAGoodValue,
@@ -114,7 +114,7 @@
 //!     let mut my_model = MyDummyModel::new();
 //!
 //!     let result = rf.solve(&mut my_model).unwrap_err();
-//!     let expected: nrf::errors::SolverError<nrf::model::UserModelFromFunction, nalgebra::Dynamic> =
+//!     let expected: nrf::errors::SolverError<nrf::model::UserModelFromFunction, nalgebra::Dyn> =
 //!         nrf::errors::SolverError::FinalEvaluationError;
 //!     assert_eq!(expected.to_string(), result.to_string());
 //!     assert!(float_cmp::approx_eq!(
@@ -136,8 +136,8 @@ pub enum SolverInternalError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     InvalidJacobianError(crate::model::ModelError<M, D>),
     InvalidJacobianInverseError,
@@ -147,8 +147,8 @@ impl<M, D> fmt::Display for SolverInternalError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -162,8 +162,8 @@ impl<M, D> fmt::Debug for SolverInternalError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self, f)
@@ -184,8 +184,8 @@ pub enum SolverError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     NonConvergenceError,
     ModelInitialEvaluationError(String),
@@ -198,8 +198,8 @@ impl<M, D> fmt::Display for SolverError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -224,8 +224,8 @@ impl<M, D> fmt::Debug for SolverError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self, f)
@@ -236,7 +236,7 @@ impl<M, D> Error for SolverError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
 }

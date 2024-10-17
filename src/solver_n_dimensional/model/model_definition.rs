@@ -40,8 +40,8 @@ use crate::residuals;
 pub trait Model<D>: Sized
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     type InaccurateValuesError: Error;
     type UnusableValuesError: Error;

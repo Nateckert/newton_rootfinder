@@ -5,8 +5,8 @@ fn compute_inverse<D>(
 ) -> Result<nalgebra::OMatrix<f64, D, D>, crate::errors::NonInvertibleJacobian>
 where
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     let lu_jac = matrix.to_owned().lu();
 
@@ -19,8 +19,8 @@ where
 pub struct JacobianMatrix<D>
 where
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     matrix: Option<nalgebra::OMatrix<f64, D, D>>,
     inverse: Option<nalgebra::OMatrix<f64, D, D>>,
@@ -31,8 +31,8 @@ where
 impl<D> Default for JacobianMatrix<D>
 where
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     fn default() -> Self {
         JacobianMatrix::new()
@@ -42,8 +42,8 @@ where
 impl<D> JacobianMatrix<D>
 where
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     pub fn new() -> Self {
         JacobianMatrix {
@@ -131,8 +131,8 @@ where
 impl<D> fmt::Display for JacobianMatrix<D>
 where
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut content = String::from("Jacobian matrix\n");
@@ -166,8 +166,8 @@ where
 impl<D> fmt::Debug for JacobianMatrix<D>
 where
     D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<(usize, usize), D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Jacobian matrix")

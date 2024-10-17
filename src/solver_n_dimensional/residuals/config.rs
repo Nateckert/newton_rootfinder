@@ -103,10 +103,10 @@ impl<'a> ResidualsConfig<'a> {
     ) -> nalgebra::OVector<f64, D>
     where
         D: nalgebra::Dim,
-        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         let mut update_residuals: nalgebra::OVector<f64, D> =
-            super::super::ovector_zeros_from_shape(values.shape());
+            super::super::ovector_zeros_from_shape(values.shape_generic());
 
         for (i, &update_method) in self.update_methods.iter().enumerate() {
             let (left, right) = values.get_values(i);
@@ -122,10 +122,10 @@ impl<'a> ResidualsConfig<'a> {
     ) -> nalgebra::OVector<f64, D>
     where
         D: nalgebra::Dim,
-        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         let mut stopping_residuals: nalgebra::OVector<f64, D> =
-            super::super::ovector_zeros_from_shape(values.shape());
+            super::super::ovector_zeros_from_shape(values.shape_generic());
 
         for (i, &stopping_criteria) in self.stopping_criterias.iter().enumerate() {
             let (left, right) = values.get_values(i);

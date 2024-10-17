@@ -55,16 +55,16 @@ impl UserModelFromFunction {
     }
 }
 
-impl Model<nalgebra::Dynamic> for UserModelFromFunction {
+impl Model<nalgebra::Dyn> for UserModelFromFunction {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
 
-    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
+    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dyn>> {
         self.left = (self.func)(&self.inputs);
         Ok(())
     }
 
-    fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
+    fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dyn> {
         residuals::ResidualsValues::new(self.left.clone(), self.right.clone())
     }
 
@@ -145,16 +145,16 @@ impl UserModelFromFunctionAndJacobian {
     }
 }
 
-impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
+impl Model<nalgebra::Dyn> for UserModelFromFunctionAndJacobian {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
 
-    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dynamic>> {
+    fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dyn>> {
         self.left = (self.func)(&self.inputs);
         Ok(())
     }
 
-    fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dynamic> {
+    fn get_residuals(&self) -> residuals::ResidualsValues<nalgebra::Dyn> {
         residuals::ResidualsValues::new(self.left.clone(), self.right.clone())
     }
 
@@ -175,10 +175,8 @@ impl Model<nalgebra::Dynamic> for UserModelFromFunctionAndJacobian {
     }
     fn get_jacobian(
         &mut self,
-    ) -> Result<
-        residuals::JacobianValues<nalgebra::Dynamic>,
-        super::ModelError<Self, nalgebra::Dynamic>,
-    > {
+    ) -> Result<residuals::JacobianValues<nalgebra::Dyn>, super::ModelError<Self, nalgebra::Dyn>>
+    {
         let jac_left = (self.jac)(&self.inputs);
         let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
         Ok(residuals::JacobianValues::new(jac_left, jac_right))

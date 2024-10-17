@@ -181,9 +181,9 @@ pub fn broyden_first_method_udpate_jac<D>(
 ) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
 {
     jac - (jac * s - y) * s.transpose() / (s.norm_squared())
 }
@@ -196,9 +196,9 @@ pub fn broyden_first_method_udpate_inv_jac<D>(
 ) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
 {
     inv_jac - (inv_jac * y - s) * s.transpose() * inv_jac / ((s.transpose() * inv_jac * y)[(0, 0)])
 }
@@ -211,9 +211,9 @@ pub fn broyden_second_method_udpate_jac<D>(
 ) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
 {
     jac - (jac * s - y) * y.transpose() * jac / ((y.transpose() * jac * s)[(0, 0)])
 }
@@ -226,9 +226,9 @@ pub fn broyden_second_method_udpate_inv_jac<D>(
 ) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
 {
     inv_jac - (inv_jac * y - s) * y.transpose() / (y.norm_squared())
 }
@@ -244,9 +244,9 @@ pub fn quasi_method_update_inv_jac<D>(
 ) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
 {
     inv_jac - (inv_jac * y - s) * c.transpose() / ((c.transpose() * y)[(0, 0)])
 }
@@ -262,9 +262,9 @@ pub fn quasi_method_update_jac<D>(
 ) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
 {
     jac - (jac * s - y) * c.transpose() * jac / ((c.transpose() * jac * s)[(0, 0)])
 }
@@ -278,9 +278,9 @@ pub fn greenstadt_second_method_udpate_jac<D>(
 ) -> nalgebra::OMatrix<f64, D, D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<f64, nalgebra::U1, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
 {
     jac - (jac * s - y) * hy.transpose() / ((hy.transpose() * s)[(0, 0)])
 }

@@ -1,8 +1,6 @@
 use super::{deriv_normalization, NormalizationMethod};
 use std::fmt;
 
-use nalgebra::RawStorage;
-
 /// Residuals values outputs of the model
 ///
 /// This is the expected output of the model in order to be able to interact with the solver
@@ -16,7 +14,7 @@ use nalgebra::RawStorage;
 pub struct ResidualsValues<D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
 {
     left: nalgebra::OVector<f64, D>,
     right: nalgebra::OVector<f64, D>,
@@ -26,7 +24,7 @@ where
 impl<D> ResidualsValues<D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
 {
     pub fn new(left: nalgebra::OVector<f64, D>, right: nalgebra::OVector<f64, D>) -> Self {
         if left.len() != right.len() {
@@ -54,8 +52,13 @@ where
         (self.left[index], self.right[index])
     }
 
-    pub fn shape(&self) -> D {
-        let (nrows, _ncols) = self.left.data.shape();
+    pub fn shape(&self) -> usize {
+        let (nrows, _ncols) = self.left.shape();
+        nrows
+    }
+
+    pub fn shape_generic(&self) -> D {
+        let (nrows, _ncols) = self.left.shape_generic();
         nrows
     }
 
@@ -85,8 +88,8 @@ where
 pub struct JacobianValues<D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     left: nalgebra::OMatrix<f64, D, D>,
     right: nalgebra::OMatrix<f64, D, D>,
@@ -96,8 +99,8 @@ where
 impl<D> JacobianValues<D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     pub fn new(left: nalgebra::OMatrix<f64, D, D>, right: nalgebra::OMatrix<f64, D, D>) -> Self {
         if left.shape() != right.shape() {
@@ -125,7 +128,7 @@ where
         norm_methods: &[NormalizationMethod],
     ) -> nalgebra::OMatrix<f64, D, D> {
         let mut jac: nalgebra::OMatrix<f64, D, D> =
-            super::super::omatrix_zeros_from_shape(res_values.shape());
+            super::super::omatrix_zeros_from_shape(res_values.shape_generic());
 
         // iterate over rows
         for i in 0..self.problem_size {
@@ -152,7 +155,7 @@ where
 impl<D> fmt::Display for ResidualsValues<D>
 where
     D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = String::from("Residuals values :\n\n");

@@ -109,7 +109,7 @@ impl SolverLog {
         errors: &nalgebra::OVector<f64, D>,
     ) where
         D: nalgebra::Dim,
-        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(&"Damping activated !\n\n".to_string());
@@ -124,7 +124,7 @@ impl SolverLog {
         iter: usize,
     ) where
         D: nalgebra::Dim,
-        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(SEPARATION_ITER);
@@ -140,7 +140,7 @@ impl SolverLog {
         errors: &nalgebra::OVector<f64, D>,
     ) where
         D: nalgebra::Dim,
-        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<f64, D>,
+        nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         let mut iteration_log_header = String::new();
         iteration_log_header.push_str(&format!("Max error: {}\n\n", errors.amax()));

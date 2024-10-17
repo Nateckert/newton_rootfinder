@@ -100,18 +100,18 @@
 //! #   }
 //! # }
 //! #
-//! impl Model<nalgebra::Dynamic> for UserModel {
+//! impl Model<nalgebra::Dyn> for UserModel {
 //! #   type InaccurateValuesError = Infallible;
 //! #   type UnusableValuesError = Infallible;
 //! // ...
-//! #   fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<UserModel, nalgebra::Dynamic>> {
+//! #   fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<UserModel, nalgebra::Dyn>> {
 //! #       let mut y = self.inputs.clone() * self.inputs.clone();
 //! #       y[0] -= 2.0;
 //! #       self.left =  y;
 //! #       Ok(())
 //! #    }
 //! #
-//! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dynamic> {
+//! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dyn> {
 //! #       let right = nalgebra::DVector::zeros(self.len_problem());
 //! #       nrf::residuals::ResidualsValues::new(self.left.clone(), right.clone())
 //! #    }
