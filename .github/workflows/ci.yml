@@ -13,13 +13,13 @@ jobs:
   check-fmt:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Check formatting
       run: cargo fmt -- --check
   build-nrf:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Build
       run: cargo build
     - name: Build additional_log_info
@@ -29,13 +29,13 @@ jobs:
   test-nrf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: test
         run: cargo test; cargo test --all-features;
   doc-nrf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: doc
         run: cargo doc --no-deps; cargo doc --no-deps --all-features;
   
