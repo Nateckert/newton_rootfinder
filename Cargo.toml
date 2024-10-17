@@ -1,7 +1,7 @@
 [package]
 name = "newton_rootfinder"
-rust-version = "1.56"
-version = "0.10.0"
+rust-version = "1.69"
+version = "0.11.0"
 authors = ["nathan.eckert <nathan.eckert@polytechnique.edu>"]
 edition = "2021"
 description = "Newton based methods for root finding"
@@ -14,8 +14,8 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dev-dependencies]
-float-cmp = "0.9.0"
-criterion = "0.3"
+float-cmp = "0.10.0"
+criterion = "0.5"
 util = { path = "./util" }
 
 [[bench]]
@@ -40,8 +40,8 @@ harness = false
 [dependencies]
 nalgebra = "0.33"
 minidom = { version = "0.12", optional = true }
-whoami = { version = "1.2", optional = true }
-rustc_version_runtime = { version = "0.2", optional = true }
+whoami = { version = "1.5", optional = true }
+rustc_version_runtime = { version = "0.3", optional = true }
 chrono = { version = "0.4", optional = true }
 
 [features]
