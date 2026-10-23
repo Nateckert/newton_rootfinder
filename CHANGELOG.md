@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Added
+- `Model::evaluate_column`, called for each column of a jacobian computed by finite-difference instead of `Model::evaluate`,
+  the columns in increasing order: a model can skip the computations that do not depend on the iterative perturbed.
+  The default implementation calls `Model::evaluate`.
+
 ## [0.11.0] - 2024-10-17
 
 ### Changed

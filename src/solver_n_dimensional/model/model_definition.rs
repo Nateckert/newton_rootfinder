@@ -60,6 +60,28 @@ where
     /// This method is the core that defines the computations from the user model.
     fn evaluate(&mut self) -> Result<(), super::ModelError<Self, D>>;
 
+    /// This method evaluates the model for one column of the jacobian computed by finite-difference,
+    /// the iteratives set by [Model::set_iteratives] differing from the reference point on the iterative `column` alone.
+    ///
+    /// The solver evaluates the columns in increasing order of `column`, right after the evaluation of the reference point:
+    /// when the solver calls this method, the model holds either the evaluation of the reference point (for the first column)
+    /// or the evaluation of the previous column, the memory restored by [Model::set_memory] in-between.
+    ///
+    /// A model can use it to skip the computations that do not depend on the iterative perturbed.
+    /// For example, a model whose computations are a sequence of steps,
+    /// numbering its iteratives such that the first step reading the iterative `column` comes after the first step reading the iterative `column + 1`,
+    /// can start from the first step reading the iterative `column`:
+    /// the previous column changed only the steps after an earlier one, which this column computes again,
+    /// and the steps before keep the values of the reference point.
+    ///
+    /// The default implementation calls [Model::evaluate].
+    fn evaluate_column(
+        &mut self,
+        #[allow(unused_variables)] column: usize,
+    ) -> Result<(), super::ModelError<Self, D>> {
+        self.evaluate()
+    }
+
     /// This method gets the values of the output for the solver.
     /// The return argument is in a specific format, separating left and right member of an equation.
     ///
