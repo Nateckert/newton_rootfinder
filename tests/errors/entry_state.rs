@@ -142,7 +142,14 @@ fn a_failed_jacobian_column_restores_the_memory_of_the_reference_point() {
 fn an_unusable_initial_guess_restores_the_entry_state() {
     let mut model = Arctangent::new(Some((1.9, 2.1)), None);
     let error = solve(&mut model, 50).unwrap_err();
-    assert!(matches!(error, SolverError::ModelInitialEvaluationError(_)));
+    assert!(matches!(
+        error,
+        SolverError::ModelInitialEvaluationError(Unusable)
+    ));
+    assert_eq!(
+        error.to_string(),
+        "Initial model evaluation failed: Unusable value"
+    );
     assert_entry_state(&model);
 }
 

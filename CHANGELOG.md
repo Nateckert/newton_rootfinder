@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   Saving and restoring it no longer allocates, and the state no longer has to be encoded as `f64` (#35).
   A model without memory adds `type Memory = ();`; a model with memory declares its type,
   for example a struct of its fields or a statically sized vector, and implements both methods with it.
+- *Breaking change*: `SolverError::ModelInitialEvaluationError` holds the error of the model, `M::UnusableValuesError`,
+  instead of its text, as `SolverError::ModelEvaluationError` does for a later evaluation (#29).
+  Its `Display` text is unchanged.
 
 ### Fixed
 - A NaN residual was reported converged: the maximum error and its comparison with the tolerance ignore NaN.

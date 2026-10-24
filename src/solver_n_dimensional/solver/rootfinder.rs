@@ -492,7 +492,7 @@ where
             Err(ModelError::InaccurateValuesError(_)) => (),
             Err(ModelError::UnusableValuesError(error)) => {
                 return Err(crate::errors::SolverError::ModelInitialEvaluationError(
-                    error.to_string(),
+                    error,
                 ))
             }
         }
