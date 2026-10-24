@@ -47,6 +47,7 @@ impl Steps {
 impl Model<Dimension> for Steps {
     type InaccurateValuesError = std::convert::Infallible;
     type UnusableValuesError = std::convert::Infallible;
+    type Memory = ();
 
     fn len_problem(&self) -> usize {
         2

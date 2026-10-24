@@ -58,6 +58,7 @@ impl UserModelFromFunction {
 impl Model<nalgebra::Dyn> for UserModelFromFunction {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
+    type Memory = ();
 
     fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dyn>> {
         self.left = (self.func)(&self.inputs);
@@ -148,6 +149,7 @@ impl UserModelFromFunctionAndJacobian {
 impl Model<nalgebra::Dyn> for UserModelFromFunctionAndJacobian {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
+    type Memory = ();
 
     fn evaluate(&mut self) -> Result<(), super::ModelError<Self, nalgebra::Dyn>> {
         self.left = (self.func)(&self.inputs);

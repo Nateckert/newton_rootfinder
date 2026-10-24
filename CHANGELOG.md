@@ -12,6 +12,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - `SolverError::NonFiniteResiduals`, holding the indices of the equations concerned,
   returned when a residual is NaN or infinite at the initial evaluation or after an update.
 
+### Changed
+- *Breaking change*: the memory of a model is a value of its own type, the associated type `Model::Memory: Clone + Default`,
+  instead of a `nalgebra::DVector<f64>`: `Model::get_memory(&self) -> Self::Memory` and `Model::set_memory(&mut self, &Self::Memory)`.
+  Saving and restoring it no longer allocates, and the state no longer has to be encoded as `f64` (#35).
+  A model without memory adds `type Memory = ();`; a model with memory declares its type,
+  for example a struct of its fields or a statically sized vector, and implements both methods with it.
+
 ### Fixed
 - A NaN residual was reported converged: the maximum error and its comparison with the tolerance ignore NaN.
 - The damping is triggered by a step giving a NaN or infinite residual,

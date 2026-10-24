@@ -103,6 +103,7 @@
 //! impl Model<nalgebra::Dyn> for UserModel {
 //! #   type InaccurateValuesError = Infallible;
 //! #   type UnusableValuesError = Infallible;
+//! #   type Memory = ();
 //! // ...
 //! #   fn evaluate(&mut self) -> Result<(), nrf::model::ModelError<UserModel, nalgebra::Dyn>> {
 //! #       let mut y = self.inputs.clone() * self.inputs.clone();
@@ -321,6 +322,7 @@
 //! impl Model<nalgebra::Const<1>> for UserModel {
 //!     type InaccurateValuesError = Infallible;
 //!     type UnusableValuesError = Infallible;
+//!     type Memory = ();
 //!     fn len_problem(&self) -> usize {
 //!         1
 //!     }

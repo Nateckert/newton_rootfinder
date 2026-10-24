@@ -37,6 +37,10 @@ use crate::residuals;
 /// Instead of this previous value, a better value would be the value from the reference point of the jacobian calculation.
 /// In this case, the value of each column of the jacobian would not depend of the order of computation of the columns.
 ///
+/// The memory is a value of the type [Model::Memory], chosen by the model:
+/// `()` for a model without memory, a struct of its fields, or a statically sized vector,
+/// so that saving and restoring it neither allocates nor encodes the values as `f64`.
+///
 pub trait Model<D>: Sized
 where
     D: nalgebra::Dim,
@@ -45,6 +49,9 @@ where
 {
     type InaccurateValuesError: Error;
     type UnusableValuesError: Error;
+    /// The state an evaluation keeps between calls, saved by [Model::get_memory]
+    /// and restored by [Model::set_memory]: `()` for a model without memory
+    type Memory: Clone + Default;
 
     /// This method defines the dimension of the problem.
     ///
@@ -130,19 +137,20 @@ where
         Ok(residuals::JacobianValues::new(left, right))
     }
 
-    /// This method allow the solver to memorize information after calculating the reference point
-    /// and before the jacobian evaluation by finite-difference,
-    /// or before evaluating a proposed guess the damping may reject.
+    /// This method allow the solver to memorize the state of the model:
+    /// after each evaluation it accepts (the reference point of the next jacobian and damping),
+    /// and when [crate::solver::RootFinder::solve] is called.
     ///
-    /// The default implementation returns an empty vector.
-    fn get_memory(&self) -> nalgebra::DVector<f64> {
-        nalgebra::DVector::from_vec(vec![])
+    /// The default implementation returns [Default::default], for a model without memory.
+    fn get_memory(&self) -> Self::Memory {
+        Self::Memory::default()
     }
 
-    /// This method is called in-between the computation of each column of the jacobian matrix,
-    /// and before evaluating a damped guess,
-    /// in order to reset the values to the ones from the [Model::get_memory]
+    /// This method puts back a state saved by [Model::get_memory]:
+    /// the one of the reference point in-between the computation of each column of the jacobian matrix,
+    /// and before evaluating a damped guess;
+    /// the one of the call to [crate::solver::RootFinder::solve] when the resolution fails.
     ///
     /// The default implementation is empty.
-    fn set_memory(&mut self, #[allow(unused_variables)] memory: &nalgebra::DVector<f64>) {}
+    fn set_memory(&mut self, #[allow(unused_variables)] memory: &Self::Memory) {}
 }
