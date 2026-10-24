@@ -18,9 +18,11 @@ use super::{QuasiNewtonMethod, ResolutionMethod};
 ///
 /// The solver operates on the model and mutate it
 ///
-/// The core functionnality is the `solve()` method
+/// The core functionnality is the `solve()` method.
+/// Every call is a resolution of its own, started afresh from the initial guess:
+/// a solver can be reused for several resolutions, on the same model or on other models of the same dimension.
 ///
-/// The user can activate the debugging before the resolution thanks to the `set_debug()` method
+/// The user can activate the debugging before the resolution thanks to the `activate_debug()` method
 pub struct RootFinder<'a, T, D>
 where
     T: Iterative + fmt::Display + fmt::Debug,
@@ -144,6 +146,18 @@ where
     pub fn activate_debug(&mut self, path: &str) {
         self.debug = true;
         self.solver_log = Some(super::log::SolverLog::new(path));
+    }
+
+    /// Start a resolution afresh: the iteration count, the jacobian,
+    /// the steps of the quasi-Newton updates and the validity of the last evaluation
+    /// are the ones of a new solver, nothing being kept from a previous call to `solve`
+    fn reset(&mut self) {
+        self.iter = 0;
+        self.jacobian = JacobianMatrix::new();
+        self.iteratives_step_size = None;
+        self.residuals_step_size = None;
+        self.residuals_values_current = None;
+        self.valid_last_model_evaluation = true;
     }
 
     fn evaluate_errors<M>(&self, model: &M) -> nalgebra::OVector<f64, D>
@@ -451,10 +465,16 @@ where
     /// its residuals are the ones of the failed evaluation.
     /// A [errors::SolverError::NonConvergenceError] or a [errors::SolverError::FinalEvaluationError]
     /// leaves the model on the last iterate.
+    ///
+    /// The resolution starts afresh: from the initial guess, with the iteration count at zero
+    /// and a jacobian computed at the first iteration, nothing being kept from a previous call.
+    /// With the debugging activated, the log of a call follows the one of the previous call in the same file.
     pub fn solve<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {
+        self.reset();
+
         let entry_iteratives = model.get_iteratives();
         let entry_memory = model.get_memory();
 
