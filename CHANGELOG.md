@@ -9,8 +9,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - `Model::evaluate_column`, called for each column of a jacobian computed by finite-difference instead of `Model::evaluate`,
   the columns in increasing order: a model can skip the computations that do not depend on the iterative perturbed.
   The default implementation calls `Model::evaluate`.
+- `SolverError::NonFiniteResiduals`, holding the indices of the equations concerned,
+  returned when a residual is NaN or infinite at the initial evaluation or after an update.
 
 ### Fixed
+- A NaN residual was reported converged: the maximum error and its comparison with the tolerance ignore NaN.
 - The damping no longer panics when the model fails to evaluate the damped guess:
   the evaluation is handled as the one of the proposed guess,
   an `UnusableValuesError` ending the resolution with `SolverError::ModelEvaluationError` (#33).
