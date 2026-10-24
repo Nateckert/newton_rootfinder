@@ -60,3 +60,36 @@ Only one method has been benchmarked
 - BroydenSecondMethod-FD:       [814.20 ns 820.57 ns 827.17 ns]
 - BroydenFirstMethod_INV-FD:    [819.56 ns 827.18 ns 835.29 ns]
 - BroydenSecondMethod_INV-FD:   [826.59 ns 831.91 ns 837.23 ns]
+
+## Solver reset between resolutions (2026-10-24)
+
+Measured on an 11th Gen Intel Core i9-11950H at 2.60 GHz with 30 GB of memory, rustc 1.98.1,
+with `cargo bench --all-features`.
+
+Every bench of the solver reuses one `RootFinder` in its loop. Until the solver was reset at the start of
+each resolution, the iteration count was kept from one resolution to the next, so after the first ones the
+solver failed at once with `NonConvergenceError`: the results above, and the "before" column below, time a
+resolution that stops after one evaluation. The bench with static types, which unwraps the result, panics
+in that state.
+
+| benchmark | before the reset | after |
+|---|---|---|
+| Solver parsing/NR | 28.145 µs | 29.105 µs |
+| Advanced solver on Broyden test case 8/NR | 212.20 ns | 42.737 µs |
+| Advanced solver on Broyden test case 8/SN | 212.67 ns | 18.244 µs |
+| Advanced solver on Broyden test case 8/BROY1_jac | 216.15 ns | 51.829 µs |
+| Advanced solver on Broyden test case 8/BROY2_jac | 214.03 ns | 97.793 µs |
+| Advanced solver on Broyden test case 8/BROY1_inv | 219.81 ns | 31.233 µs |
+| Advanced solver on Broyden test case 8/BROY2_inv | 215.47 ns | 33.272 µs |
+| Advanced solver on Broyden test case 8/GRST1 | 227.28 ns | 77.621 µs |
+| Advanced solver on Broyden test case 8/GRST2 | 224.40 ns | 52.608 µs |
+| Advanced solver on Broyden test case 8/GRST1_inv | 212.38 ns | 29.024 µs |
+| Advanced solver on Broyden test case 8/GRST2_inv | 213.91 ns | 32.621 µs |
+| Function evaluation/nalgebra | 9.6228 ns | 9.4210 ns |
+| Advanced solver with dynamic types/Newton-Raphson with finite differences | 105.82 ns | 1.4370 µs |
+| Advanced solver with dynamic types/Stationary Newton with finite differences | 106.96 ns | 2.7255 µs |
+| Advanced solver with dynamic types/Newton-Raphson with derivative provided | 102.88 ns | 1.2449 µs |
+| Function evaluation/f64 | 399.06 ps | 388.07 ps |
+| Minimal 1D solver/With derivative provided | 15.091 ns | 13.312 ns |
+| Minimal 1D solver/Finite differences | 21.571 ns | 20.229 ns |
+| Advanced solver with static types/Newton-Raphson with finite differences | panics (`Convergence not reached`) | 126.19 ns |
