@@ -1,5 +1,6 @@
 mod advanced_parametrization;
 mod common;
+mod damping;
 mod errors;
 mod jacobian;
 mod log;

@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   the columns in increasing order: a model can skip the computations that do not depend on the iterative perturbed.
   The default implementation calls `Model::evaluate`.
 
+### Fixed
+- The damping no longer panics when the model fails to evaluate the damped guess:
+  the evaluation is handled as the one of the proposed guess,
+  an `UnusableValuesError` ending the resolution with `SolverError::ModelEvaluationError` (#33).
+- The damping evaluates the damped guess from the memory of the current point,
+  restored with `Model::set_memory`, instead of the memory left by the rejected proposed guess (#34).
+
 ## [0.11.0] - 2024-10-17
 
 ### Changed
