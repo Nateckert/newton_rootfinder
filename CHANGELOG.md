@@ -31,7 +31,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   gives the model back the iteratives and the memory it held when `RootFinder::solve` was called,
   instead of the ones of the failed evaluation, so that a new resolution can start from them.
   A `NonConvergenceError` or a `FinalEvaluationError` still leaves the model on the last iterate.
-- A jacobian column whose evaluation fails restores the memory of the reference point before returning the error.
+- `compute_jacobian_from_finite_difference` and `evaluate_jacobian_from_finite_difference` restore the memory
+  of the reference point when the evaluation of a column fails, as after a successful column.
 
 ## [0.11.0] - 2024-10-17
 
