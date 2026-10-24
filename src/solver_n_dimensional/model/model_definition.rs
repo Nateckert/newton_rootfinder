@@ -131,7 +131,8 @@ where
     }
 
     /// This method allow the solver to memorize information after calculating the reference point
-    /// and before the jacobian evaluation by finite-difference.
+    /// and before the jacobian evaluation by finite-difference,
+    /// or before evaluating a proposed guess the damping may reject.
     ///
     /// The default implementation returns an empty vector.
     fn get_memory(&self) -> nalgebra::DVector<f64> {
@@ -139,6 +140,7 @@ where
     }
 
     /// This method is called in-between the computation of each column of the jacobian matrix,
+    /// and before evaluating a damped guess,
     /// in order to reset the values to the ones from the [Model::get_memory]
     ///
     /// The default implementation is empty.
