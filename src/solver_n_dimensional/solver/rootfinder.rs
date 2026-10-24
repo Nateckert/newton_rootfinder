@@ -193,7 +193,7 @@ where
     fn compute_jac<M>(
         &mut self,
         model: &mut M,
-        current: &Point<D>,
+        current: &Point<M, D>,
     ) -> Result<(), errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
@@ -226,7 +226,7 @@ where
     fn compute_newton_raphson_step<M>(
         &mut self,
         model: &mut M,
-        current: &Point<D>,
+        current: &Point<M, D>,
     ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
@@ -251,7 +251,7 @@ where
     fn evaluate_jacobian_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
-        current: &Point<D>,
+        current: &Point<M, D>,
         resolution_method: QuasiNewtonMethod,
     ) -> Result<(), crate::errors::SolverInternalError<M, D>>
     where
@@ -308,7 +308,7 @@ where
     fn compute_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
-        current: &Point<D>,
+        current: &Point<M, D>,
         resolution_method: QuasiNewtonMethod,
     ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError<M, D>>
     where
@@ -325,7 +325,10 @@ where
         }
     }
 
-    fn compute_next_from_inv_jac(&self, current: &Point<D>) -> nalgebra::OVector<f64, D> {
+    fn compute_next_from_inv_jac<M>(&self, current: &Point<M, D>) -> nalgebra::OVector<f64, D>
+    where
+        M: model::Model<D>,
+    {
         let residuals = self
             .residuals_config
             .evaluate_update_residuals(&current.residuals);
@@ -340,7 +343,7 @@ where
         &mut self,
         model: &mut M,
         max_error: f64,
-        current: &Point<D>,
+        current: &Point<M, D>,
         proposed_guess: &nalgebra::OVector<f64, D>,
         errors_next: &mut nalgebra::OVector<f64, D>,
     ) -> Result<(), errors::SolverError<M, D>>
@@ -402,9 +405,9 @@ where
     fn update_model<M>(
         &mut self,
         model: &mut M,
-        current: &Point<D>,
+        current: &Point<M, D>,
         proposed_guess: &nalgebra::OVector<f64, D>,
-    ) -> Result<(Point<D>, nalgebra::OVector<f64, D>), errors::SolverError<M, D>>
+    ) -> Result<(Point<M, D>, nalgebra::OVector<f64, D>), errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {

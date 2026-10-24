@@ -49,6 +49,7 @@ impl Error for Unusable {}
 impl Model<nalgebra::Const<1>> for Arctangent {
     type InaccurateValuesError = std::convert::Infallible;
     type UnusableValuesError = Unusable;
+    type Memory = f64;
 
     fn len_problem(&self) -> usize {
         1
@@ -81,12 +82,12 @@ impl Model<nalgebra::Const<1>> for Arctangent {
         )
     }
 
-    fn get_memory(&self) -> nalgebra::DVector<f64> {
-        nalgebra::DVector::from_vec(vec![self.last_x])
+    fn get_memory(&self) -> f64 {
+        self.last_x
     }
 
-    fn set_memory(&mut self, memory: &nalgebra::DVector<f64>) {
-        self.last_x = memory[0];
+    fn set_memory(&mut self, memory: &f64) {
+        self.last_x = *memory;
     }
 }
 

@@ -47,7 +47,7 @@ where
 /// the solver restores its own state on a failure
 pub(crate) fn compute_jacobian_from_finite_difference_at<M, D>(
     model: &mut M,
-    reference: &Point<D>,
+    reference: &Point<M, D>,
     perturbations: &nalgebra::OVector<f64, D>,
     update_residuals: &residuals::ResidualsConfig,
 ) -> Result<nalgebra::OMatrix<f64, D, D>, ModelError<M, D>>
@@ -118,7 +118,7 @@ where
 pub(crate) fn evaluate_jacobian_from_finite_difference_at<'a, M, D, T>(
     jacobian: &mut JacobianMatrix<D>,
     model: &mut M,
-    reference: &Point<D>,
+    reference: &Point<M, D>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
 ) -> Result<(), crate::errors::SolverInternalError<M, D>>

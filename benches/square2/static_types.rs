@@ -44,6 +44,7 @@ impl Error for MyCustomErrors {}
 impl Model<nalgebra::Const<1>> for UserModel {
     type InaccurateValuesError = MyCustomErrors;
     type UnusableValuesError = MyCustomErrors;
+    type Memory = ();
     fn len_problem(&self) -> usize {
         1
     }

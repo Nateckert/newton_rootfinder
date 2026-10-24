@@ -63,6 +63,7 @@
 //! impl Model<nalgebra::Dyn> for MyDummyModel {
 //!     type InaccurateValuesError = MyCustomErrors;
 //!     type UnusableValuesError = MyCustomErrors;
+//!     type Memory = ();
 //!
 //!     fn len_problem(&self) -> usize {
 //!         1
