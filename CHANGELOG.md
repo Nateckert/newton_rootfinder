@@ -21,6 +21,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   an `UnusableValuesError` ending the resolution with `SolverError::ModelEvaluationError` (#33).
 - The damping evaluates the damped guess from the memory of the current point,
   restored with `Model::set_memory`, instead of the memory left by the rejected proposed guess (#34).
+- The solver keeps the point it stands on (iteratives, residuals and memory of its last evaluation)
+  instead of reading it back from the model, which holds the last perturbed point
+  after a jacobian evaluated by finite-difference:
+  the damping takes the midpoint and compares the errors from the current point,
+  and the quasi-Newton updates measure their steps from it.
+  The iterations of the quasi-Newton methods and of the damping can differ in the last digits.
 
 ## [0.11.0] - 2024-10-17
 

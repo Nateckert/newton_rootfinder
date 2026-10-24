@@ -123,9 +123,25 @@ fn the_damped_guess_is_evaluated_from_the_memory_of_the_current_point() {
     assert_eq!(current, 2.0);
     assert!(proposed < -3.5);
     assert_eq!(from, current);
-    assert!((damped - (current + proposed) / 2.0).abs() < 1e-6);
+    assert!(-1.0 < damped && damped < 0.0);
     // Not from the memory the rejected proposed guess left.
     assert_eq!(damped_from, current);
+}
+
+#[test]
+fn the_damped_guess_is_halfway_from_the_current_point() {
+    let mut model = Arctangent::new(None);
+    solve(&mut model).unwrap();
+
+    // The current point, the column of the jacobian (the current point
+    // perturbed), the proposed guess, then the damped guess.
+    let (current, _) = model.evaluations[0];
+    let (perturbed, _) = model.evaluations[1];
+    let (proposed, _) = model.evaluations[2];
+    let (damped, _) = model.evaluations[3];
+    assert!(perturbed > current);
+    // From the current point, not from the one the jacobian perturbed last.
+    assert_eq!(damped, (current + proposed) / 2.0);
 }
 
 #[test]

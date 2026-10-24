@@ -9,7 +9,7 @@ use crate::residuals;
 
 use super::{
     approximate_inv_jacobian, approximate_jacobian, evaluate_jacobian_from_analytical_function,
-    evaluate_jacobian_from_finite_difference, JacobianMatrix, SolverParameters,
+    evaluate_jacobian_from_finite_difference_at, JacobianMatrix, Point, SolverParameters,
 };
 
 use super::{QuasiNewtonMethod, ResolutionMethod};
@@ -190,7 +190,11 @@ where
         }
     }
 
-    fn compute_jac<M>(&mut self, model: &mut M) -> Result<(), errors::SolverInternalError<M, D>>
+    fn compute_jac<M>(
+        &mut self,
+        model: &mut M,
+        current: &Point<D>,
+    ) -> Result<(), errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
@@ -201,9 +205,10 @@ where
                 self.residuals_config,
             )
         } else {
-            evaluate_jacobian_from_finite_difference(
+            evaluate_jacobian_from_finite_difference_at(
                 &mut self.jacobian,
                 model,
+                current,
                 self.iters_params,
                 self.residuals_config,
             )
@@ -221,17 +226,18 @@ where
     fn compute_newton_raphson_step<M>(
         &mut self,
         model: &mut M,
+        current: &Point<D>,
     ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
-        let successful_jac_computation = self.compute_jac(model);
+        let successful_jac_computation = self.compute_jac(model, current);
 
         if self.debug {
             self.jac_to_log();
         }
         match successful_jac_computation {
-            Ok(()) => Ok(self.compute_next_from_inv_jac(model)),
+            Ok(()) => Ok(self.compute_next_from_inv_jac(current)),
             Err(error) => Err(error),
         }
     }
@@ -245,13 +251,14 @@ where
     fn evaluate_jacobian_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
+        current: &Point<D>,
         resolution_method: QuasiNewtonMethod,
     ) -> Result<(), crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
         if self.jacobian.compute_jacobian() {
-            let successful_jac_computation = self.compute_jac(model);
+            let successful_jac_computation = self.compute_jac(model, current);
 
             match successful_jac_computation {
                 Ok(()) => (),
@@ -301,13 +308,14 @@ where
     fn compute_quasi_newton_step<M>(
         &mut self,
         model: &mut M,
+        current: &Point<D>,
         resolution_method: QuasiNewtonMethod,
     ) -> Result<nalgebra::OVector<f64, D>, crate::errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
     {
-        match self.evaluate_jacobian_quasi_newton_step(model, resolution_method) {
-            Ok(()) => Ok(self.compute_next_from_inv_jac(model)),
+        match self.evaluate_jacobian_quasi_newton_step(model, current, resolution_method) {
+            Ok(()) => Ok(self.compute_next_from_inv_jac(current)),
             Err(crate::errors::SolverInternalError::InvalidJacobianError(error)) => Err(
                 crate::errors::SolverInternalError::InvalidJacobianError(error),
             ),
@@ -317,27 +325,22 @@ where
         }
     }
 
-    fn compute_next_from_inv_jac<M>(&self, model: &M) -> nalgebra::OVector<f64, D>
-    where
-        M: model::Model<D>,
-    {
+    fn compute_next_from_inv_jac(&self, current: &Point<D>) -> nalgebra::OVector<f64, D> {
         let residuals = self
             .residuals_config
-            .evaluate_update_residuals(&model.get_residuals());
+            .evaluate_update_residuals(&current.residuals);
 
         let raw_step = -self.jacobian.get_inverse().as_ref().unwrap() * residuals;
 
-        let iter_values = model.get_iteratives();
-
-        self.iters_params.step_limitations(&iter_values, &raw_step)
+        self.iters_params
+            .step_limitations(&current.iteratives, &raw_step)
     }
 
     fn damping<M>(
         &mut self,
         model: &mut M,
         max_error: f64,
-        current_guess: &nalgebra::OVector<f64, D>,
-        current_memory: &nalgebra::DVector<f64>,
+        current: &Point<D>,
         proposed_guess: &nalgebra::OVector<f64, D>,
         errors_next: &mut nalgebra::OVector<f64, D>,
     ) -> Result<(), errors::SolverError<M, D>>
@@ -359,10 +362,10 @@ where
             } else {
                 let damping_factor = 1.0 / 2.0;
                 let damped_guess =
-                    current_guess * (1.0 - damping_factor) + proposed_guess * damping_factor;
+                    &current.iteratives * (1.0 - damping_factor) + proposed_guess * damping_factor;
                 // The damped guess starts from the memory of the current point,
                 // not from the one the rejected proposed guess left
-                model.set_memory(current_memory);
+                model.set_memory(&current.memory);
                 model.set_iteratives(&damped_guess);
                 self.evaluate_model(model)?;
                 *errors_next = self.evaluate_errors(model);
@@ -394,23 +397,21 @@ where
         Ok(())
     }
 
+    /// Evaluate the proposed guess, damped if needed,
+    /// and return the point the model ends on with its errors
     fn update_model<M>(
         &mut self,
         model: &mut M,
+        current: &Point<D>,
         proposed_guess: &nalgebra::OVector<f64, D>,
-    ) -> Result<nalgebra::OVector<f64, D>, errors::SolverError<M, D>>
+    ) -> Result<(Point<D>, nalgebra::OVector<f64, D>), errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {
-        let errors = self.evaluate_errors(model);
+        let errors = self
+            .residuals_config
+            .evaluate_stopping_residuals(&current.residuals);
         let max_error = errors.amax();
-        let current_guess = model.get_iteratives();
-        // Only needed by the damping, which evaluates the damped guess from it
-        let current_memory = if self.parameters.get_damping() {
-            model.get_memory()
-        } else {
-            nalgebra::DVector::zeros(0)
-        };
 
         model.set_iteratives(proposed_guess);
         self.evaluate_model(model)?;
@@ -421,27 +422,22 @@ where
         }
 
         if self.parameters.get_damping() {
-            self.damping(
-                model,
-                max_error,
-                &current_guess,
-                &current_memory,
-                proposed_guess,
-                &mut errors_next,
-            )?;
+            self.damping(model, max_error, current, proposed_guess, &mut errors_next)?;
         }
+
+        let next = Point::of(model);
 
         match self.parameters.get_resolution_method() {
             ResolutionMethod::NewtonRaphson => (),
             ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => (),
             _ => {
-                self.iteratives_step_size = Some(model.get_iteratives() - current_guess);
+                self.iteratives_step_size = Some(&next.iteratives - &current.iteratives);
                 self.residuals_step_size = Some(errors_next.clone() - errors);
                 self.residuals_values_current = Some(errors_next.clone())
             }
         };
 
-        Ok(errors_next)
+        Ok((next, errors_next))
     }
 
     /// The core function performing the resolution on a given `Model`
@@ -463,6 +459,9 @@ where
             }
         }
 
+        // The point the solver stands on: the model may hold a perturbed one,
+        // after a jacobian evaluated by finite-difference
+        let mut current = Point::of(model);
         let mut errors = self.evaluate_errors(model);
         let mut max_error = errors.amax();
 
@@ -481,15 +480,20 @@ where
             self.iter += 1;
 
             let proposed_guess = match self.parameters.get_resolution_method() {
-                ResolutionMethod::NewtonRaphson => self.compute_newton_raphson_step(model),
+                ResolutionMethod::NewtonRaphson => {
+                    self.compute_newton_raphson_step(model, &current)
+                }
                 ResolutionMethod::QuasiNewton(quasi_newton_method) => {
-                    self.compute_quasi_newton_step(model, quasi_newton_method)
+                    self.compute_quasi_newton_step(model, &current, quasi_newton_method)
                 }
             };
 
             match proposed_guess {
-                Ok(value) => match self.update_model(model, &value) {
-                    Ok(value) => errors = value,
+                Ok(value) => match self.update_model(model, &current, &value) {
+                    Ok((next, value)) => {
+                        current = next;
+                        errors = value;
+                    }
                     Err(e) => return Err(e),
                 },
                 Err(error) => {
