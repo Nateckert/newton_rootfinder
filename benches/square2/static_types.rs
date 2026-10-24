@@ -45,9 +45,6 @@ impl Model<nalgebra::Const<1>> for UserModel {
     type InaccurateValuesError = MyCustomErrors;
     type UnusableValuesError = MyCustomErrors;
     type Memory = ();
-    fn len_problem(&self) -> usize {
-        1
-    }
     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
         self.iteratives = *iteratives;
     }
@@ -87,7 +84,6 @@ fn static_types(c: &mut Criterion) {
     let mut user_model = UserModel::new(1.0);
 
     let solver_parameters = nrf::solver::SolverParameters::new(
-        1,
         1e-6,
         50,
         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -102,12 +98,7 @@ fn static_types(c: &mut Criterion) {
         &[NormalizationMethod::Abs],
     );
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        user_model.get_iteratives(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut group_solver = c.benchmark_group("Advanced solver with static types");
 

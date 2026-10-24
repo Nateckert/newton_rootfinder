@@ -10,7 +10,7 @@ use nrf::model::{Model, ModelError};
 use nrf::residuals;
 use nrf::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 
-/// `x² = 2`, counting its evaluations, each of them inaccurate when asked.
+/// `x² = 2` from `x`, counting its evaluations, each of them inaccurate when asked.
 struct Square2 {
     x: f64,
     residual: f64,
@@ -19,9 +19,9 @@ struct Square2 {
 }
 
 impl Square2 {
-    fn new(inaccurate: bool) -> Self {
+    fn new(x: f64, inaccurate: bool) -> Self {
         Square2 {
-            x: 0.0,
+            x,
             residual: 0.0,
             evaluations: 0,
             inaccurate,
@@ -44,10 +44,6 @@ impl Model<nalgebra::Const<1>> for Square2 {
     type InaccurateValuesError = Inaccurate;
     type UnusableValuesError = Infallible;
     type Memory = ();
-
-    fn len_problem(&self) -> usize {
-        1
-    }
 
     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
         self.x = iteratives[0];
@@ -75,7 +71,7 @@ impl Model<nalgebra::Const<1>> for Square2 {
     }
 }
 
-/// `x = 10`, solved by the initial guess `10` of the solvers below:
+/// `x = 10`, already solved when its iterative is `10`:
 /// a resolution converged before any iteration.
 struct AlreadySolved {
     x: f64,
@@ -85,10 +81,6 @@ impl Model<nalgebra::Const<1>> for AlreadySolved {
     type InaccurateValuesError = Infallible;
     type UnusableValuesError = Infallible;
     type Memory = ();
-
-    fn len_problem(&self) -> usize {
-        1
-    }
 
     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
         self.x = iteratives[0];
@@ -112,15 +104,13 @@ impl Model<nalgebra::Const<1>> for AlreadySolved {
 
 fn solver<'a>(
     method: ResolutionMethod,
-    initial_guess: f64,
     max_iter: usize,
     iteratives_configuration: &'a iteratives::Iteratives<'a, iteratives::IterativeParamsFD>,
     residuals_configuration: &'a residuals::ResidualsConfig<'a>,
 ) -> nrf::solver::RootFinder<'a, iteratives::IterativeParamsFD, nalgebra::Const<1>> {
-    let parameters = nrf::solver::SolverParameters::new(1, 1e-6, max_iter, method, false);
+    let parameters = nrf::solver::SolverParameters::new(1e-6, max_iter, method, false);
     nrf::solver::RootFinder::new(
         parameters,
-        nalgebra::SVector::from([initial_guess]),
         iteratives_configuration,
         residuals_configuration,
     )
@@ -138,15 +128,14 @@ fn a_second_resolution_has_all_its_iterations() {
     // one with the count carried over would run out of iterations.
     let mut rf = solver(
         ResolutionMethod::NewtonRaphson,
-        10.0,
         8,
         &iteratives_configuration,
         &residuals_configuration,
     );
 
-    let mut first = Square2::new(false);
+    let mut first = Square2::new(10.0, false);
     rf.solve(&mut first).unwrap();
-    let mut second = Square2::new(false);
+    let mut second = Square2::new(10.0, false);
     rf.solve(&mut second).unwrap();
 
     assert!((first.x - std::f64::consts::SQRT_2).abs() < 1e-6);
@@ -174,15 +163,14 @@ fn a_second_quasi_newton_resolution_computes_its_jacobian() {
     ] {
         let mut rf = solver(
             method,
-            2.0,
             50,
             &iteratives_configuration,
             &residuals_configuration,
         );
 
-        let mut first = Square2::new(false);
+        let mut first = Square2::new(2.0, false);
         rf.solve(&mut first).unwrap();
-        let mut second = Square2::new(false);
+        let mut second = Square2::new(2.0, false);
         rf.solve(&mut second).unwrap();
 
         // The same resolution twice: the jacobian of the second one is
@@ -208,14 +196,13 @@ fn the_validity_of_the_last_evaluation_does_not_outlive_a_resolution() {
         residuals::ResidualsConfig::new(&stopping_criteria, &update_methods);
     let mut rf = solver(
         ResolutionMethod::NewtonRaphson,
-        10.0,
         50,
         &iteratives_configuration,
         &residuals_configuration,
     );
 
     // Converged on inaccurate values: the resolution ends on them.
-    let mut inaccurate = Square2::new(true);
+    let mut inaccurate = Square2::new(10.0, true);
     assert!(matches!(
         rf.solve(&mut inaccurate),
         Err(nrf::errors::SolverError::FinalEvaluationError)
@@ -223,7 +210,7 @@ fn the_validity_of_the_last_evaluation_does_not_outlive_a_resolution() {
 
     // Converged at the initial guess, without an iteration: nothing of
     // the previous resolution makes this one end on inaccurate values.
-    let mut solved = AlreadySolved { x: 0.0 };
+    let mut solved = AlreadySolved { x: 10.0 };
     rf.solve(&mut solved).unwrap();
     assert_eq!(solved.x, 10.0);
 }

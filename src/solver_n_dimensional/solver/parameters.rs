@@ -42,11 +42,7 @@ use std::fmt;
 ///
 /// ## Resolution Method
 /// See the enum `ResolutionMethod` for the options available
-///
-/// ## Problem size
-/// The dimension of the problem for the resolution
 pub struct SolverParameters {
-    problem_size: usize,
     tolerance: f64,
     max_iter: usize,
     resolution_method: ResolutionMethod,
@@ -55,23 +51,17 @@ pub struct SolverParameters {
 
 impl SolverParameters {
     pub fn new(
-        problem_size: usize,
         tolerance: f64,
         max_iter: usize,
         resolution_method: ResolutionMethod,
         damping: bool,
     ) -> Self {
         SolverParameters {
-            problem_size,
             tolerance,
             max_iter,
             resolution_method,
             damping,
         }
-    }
-
-    pub fn get_problem_size(&self) -> usize {
-        self.problem_size
     }
 
     pub fn get_tolerance(&self) -> f64 {
@@ -95,17 +85,14 @@ impl fmt::Display for SolverParameters {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut content = String::from("Solver parameters\n");
         content.push_str("=================\n\n");
-        let separation_line = &"+----------------+-----------------+-----------------+--------------------+---------------------+\n";
-        let header          = &"|  Problem size  |  Max iteration  |    Tolerance    |  Damping activated |  Resolution Method  |\n";
+        let separation_line =
+            &"+-----------------+-----------------+--------------------+---------------------+\n";
+        let header =
+            &"|  Max iteration  |    Tolerance    |  Damping activated |  Resolution Method  |\n";
 
         content.push_str(separation_line);
         content.push_str(header);
         content.push_str(separation_line);
-        content.push_str(&format!(
-            "| {:width$}",
-            self.problem_size.to_string(),
-            width = 15
-        ));
         content.push_str(&format!(
             "| {:width$}",
             self.max_iter.to_string(),
@@ -137,7 +124,6 @@ impl fmt::Display for SolverParameters {
 impl fmt::Debug for SolverParameters {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Solver parameters")
-            .field("Problem size", &self.problem_size)
             .field("Max iteration", &self.max_iter)
             .field("Solver tolerance", &self.tolerance)
             .field("Resolution method", &self.resolution_method)

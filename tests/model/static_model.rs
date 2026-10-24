@@ -29,9 +29,6 @@ impl Model<nalgebra::Const<1>> for UserModel {
     type UnusableValuesError = Infallible;
     type Memory = ();
 
-    fn len_problem(&self) -> usize {
-        1
-    }
     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
         self.iteratives = *iteratives;
     }
@@ -53,7 +50,6 @@ impl Model<nalgebra::Const<1>> for UserModel {
 #[test]
 fn static_types() {
     let solver_parameters = nrf::solver::SolverParameters::new(
-        1,
         1e-6,
         50,
         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -70,12 +66,7 @@ fn static_types() {
 
     let mut user_model = UserModel::new(1.0);
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        user_model.get_iteratives(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     rf.solve(&mut user_model).unwrap();
 

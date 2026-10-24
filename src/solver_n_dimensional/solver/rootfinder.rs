@@ -19,7 +19,7 @@ use super::{QuasiNewtonMethod, ResolutionMethod};
 /// The solver operates on the model and mutate it
 ///
 /// The core functionnality is the `solve()` method.
-/// Every call is a resolution of its own, started afresh from the initial guess:
+/// Every call is a resolution of its own, started afresh from the iteratives the model holds:
 /// a solver can be reused for several resolutions, on the same model or on other models of the same dimension.
 ///
 /// The user can activate the debugging before the resolution thanks to the `activate_debug()` method
@@ -34,7 +34,6 @@ where
 {
     // user inputs
     parameters: SolverParameters,
-    initial_guess: nalgebra::OVector<f64, D>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
     debug: bool,
@@ -58,9 +57,15 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
+    /// A solver from its parameters and the configurations of the iteratives and of the residuals,
+    /// which must have the same length, the dimension of the problem.
+    /// The dimension type `D` is the one of the models the solver is called on, a static or a dynamic one.
+    ///
+    /// # Panics
+    ///
+    /// When the two configurations differ in length.
     pub fn new(
         parameters: SolverParameters,
-        initial_guess: nalgebra::OVector<f64, D>,
         iters_params: &'a iteratives::Iteratives<'a, T>,
         residuals_config: &'a residuals::ResidualsConfig<'a>,
     ) -> Self {
@@ -68,25 +73,11 @@ where
         let solver_log = None;
         let iter = 0;
 
-        if residuals_config.len() != parameters.get_problem_size() {
+        if iters_params.len() != residuals_config.len() {
             panic!(
-                "Dimension mismatch :\n residuals_config.len() = {} and problem_size = {}",
-                residuals_config.len(),
-                parameters.get_problem_size()
-            );
-        }
-        if initial_guess.len() != parameters.get_problem_size() {
-            panic!(
-                "Dimension mismatch :\n initial_guess.len() = {} and problem_size = {}",
-                initial_guess.len(),
-                parameters.get_problem_size()
-            );
-        }
-        if iters_params.len() != parameters.get_problem_size() {
-            panic!(
-                "Dimension mismatch :\n iters_params.len() = {} and problem_size = {}",
+                "Dimension mismatch between the iteratives and the residuals configurations: {} iteratives, {} residuals",
                 iters_params.len(),
-                parameters.get_problem_size()
+                residuals_config.len()
             );
         }
 
@@ -98,7 +89,6 @@ where
 
         RootFinder {
             parameters,
-            initial_guess,
             iters_params,
             residuals_config,
             debug,
@@ -138,7 +128,8 @@ where
     /// # let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     /// # let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
     /// # let damping = false;
-    /// let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
+    /// # nrf::model::Model::set_iteratives(&mut user_model, &init_guess);
+    /// let mut rf = nrf::solver::default(&iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
     ///
     /// rf.activate_debug(&"solver_log.txt");
     /// rf.solve(&mut user_model);
@@ -466,8 +457,10 @@ where
     /// A [errors::SolverError::NonConvergenceError] or a [errors::SolverError::FinalEvaluationError]
     /// leaves the model on the last iterate.
     ///
-    /// The resolution starts afresh: from the initial guess, with the iteration count at zero
+    /// The resolution starts afresh: from the iteratives the model holds, with the iteration count at zero
     /// and a jacobian computed at the first iteration, nothing being kept from a previous call.
+    /// A model with another number of iteratives than the configurations of the solver is refused
+    /// with [errors::SolverError::DimensionMismatch], before any evaluation.
     /// With the debugging activated, the log of a call follows the one of the previous call in the same file.
     pub fn solve<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError<M, D>>
     where
@@ -476,9 +469,15 @@ where
         self.reset();
 
         let entry_iteratives = model.get_iteratives();
+        if entry_iteratives.len() != self.iters_params.len() {
+            return Err(errors::SolverError::DimensionMismatch {
+                model: entry_iteratives.len(),
+                solver: self.iters_params.len(),
+            });
+        }
         let entry_memory = model.get_memory();
 
-        let result = self.solve_from_initial_guess(model);
+        let result = self.solve_from_entry(model);
 
         match result {
             Err(errors::SolverError::ModelInitialEvaluationError(_))
@@ -490,21 +489,17 @@ where
             }
             Ok(())
             | Err(errors::SolverError::NonConvergenceError)
-            | Err(errors::SolverError::FinalEvaluationError) => (),
+            | Err(errors::SolverError::FinalEvaluationError)
+            | Err(errors::SolverError::DimensionMismatch { .. }) => (),
         }
 
         result
     }
 
-    fn solve_from_initial_guess<M>(
-        &mut self,
-        model: &mut M,
-    ) -> Result<(), crate::errors::SolverError<M, D>>
+    fn solve_from_entry<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {
-        model.set_iteratives(&self.initial_guess);
-
         // The first evaluation must yield usuable values
         // However, then don't need to be accurate
         match model.evaluate() {
@@ -632,7 +627,6 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Rootfinder")
             .field("Solver parameters", &self.parameters)
-            .field("Initial Guess", &self.initial_guess)
             .field("Iterative configuration", &self.iters_params)
             .field("Residual configuration", &self.residuals_config)
             .field("Debug option activated", &self.debug)

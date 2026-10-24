@@ -17,8 +17,9 @@ use crate::residuals;
 ///
 /// # Other methods
 ///
-/// In addition to these 3 methods, some other must also be implemented.
-/// These methods are used by the solver to access some additional infos required for the resolutions.
+/// In addition to these 3 methods and the associated types, the other methods have a default implementation,
+/// to override when the model provides its jacobian, keeps a memory, or can evaluate a column of the jacobian on its own.
+/// The dimension of the problem is the length of the iteratives, which must be the one of the configurations of the solver.
 ///
 /// # Memory
 ///
@@ -53,10 +54,6 @@ where
     /// and restored by [Model::set_memory]: `()` for a model without memory
     type Memory: Clone + Default;
 
-    /// This method defines the dimension of the problem.
-    ///
-    /// It should be consistent of the length of the [Model::set_iteratives], [Model::get_iteratives] and [Model::get_residuals] argument.
-    fn len_problem(&self) -> usize;
     /// This method provides the solver a mecanism to set the iteratives values and perform the resolution
     fn set_iteratives(&mut self, iteratives: &nalgebra::OVector<f64, D>);
     /// This method is required to access the values of the iteratives variables during the resolution process.

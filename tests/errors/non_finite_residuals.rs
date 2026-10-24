@@ -1,6 +1,7 @@
 use newton_rootfinder as nrf;
 
 use nrf::iteratives;
+use nrf::model::Model;
 use nrf::residuals;
 
 fn solve(
@@ -16,8 +17,7 @@ fn solve(
     let stopping_residuals = vec![normalization; problem_size];
     let update_methods = vec![normalization; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(
-        init,
+    let mut rf = nrf::solver::default(
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -25,6 +25,7 @@ fn solve(
     );
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, function);
 
+    user_model.set_iteratives(&init);
     rf.solve(&mut user_model)
 }
 

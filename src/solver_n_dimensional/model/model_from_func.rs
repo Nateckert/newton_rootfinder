@@ -23,7 +23,7 @@ use crate::residuals;
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///
-/// assert_eq!(user_model.len_problem(), 1);
+/// assert_eq!(user_model.get_iteratives().len(), 1);
 /// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
 /// assert_eq!(user_model.jacobian_provided(), false);
 /// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
@@ -33,7 +33,6 @@ pub struct UserModelFromFunction {
     pub func: fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
     pub left: nalgebra::DVector<f64>,
     pub right: nalgebra::DVector<f64>,
-    problem_size: usize,
 }
 
 impl UserModelFromFunction {
@@ -50,7 +49,6 @@ impl UserModelFromFunction {
             func,
             left,
             right,
-            problem_size,
         }
     }
 }
@@ -75,10 +73,6 @@ impl Model<nalgebra::Dyn> for UserModelFromFunction {
 
     fn set_iteratives(&mut self, iteratives: &nalgebra::DVector<f64>) {
         self.inputs = iteratives.clone();
-    }
-
-    fn len_problem(&self) -> usize {
-        self.problem_size
     }
 }
 
@@ -106,7 +100,7 @@ impl Model<nalgebra::Dyn> for UserModelFromFunction {
 /// user_model.set_iteratives(&iteratives);
 /// user_model.evaluate();
 ///
-/// assert_eq!(user_model.len_problem(), 1);
+/// assert_eq!(user_model.get_iteratives().len(), 1);
 /// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
 /// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 ///
@@ -122,7 +116,6 @@ pub struct UserModelFromFunctionAndJacobian {
     pub jac: fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
     pub left: nalgebra::DVector<f64>,
     pub right: nalgebra::DVector<f64>,
-    problem_size: usize,
 }
 
 impl UserModelFromFunctionAndJacobian {
@@ -141,7 +134,6 @@ impl UserModelFromFunctionAndJacobian {
             jac,
             left,
             right,
-            problem_size,
         }
     }
 }
@@ -168,10 +160,6 @@ impl Model<nalgebra::Dyn> for UserModelFromFunctionAndJacobian {
         self.inputs = iteratives.clone();
     }
 
-    fn len_problem(&self) -> usize {
-        self.problem_size
-    }
-
     fn jacobian_provided(&self) -> bool {
         true
     }
@@ -180,7 +168,7 @@ impl Model<nalgebra::Dyn> for UserModelFromFunctionAndJacobian {
     ) -> Result<residuals::JacobianValues<nalgebra::Dyn>, super::ModelError<Self, nalgebra::Dyn>>
     {
         let jac_left = (self.jac)(&self.inputs);
-        let jac_right = nalgebra::DMatrix::zeros(self.len_problem(), self.len_problem());
+        let jac_right = nalgebra::DMatrix::zeros(self.inputs.len(), self.inputs.len());
         Ok(residuals::JacobianValues::new(jac_left, jac_right))
     }
 }
@@ -206,7 +194,7 @@ mod tests {
         user_model.set_iteratives(&iteratives);
         user_model.evaluate().unwrap();
 
-        assert_eq!(user_model.len_problem(), 1);
+        assert_eq!(user_model.get_iteratives().len(), 1);
         assert_eq!(
             user_model.get_iteratives(),
             nalgebra::DVector::from_vec(vec!(2.0))
@@ -221,7 +209,7 @@ mod tests {
         user_model.set_iteratives(&iteratives);
         user_model.evaluate().unwrap();
 
-        assert_eq!(user_model.len_problem(), 1);
+        assert_eq!(user_model.get_iteratives().len(), 1);
         assert_eq!(
             user_model.get_iteratives(),
             nalgebra::DVector::from_vec(vec!(2.0))

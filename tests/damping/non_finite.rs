@@ -16,14 +16,17 @@ fn solve(
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(
-        nalgebra::DVector::from_element(problem_size, 9.0),
+    let mut rf = nrf::solver::default(
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::NewtonRaphson,
         damping,
     );
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, function);
+    nrf::model::Model::set_iteratives(
+        &mut user_model,
+        &nalgebra::DVector::from_element(problem_size, 9.0),
+    );
     let result = rf.solve(&mut user_model);
     (result, nrf::model::Model::get_iteratives(&user_model))
 }

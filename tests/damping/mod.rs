@@ -51,10 +51,6 @@ impl Model<nalgebra::Const<1>> for Arctangent {
     type UnusableValuesError = Unusable;
     type Memory = f64;
 
-    fn len_problem(&self) -> usize {
-        1
-    }
-
     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
         self.x = iteratives[0];
     }
@@ -100,13 +96,13 @@ fn solve(
     let update_methods = vec![residuals::NormalizationMethod::Abs; 1];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     let damping = true;
-    let mut rf = nrf::solver::default_with_guess(
-        nalgebra::SVector::from([2.0]),
+    let mut rf = nrf::solver::default(
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::NewtonRaphson,
         damping,
     );
+    model.set_iteratives(&nalgebra::SVector::from([2.0]));
     rf.solve(model)
 }
 

@@ -42,10 +42,6 @@ impl Model<nalgebra::Dyn> for MyDummyModel {
     type UnusableValuesError = MyCustomErrors;
     type Memory = ();
 
-    fn len_problem(&self) -> usize {
-        1
-    }
-
     fn get_iteratives(&self) -> nalgebra::DVector<f64> {
         return self.iteratives.clone();
     }
@@ -82,8 +78,7 @@ fn test_convergence_with_error_from_model() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(
-        init,
+    let mut rf = nrf::solver::default(
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -91,6 +86,7 @@ fn test_convergence_with_error_from_model() {
     );
 
     let mut my_model = MyDummyModel::new();
+    my_model.set_iteratives(&init);
 
     let result = rf.solve(&mut my_model).unwrap_err();
     let expected: nrf::errors::SolverError<nrf::model::UserModelFromFunction, nalgebra::Dyn> =

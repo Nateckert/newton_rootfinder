@@ -9,7 +9,7 @@ fn parse_file() {
     let (solver_parameters, iteratives_parsed, stopping_criterias, update_methods) =
         nrf::xml_parser::from_xml_finite_diff(&FILEPATH);
 
-    assert_eq!(solver_parameters.get_problem_size(), 3);
+    assert_eq!(iteratives_parsed.len(), 3);
     assert_eq!(solver_parameters.get_max_iter(), 60);
     assert_eq!(solver_parameters.get_tolerance(), 1e-6);
     assert_eq!(

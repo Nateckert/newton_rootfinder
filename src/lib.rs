@@ -113,7 +113,7 @@
 //! #    }
 //! #
 //! #   fn get_residuals(&self) -> nrf::residuals::ResidualsValues<nalgebra::Dyn> {
-//! #       let right = nalgebra::DVector::zeros(self.len_problem());
+//! #       let right = nalgebra::DVector::zeros(self.inputs.len());
 //! #       nrf::residuals::ResidualsValues::new(self.left.clone(), right.clone())
 //! #    }
 //! #
@@ -123,10 +123,6 @@
 //! #
 //! #   fn set_iteratives(&mut self, iteratives: &nalgebra::DVector<f64>) {
 //! #        self.inputs = iteratives.clone();
-//! #    }
-//! #
-//! #   fn len_problem(&self) -> usize {
-//! #        1
 //! #    }
 //! #
 //! }
@@ -142,18 +138,18 @@
 //! #    let update_methods = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
 //! #    let residuals_configuration = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
 //! #
-//! #    let solver_parameters = nrf::solver::SolverParameters::new(1, 1e-6, 60, nrf::solver::ResolutionMethod::NewtonRaphson, true);
+//! #    let solver_parameters = nrf::solver::SolverParameters::new(1e-6, 60, nrf::solver::ResolutionMethod::NewtonRaphson, true);
 //! #    let inital_guess = nalgebra::DVector::from_vec(vec![1.0]);
 //! #
 //!     // ...
 //!     let mut rootfinder = nrf::solver::RootFinder::new(
 //!         solver_parameters,
-//!         inital_guess,
 //!         &iteratives_configuration,
 //!         &residuals_configuration,
 //!     );
 //!
 //!     let mut user_model = UserModel::new();
+//!     user_model.set_iteratives(&inital_guess);
 //!
 //!     rootfinder.solve(&mut user_model).unwrap();
 //!
@@ -255,19 +251,19 @@
 //!     let res_config = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
 //!
 //!     // Parametrization of the solver
-//!     let init = nalgebra::DVector::from_vec(vec![1.0]);
 //!     let resolution_method = nrf::solver::ResolutionMethod::NewtonRaphson;
 //!     let damping = false;
-//!     let mut rf = nrf::solver::default_with_guess(
-//!         init,
+//!     let mut rf = nrf::solver::default(
 //!         &iter_params,
 //!         &res_config,
 //!         resolution_method,
 //!         damping,
 //!     );
 //!
-//!     // Adpatation of the function to solve to the Model trait.
+//!     // Adpatation of the function to solve to the Model trait,
+//!     // holding the initial guess the resolution starts from.
 //!     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
+//!     user_model.set_iteratives(&nalgebra::DVector::from_vec(vec![1.0]));
 //!
 //!     rf.solve(&mut user_model).unwrap();
 //!
@@ -281,7 +277,7 @@
 //! `newton_rootfinder` provides several mecanisms to ease the use of the solver,
 //! such as :
 //! - [default_vec_iteratives_fd](crate::iteratives::default_vec_iteratives_fd)
-//! - [default_with_guess](crate::solver::default_with_guess)
+//! - [default](crate::solver::default)
 //! - [UserModelFromFunction](crate::model::UserModelFromFunction)
 //!
 //! These mecanisms use underneath rust `Vec` and the `nalgebra` type `DVector` (dynamic vector)
@@ -323,9 +319,6 @@
 //!     type InaccurateValuesError = Infallible;
 //!     type UnusableValuesError = Infallible;
 //!     type Memory = ();
-//!     fn len_problem(&self) -> usize {
-//!         1
-//!     }
 //!     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
 //!         self.iteratives = *iteratives;
 //!     }
@@ -346,7 +339,6 @@
 //!
 //! fn main() {
 //!     let solver_parameters = nrf::solver::SolverParameters::new(
-//!         1,
 //!         1e-6,
 //!         50,
 //!         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -365,7 +357,6 @@
 //!
 //!     let mut rf = nrf::solver::RootFinder::new(
 //!         solver_parameters,
-//!         user_model.get_iteratives(),
 //!         &iteratives,
 //!         &residuals_config,
 //!     );
