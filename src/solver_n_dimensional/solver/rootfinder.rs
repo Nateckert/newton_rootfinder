@@ -328,9 +328,11 @@ where
         model: &mut M,
         max_error: f64,
         current_guess: &nalgebra::OVector<f64, D>,
+        current_memory: &nalgebra::DVector<f64>,
         proposed_guess: &nalgebra::OVector<f64, D>,
         errors_next: &mut nalgebra::OVector<f64, D>,
-    ) where
+    ) -> Result<(), errors::SolverError<M, D>>
+    where
         M: model::Model<D>,
     {
         let max_error_next = errors_next.amax();
@@ -347,8 +349,11 @@ where
                 let damping_factor = 1.0 / 2.0;
                 let damped_guess =
                     current_guess * (1.0 - damping_factor) + proposed_guess * damping_factor;
+                // The damped guess starts from the memory of the current point,
+                // not from the one the rejected proposed guess left
+                model.set_memory(current_memory);
                 model.set_iteratives(&damped_guess);
-                model.evaluate().unwrap();
+                self.evaluate_model(model)?;
                 *errors_next = self.evaluate_errors(model);
 
                 if self.debug {
@@ -356,6 +361,26 @@ where
                 }
             }
         }
+        Ok(())
+    }
+
+    fn evaluate_model<M>(&mut self, model: &mut M) -> Result<(), errors::SolverError<M, D>>
+    where
+        M: model::Model<D>,
+    {
+        match model.evaluate() {
+            Ok(()) => {
+                self.valid_last_model_evaluation = true;
+            }
+            Err(ModelError::InaccurateValuesError(_)) => {
+                self.valid_last_model_evaluation = false;
+            }
+            Err(e) => {
+                self.valid_last_model_evaluation = false;
+                return Err(errors::SolverError::ModelEvaluationError(e));
+            }
+        }
+        Ok(())
     }
 
     fn update_model<M>(
@@ -369,20 +394,15 @@ where
         let errors = self.evaluate_errors(model);
         let max_error = errors.amax();
         let current_guess = model.get_iteratives();
+        // Only needed by the damping, which evaluates the damped guess from it
+        let current_memory = if self.parameters.get_damping() {
+            model.get_memory()
+        } else {
+            nalgebra::DVector::zeros(0)
+        };
 
         model.set_iteratives(proposed_guess);
-        match model.evaluate() {
-            Ok(()) => {
-                self.valid_last_model_evaluation = true;
-            }
-            Err(ModelError::InaccurateValuesError(_)) => {
-                self.valid_last_model_evaluation = false;
-            }
-            Err(e) => {
-                self.valid_last_model_evaluation = false;
-                return Err(errors::SolverError::ModelEvaluationError(e));
-            }
-        }
+        self.evaluate_model(model)?;
         let mut errors_next = self.evaluate_errors(model);
 
         if self.debug {
@@ -394,9 +414,10 @@ where
                 model,
                 max_error,
                 &current_guess,
+                &current_memory,
                 proposed_guess,
                 &mut errors_next,
-            );
+            )?;
         }
 
         match self.parameters.get_resolution_method() {
