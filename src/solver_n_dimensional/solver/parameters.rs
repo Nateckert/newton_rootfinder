@@ -19,6 +19,7 @@ use std::fmt;
 /// with 0 < damping_factor <= 1
 ///
 /// As long as the error is reduced damping_factor = 1.
+/// A step giving a NaN or infinite residual counts as not reducing it.
 /// If it is not the case, a factor is applied
 /// (the value might change according to the versions).
 ///
