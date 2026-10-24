@@ -60,7 +60,10 @@ where
         match model.evaluate_column(i) {
             // recovers from inaccurate values
             Ok(()) | Err(ModelError::InaccurateValuesError(_)) => (),
-            Err(model_error) => return Err(model_error),
+            Err(model_error) => {
+                model.set_memory(memory_ref);
+                return Err(model_error);
+            }
         }
 
         let residuals_perturbation =
