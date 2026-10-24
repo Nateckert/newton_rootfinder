@@ -43,6 +43,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   A `NonConvergenceError` or a `FinalEvaluationError` still leaves the model on the last iterate.
 - `compute_jacobian_from_finite_difference` and `evaluate_jacobian_from_finite_difference` restore the memory
   of the reference point when the evaluation of a column fails, as after a successful column.
+- `RootFinder::solve` starts every resolution afresh.
+  The iteration count, the jacobian and the steps of the quasi-Newton updates were kept from the previous call,
+  so a solver reused for several resolutions had fewer iterations left each time, failing with `NonConvergenceError`
+  once the count reached the maximum, and the quasi-Newton methods started from the jacobian of the previous resolution
+  instead of computing one (#24).
+  The benchmarks, which reuse one solver, timed such failing resolutions: their results are measured again.
 
 ## [0.11.0] - 2024-10-17
 
