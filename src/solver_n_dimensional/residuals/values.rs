@@ -62,6 +62,13 @@ where
         nrows
     }
 
+    /// Indices of the equations whose left or right member is NaN or infinite
+    pub fn non_finite_indices(&self) -> Vec<usize> {
+        (0..self.problem_size)
+            .filter(|&i| !(self.left[i].is_finite() && self.right[i].is_finite()))
+            .collect()
+    }
+
     pub fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
         let mut str_eq = String::new();
         str_eq.push_str(&format!(

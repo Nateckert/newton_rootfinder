@@ -155,6 +155,32 @@ where
             .evaluate_stopping_residuals(&residuals_values)
     }
 
+    /// Fails when a residual is not finite
+    ///
+    /// The maximum error and the comparisons with the tolerance ignore NaN,
+    /// without this check a NaN residual could be reported converged.
+    /// A non-finite residual always gives a non-finite error,
+    /// so the residuals are read only when an error is not finite.
+    /// The converse does not hold: the relative normalization of 0 = 0 is NaN.
+    fn check_finite_residuals<M>(
+        &self,
+        model: &M,
+        errors: &nalgebra::OVector<f64, D>,
+    ) -> Result<(), errors::SolverError<M, D>>
+    where
+        M: model::Model<D>,
+    {
+        if errors.iter().all(|error| error.is_finite()) {
+            return Ok(());
+        }
+        let indices = model.get_residuals().non_finite_indices();
+        if indices.is_empty() {
+            Ok(())
+        } else {
+            Err(errors::SolverError::NonFiniteResiduals(indices))
+        }
+    }
+
     fn compute_jac<M>(&mut self, model: &mut M) -> Result<(), errors::SolverInternalError<M, D>>
     where
         M: model::Model<D>,
@@ -413,6 +439,8 @@ where
             self.iteration_to_log(model, &errors);
         }
 
+        self.check_finite_residuals(model, &errors)?;
+
         // Warning: unrolling by hand the first iteration (which is always a Newton-Raphson step)
         //          is actually slowing down the code (run benchmarks to see it)
         while max_error > self.parameters.get_tolerance()
@@ -437,6 +465,7 @@ where
                 }
             }
 
+            self.check_finite_residuals(model, &errors)?;
             max_error = errors.amax();
         }
 

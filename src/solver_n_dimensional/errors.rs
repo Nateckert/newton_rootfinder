@@ -180,6 +180,7 @@ pub struct NonInvertibleJacobian;
 /// - [SolverError::ModelEvaluationError] : during the iterative process, while performing an update, a model error occured
 /// - [SolverError::JacobianError] : during the jacobian evaluation, an error occured
 /// - [SolverError::FinalEvaluationError] : the algorithm managed to converged but the model returned an error at convergence
+/// - [SolverError::NonFiniteResiduals] : a residual (left or right member) is NaN or infinite, at the initial evaluation or after an update; it holds the indices of the equations concerned
 pub enum SolverError<M, D>
 where
     M: crate::model::Model<D>,
@@ -192,6 +193,7 @@ where
     ModelEvaluationError(crate::model::ModelError<M, D>),
     JacobianError(SolverInternalError<M, D>),
     FinalEvaluationError,
+    NonFiniteResiduals(Vec<usize>),
 }
 
 impl<M, D> fmt::Display for SolverError<M, D>
@@ -215,6 +217,9 @@ where
             }
             Self::FinalEvaluationError => {
                 write!(f, "Final model evaluation failed")
+            }
+            Self::NonFiniteResiduals(indices) => {
+                write!(f, "Non-finite residuals for the equations {:?}", indices)
             }
         }
     }
