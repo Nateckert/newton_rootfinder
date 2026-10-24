@@ -1,3 +1,5 @@
+mod non_finite;
+
 use std::error::Error;
 use std::fmt;
 

@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - A NaN residual was reported converged: the maximum error and its comparison with the tolerance ignore NaN.
+- The damping is triggered by a step giving a NaN or infinite residual,
+  which the comparison of the maximum errors missed: such a step is damped instead of failing with `SolverError::NonFiniteResiduals`.
 - The damping no longer panics when the model fails to evaluate the damped guess:
   the evaluation is handled as the one of the proposed guess,
   an `UnusableValuesError` ending the resolution with `SolverError::ModelEvaluationError` (#33).
