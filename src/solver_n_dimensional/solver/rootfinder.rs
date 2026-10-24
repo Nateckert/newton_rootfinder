@@ -155,13 +155,25 @@ where
             .evaluate_stopping_residuals(&residuals_values)
     }
 
-    /// Fails when a residual is not finite
+    /// Indices of the equations whose residual is not finite
     ///
-    /// The maximum error and the comparisons with the tolerance ignore NaN,
-    /// without this check a NaN residual could be reported converged.
+    /// The maximum error and the comparisons with it ignore NaN,
+    /// so the solver must look for non-finite residuals itself:
+    /// without it a NaN residual could be reported converged, or escape the damping.
     /// A non-finite residual always gives a non-finite error,
     /// so the residuals are read only when an error is not finite.
     /// The converse does not hold: the relative normalization of 0 = 0 is NaN.
+    fn non_finite_residuals<M>(&self, model: &M, errors: &nalgebra::OVector<f64, D>) -> Vec<usize>
+    where
+        M: model::Model<D>,
+    {
+        if errors.iter().all(|error| error.is_finite()) {
+            return Vec::new();
+        }
+        model.get_residuals().non_finite_indices()
+    }
+
+    /// Fails when a residual is not finite
     fn check_finite_residuals<M>(
         &self,
         model: &M,
@@ -170,10 +182,7 @@ where
     where
         M: model::Model<D>,
     {
-        if errors.iter().all(|error| error.is_finite()) {
-            return Ok(());
-        }
-        let indices = model.get_residuals().non_finite_indices();
+        let indices = self.non_finite_residuals(model, errors);
         if indices.is_empty() {
             Ok(())
         } else {
@@ -335,8 +344,10 @@ where
     where
         M: model::Model<D>,
     {
+        // A step to a non-finite residual deteriorates the solution,
+        // whatever the maximum of the errors, which ignores NaN
         let max_error_next = errors_next.amax();
-        if max_error_next > max_error {
+        if max_error_next > max_error || !self.non_finite_residuals(model, errors_next).is_empty() {
             // see documentation of the `SolverParameters` struct
             if self.parameters.get_resolution_method() != ResolutionMethod::NewtonRaphson
                 && self.jacobian.is_jacobian_approximated()
