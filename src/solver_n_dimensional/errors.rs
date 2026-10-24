@@ -177,7 +177,7 @@ pub struct NonInvertibleJacobian;
 ///
 /// Exit status:
 /// - [SolverError::NonConvergenceError] : finished all the iterations but didn't find a root
-/// - [SolverError::ModelInitialEvaluationError] : the algorithm must be able to evaluate the model correctly at the begin of the resolution process, it failed in that case
+/// - [SolverError::ModelInitialEvaluationError] : the algorithm must be able to evaluate the model correctly at the begin of the resolution process, it failed in that case; it holds the error of the model
 /// - [SolverError::ModelEvaluationError] : during the iterative process, while performing an update, a model error occured
 /// - [SolverError::JacobianError] : during the jacobian evaluation, an error occured
 /// - [SolverError::FinalEvaluationError] : the algorithm managed to converged but the model returned an error at convergence
@@ -190,7 +190,7 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     NonConvergenceError,
-    ModelInitialEvaluationError(String),
+    ModelInitialEvaluationError(M::UnusableValuesError),
     ModelEvaluationError(crate::model::ModelError<M, D>),
     JacobianError(SolverInternalError<M, D>),
     FinalEvaluationError,
