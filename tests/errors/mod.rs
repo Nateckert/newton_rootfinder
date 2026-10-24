@@ -1,3 +1,4 @@
+mod entry_state;
 mod inaccurate_values;
 mod non_convergence;
 mod non_finite_residuals;

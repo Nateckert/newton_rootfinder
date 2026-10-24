@@ -441,7 +441,42 @@ where
     }
 
     /// The core function performing the resolution on a given `Model`
+    ///
+    /// When the resolution fails because the model or the jacobian could not be evaluated,
+    /// or because a residual is not finite, the model gets back the iteratives and the memory
+    /// it held when `solve` was called, so that a new resolution can start from them;
+    /// its residuals are the ones of the failed evaluation.
+    /// A [errors::SolverError::NonConvergenceError] or a [errors::SolverError::FinalEvaluationError]
+    /// leaves the model on the last iterate.
     pub fn solve<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError<M, D>>
+    where
+        M: model::Model<D>,
+    {
+        let entry_iteratives = model.get_iteratives();
+        let entry_memory = model.get_memory();
+
+        let result = self.solve_from_initial_guess(model);
+
+        match result {
+            Err(errors::SolverError::ModelInitialEvaluationError(_))
+            | Err(errors::SolverError::ModelEvaluationError(_))
+            | Err(errors::SolverError::JacobianError(_))
+            | Err(errors::SolverError::NonFiniteResiduals(_)) => {
+                model.set_memory(&entry_memory);
+                model.set_iteratives(&entry_iteratives);
+            }
+            Ok(())
+            | Err(errors::SolverError::NonConvergenceError)
+            | Err(errors::SolverError::FinalEvaluationError) => (),
+        }
+
+        result
+    }
+
+    fn solve_from_initial_guess<M>(
+        &mut self,
+        model: &mut M,
+    ) -> Result<(), crate::errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {

@@ -13,7 +13,9 @@ use crate::residuals;
 ///
 /// This function has been made public for testing purpose only
 ///
-/// The reference point is the one the model has just been evaluated on
+/// The reference point is the one the model has just been evaluated on.
+/// The model is left on the last perturbed point, with the memory of the reference point,
+/// also when a column fails
 pub fn compute_jacobian_from_finite_difference<M, D>(
     model: &mut M,
     perturbations: &nalgebra::OVector<f64, D>,
@@ -26,12 +28,23 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
     let reference = Point::of(model);
-    compute_jacobian_from_finite_difference_at(model, &reference, perturbations, update_residuals)
+    let jacobian = compute_jacobian_from_finite_difference_at(
+        model,
+        &reference,
+        perturbations,
+        update_residuals,
+    );
+    if jacobian.is_err() {
+        model.set_memory(&reference.memory);
+    }
+    jacobian
 }
 
 /// Evaluate a jacobian per forward finite difference around the `reference` point
 ///
-/// The model is left on the last perturbed point, with the memory of the reference point
+/// The model is left on the last perturbed point, with the memory of the reference point;
+/// when a column fails, with the memory of that column:
+/// the solver restores its own state on a failure
 pub(crate) fn compute_jacobian_from_finite_difference_at<M, D>(
     model: &mut M,
     reference: &Point<D>,
@@ -97,14 +110,9 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
-    let reference = Point::of(model);
-    evaluate_jacobian_from_finite_difference_at(
-        jacobian,
-        model,
-        &reference,
-        iters_params,
-        residuals_config,
-    )
+    let perturbations = iters_params.compute_perturbations(&model.get_iteratives());
+    let matrix = compute_jacobian_from_finite_difference(model, &perturbations, residuals_config);
+    update_jacobian(jacobian, matrix)
 }
 
 pub(crate) fn evaluate_jacobian_from_finite_difference_at<'a, M, D, T>(
@@ -130,6 +138,19 @@ where
         &perturbations,
         residuals_config,
     );
+    update_jacobian(jacobian, matrix)
+}
+
+fn update_jacobian<M, D>(
+    jacobian: &mut JacobianMatrix<D>,
+    matrix: Result<nalgebra::OMatrix<f64, D, D>, ModelError<M, D>>,
+) -> Result<(), crate::errors::SolverInternalError<M, D>>
+where
+    M: model::Model<D>,
+    D: nalgebra::DimMin<D, Output = D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
+{
     match matrix {
         Ok(valid_jacobian) => match jacobian.update_jacobian_with_exact_value(valid_jacobian) {
             Ok(()) => Ok(()),
