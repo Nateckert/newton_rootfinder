@@ -41,16 +41,23 @@ The following crates provide solvers for n-dimensional systems of nonlinear equa
 `newton_rootfinder` aims to be the reference crate for n-dimensional rootfinding algorithms and is focused only on that topic.
 
 
-| crate  | version | Advanced <br> Parametrization | Simulation <br> Log | Other iterative<br> algorithms |
-|--------|--------:|:-----------------------------:|:-------------------:|:------------------------------:|
-| `newton_rootfinder`                    |  0.12.0 |  ✔️  |  ✔️  |  ✔️  |
-| peroxide::numerical::{newton, root}    |  0.43.1 |  ❌  |  ❌  |  ✔️  |
-| bacon_sci::roots                       |  0.16.2 |  ❌  |  ❌  |  ✔️  |
-| gomez                                  |   0.5.1 |  ✔️  |  ❌  |  ✔️  |
+#### Methods
 
-peroxide provides Newton's method with automatic differentiation and Broyden's method.
-bacon_sci provides Newton's method with an analytical jacobian and the secant method, for systems of a size known at compile time.
-gomez provides a trust region method (Powell's dogleg, with a Levenberg-Marquardt step when the Newton direction cannot be used) with a jacobian computed by finite difference, and bounds on the variables.
+| crate | version | Newton-Raphson | Quasi-Newton | Jacobian | Far from the root |
+|-------|--------:|----------------|--------------|----------|-------------------|
+| `newton_rootfinder` | 0.12.0 | ✔️ | Broyden 1st/2nd, Greenstadt 1st/2nd (on the jacobian or its inverse), stationary Newton | analytical, finite difference | damping |
+| peroxide::numerical | 0.43.1 | ✔️ (`newton`) | Broyden (`root`) | automatic differentiation; none for Broyden | ❌ |
+| bacon_sci::roots | 0.16.2 | ✔️ | Broyden (`secant`, on the inverse) | analytical; finite difference to start `secant` | ❌ |
+| gomez | 0.5.1 | inside a trust region | ❌ | finite difference, at every iteration | trust region (dogleg, Levenberg-Marquardt), LIPO to find a starting point |
+
+#### Use in simulations
+
+| crate | Per-variable settings | Convergence criteria | Model errors | Resolution log | Dimension |
+|-------|-----------------------|----------------------|--------------|----------------|-----------|
+| `newton_rootfinder` | step limits, bounds, finite-difference step | per residual, absolute/relative | `Result`, non-finite residuals detected | ✔️ file | static or dynamic |
+| peroxide::numerical | ❌ | step norm; `newton` has no iteration limit | `Result` (`root`); none (`newton`) | ❌ | dynamic (`newton`), static (`root`) |
+| bacon_sci::roots | ❌ | step norm | none (the function cannot fail) | ❌ | static |
+| gomez | bounds (also used to scale the variables) | user closure on the residual norm | none (the function cannot fail) | `log` crate messages | dynamic |
 
 ### 1-dimensional solver
 
