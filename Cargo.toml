@@ -1,6 +1,6 @@
 [package]
 name = "newton_rootfinder"
-rust-version = "1.69"
+rust-version = "1.89"
 version = "0.11.0"
 authors = ["nathan.eckert <nathan.eckert@polytechnique.edu>"]
 edition = "2021"
@@ -15,7 +15,7 @@ license = "MIT OR Apache-2.0"
 
 [dev-dependencies]
 float-cmp = "0.10.0"
-criterion = "0.5"
+criterion = "0.8"
 util = { path = "./util" }
 
 [[bench]]
@@ -38,9 +38,9 @@ name = "broyden_case8"
 harness = false
 
 [dependencies]
-nalgebra = "0.33"
+nalgebra = "0.35"
 minidom = { version = "0.12", optional = true }
-whoami = { version = "1.5", optional = true }
+whoami = { version = "2.1", optional = true }
 rustc_version_runtime = { version = "0.3", optional = true }
 chrono = { version = "0.4", optional = true }
 

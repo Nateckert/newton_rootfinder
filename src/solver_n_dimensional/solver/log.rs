@@ -35,13 +35,13 @@ fn write_time(content: &mut String) {
 #[cfg(feature = "additional_log_info")]
 fn write_user_infos(content: &mut String) {
     content.push_str(&"OS: ");
-    content.push_str(&whoami::distro());
+    content.push_str(&whoami::distro().unwrap_or_else(|_| "unknown".to_string()));
     content.push_str(&"\n");
     content.push_str(&"Host: ");
-    content.push_str(&whoami::devicename());
+    content.push_str(&whoami::devicename().unwrap_or_else(|_| "unknown".to_string()));
     content.push_str(&"\n");
     content.push_str(&"Username: ");
-    content.push_str(&whoami::username());
+    content.push_str(&whoami::username().unwrap_or_else(|_| "unknown".to_string()));
     content.push_str(&"\n");
 }
 
