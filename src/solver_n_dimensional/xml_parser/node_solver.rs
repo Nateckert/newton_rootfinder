@@ -25,21 +25,43 @@ pub fn parse_solver_node(solver_node: &Element) -> (SolverParameters, usize) {
 }
 
 fn parse_resolution_method(node: &Element, node_info: &str) -> ResolutionMethod {
-    match node
-            .attr("resolution_method")
-            .unwrap_or_else(|| panic!("The attribute \"resolution_method\" is missing in {}", node_info)) {
-                "NR" => ResolutionMethod::NewtonRaphson,
-                "SN" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
-                "BROY1" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenFirstMethod)),
-                "BROY1_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::BroydenFirstMethod)),
-                "BROY2" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
-                "BROY2_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::BroydenSecondMethod)),
-                "GRST1" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtFirstMethod)),
-                "GRST1_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtFirstMethod)),
-                "GRST2" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtSecondMethod)),
-                "GRST2_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(UpdateQuasiNewtonMethod::GreenstadtSecondMethod)),
-                _     => panic!("The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\", \"BROY2_INV\", \"GRST1\", \"GRST1_INV\", \"GRST2\", \"GRST2_INV\"", node_info),
-            }
+    match node.attr("resolution_method").unwrap_or_else(|| {
+        panic!(
+            "The attribute \"resolution_method\" is missing in {}",
+            node_info
+        )
+    }) {
+        "NR" => ResolutionMethod::NewtonRaphson,
+        "SN" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton),
+        "BROY1" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
+            UpdateQuasiNewtonMethod::BroydenFirstMethod,
+        )),
+        "BROY1_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+            UpdateQuasiNewtonMethod::BroydenFirstMethod,
+        )),
+        "BROY2" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
+            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+        )),
+        "BROY2_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+            UpdateQuasiNewtonMethod::BroydenSecondMethod,
+        )),
+        "GRST1" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
+            UpdateQuasiNewtonMethod::GreenstadtFirstMethod,
+        )),
+        "GRST1_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+            UpdateQuasiNewtonMethod::GreenstadtFirstMethod,
+        )),
+        "GRST2" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
+        )),
+        "GRST2_INV" => ResolutionMethod::QuasiNewton(QuasiNewtonMethod::InverseJacobianUpdate(
+            UpdateQuasiNewtonMethod::GreenstadtSecondMethod,
+        )),
+        _ => panic!(
+            "The attribute \"resolution_method\" at the {} has an improper values, valid values are \"NR\", \"SN\", \"BROY1\", \"BROY1_INV\", \"BROY2\", \"BROY2_INV\", \"GRST1\", \"GRST1_INV\", \"GRST2\", \"GRST2_INV\"",
+            node_info
+        ),
+    }
 }
 
 #[cfg(test)]

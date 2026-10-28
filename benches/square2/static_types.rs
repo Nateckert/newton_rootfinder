@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
 use newton_rootfinder as nrf;

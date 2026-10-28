@@ -69,14 +69,20 @@ fn parse_normalization_method_attribute(
     attribute: &str,
     node_info: &str,
 ) -> residuals::NormalizationMethod {
-    match node
-            .attr(attribute)
-            .unwrap_or_else(|| panic!("The attribute \"{}\" is missing in {}", attribute, node_info)) {
-                "Abs"   => residuals::NormalizationMethod::Abs,
-                "Rel"   => residuals::NormalizationMethod::Rel,
-                "Adapt" => residuals::NormalizationMethod::Adapt,
-                _       => panic!("The attribute \"{}\" at {} has an improper values, valid values are \"Abs\", \"Rel\" and \"Adapt\"", attribute, node_info),
-            }
+    match node.attr(attribute).unwrap_or_else(|| {
+        panic!(
+            "The attribute \"{}\" is missing in {}",
+            attribute, node_info
+        )
+    }) {
+        "Abs" => residuals::NormalizationMethod::Abs,
+        "Rel" => residuals::NormalizationMethod::Rel,
+        "Adapt" => residuals::NormalizationMethod::Adapt,
+        _ => panic!(
+            "The attribute \"{}\" at {} has an improper values, valid values are \"Abs\", \"Rel\" and \"Adapt\"",
+            attribute, node_info
+        ),
+    }
 }
 
 fn parse_normalization_method_attribute_with_default(
@@ -85,16 +91,18 @@ fn parse_normalization_method_attribute_with_default(
     attribute: &str,
     node_info: &str,
 ) -> residuals::NormalizationMethod {
-    match node
-            .attr(attribute) {
-                None => default,
-                Some(value) => match value {
-                                    "Abs"   => residuals::NormalizationMethod::Abs,
-                                    "Rel"   => residuals::NormalizationMethod::Rel,
-                                    "Adapt" => residuals::NormalizationMethod::Adapt,
-                                    _       => panic!("The attribute \"{}\" at {} has an improper values, valid values are \"Abs\", \"Rel\" and \"Adapt\"", attribute, node_info),
-                }
-            }
+    match node.attr(attribute) {
+        None => default,
+        Some(value) => match value {
+            "Abs" => residuals::NormalizationMethod::Abs,
+            "Rel" => residuals::NormalizationMethod::Rel,
+            "Adapt" => residuals::NormalizationMethod::Adapt,
+            _ => panic!(
+                "The attribute \"{}\" at {} has an improper values, valid values are \"Abs\", \"Rel\" and \"Adapt\"",
+                attribute, node_info
+            ),
+        },
+    }
 }
 
 #[cfg(test)]

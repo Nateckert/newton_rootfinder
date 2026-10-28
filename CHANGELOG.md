@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - `whoami` 1.5 becomes 2.1 for the feature `additional_log_info`:
   the OS, host and username the log can not read are written `unknown`.
 - `criterion` 0.5 becomes 0.8 for the benches.
+- The crate moves to the Rust 2024 edition, from 2021 (and `util` from 2018), with the formatting of its style.
 
 ### Fixed
 - A NaN residual was reported converged: the maximum error and its comparison with the tolerance ignore NaN.

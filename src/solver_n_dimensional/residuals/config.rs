@@ -1,4 +1,4 @@
-use super::{normalization, NormalizationMethod, ResidualsValues};
+use super::{NormalizationMethod, ResidualsValues, normalization};
 use std::fmt;
 
 /// Single residual configuration

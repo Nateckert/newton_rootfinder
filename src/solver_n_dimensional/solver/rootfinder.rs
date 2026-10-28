@@ -8,8 +8,8 @@ use crate::model::ModelError;
 use crate::residuals;
 
 use super::{
-    approximate_inv_jacobian, approximate_jacobian, evaluate_jacobian_from_analytical_function,
-    evaluate_jacobian_from_finite_difference_at, JacobianMatrix, Point, SolverParameters,
+    JacobianMatrix, Point, SolverParameters, approximate_inv_jacobian, approximate_jacobian,
+    evaluate_jacobian_from_analytical_function, evaluate_jacobian_from_finite_difference_at,
 };
 
 use super::{QuasiNewtonMethod, ResolutionMethod};
@@ -287,7 +287,7 @@ where
                     ) {
                         Ok(()) => (),
                         Err(_) => {
-                            return Err(errors::SolverInternalError::InvalidJacobianInverseError)
+                            return Err(errors::SolverInternalError::InvalidJacobianInverseError);
                         }
                     }
                 }
@@ -508,7 +508,7 @@ where
             Err(ModelError::UnusableValuesError(error)) => {
                 return Err(crate::errors::SolverError::ModelInitialEvaluationError(
                     error,
-                ))
+                ));
             }
         }
 
