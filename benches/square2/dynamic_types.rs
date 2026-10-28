@@ -1,6 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use newton_rootfinder as nrf;
+use nrf::model::Model;
 
 fn square2_nalg(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut y = x * x;
@@ -31,15 +32,13 @@ fn run(c: &mut Criterion) {
     let update_methods = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
     let res_config = nrf::residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     let damping = false;
-    let mut nrf = nrf::solver::default_with_guess(
-        init_guess.clone(),
+    let mut nrf = nrf::solver::default(
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::NewtonRaphson,
         damping,
     );
-    let mut nrf_stationary = nrf::solver::default_with_guess(
-        init_guess.clone(),
+    let mut nrf_stationary = nrf::solver::default(
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::QuasiNewton(
@@ -55,8 +54,7 @@ fn run(c: &mut Criterion) {
     let update_methods_jac = vec![nrf::residuals::NormalizationMethod::Abs; problem_size];
     let res_config_jac =
         nrf::residuals::ResidualsConfig::new(&stopping_residuals_jac, &update_methods_jac);
-    let mut nrf_jac = nrf::solver::default_with_guess(
-        init_guess.clone(),
+    let mut nrf_jac = nrf::solver::default(
         &iter_params_jac,
         &res_config_jac,
         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -70,13 +68,22 @@ fn run(c: &mut Criterion) {
 
     let mut group_solver = c.benchmark_group("Advanced solver with dynamic types");
     group_solver.bench_function("Newton-Raphson with finite differences", |b| {
-        b.iter(|| nrf.solve(&mut user_model))
+        b.iter(|| {
+            user_model.set_iteratives(&init_guess);
+            nrf.solve(&mut user_model)
+        })
     });
     group_solver.bench_function("Stationary Newton with finite differences", |b| {
-        b.iter(|| nrf_stationary.solve(&mut user_model))
+        b.iter(|| {
+            user_model.set_iteratives(&init_guess);
+            nrf_stationary.solve(&mut user_model)
+        })
     });
     group_solver.bench_function("Newton-Raphson with derivative provided", |b| {
-        b.iter(|| nrf_jac.solve(&mut user_model_jac))
+        b.iter(|| {
+            user_model_jac.set_iteratives(&init_guess);
+            nrf_jac.solve(&mut user_model_jac)
+        })
     });
     group_solver.finish();
 }

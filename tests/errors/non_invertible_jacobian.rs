@@ -1,6 +1,7 @@
 use newton_rootfinder as nrf;
 
 use nrf::iteratives;
+use nrf::model::Model;
 use nrf::residuals;
 
 fn constant_problem(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
@@ -26,8 +27,7 @@ fn non_convergence_case() {
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(
-        init,
+    let mut rf = nrf::solver::default(
         &iter_params,
         &res_config,
         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -35,6 +35,7 @@ fn non_convergence_case() {
     );
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, constant_problem);
 
+    user_model.set_iteratives(&init);
     let result = rf.solve(&mut user_model).unwrap_err();
     let expected = "Jacobian error: Non invertible jacobian";
     assert_eq!(result.to_string(), expected);

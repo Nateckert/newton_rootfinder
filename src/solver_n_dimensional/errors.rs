@@ -65,10 +65,6 @@
 //!     type UnusableValuesError = MyCustomErrors;
 //!     type Memory = ();
 //!
-//!     fn len_problem(&self) -> usize {
-//!         1
-//!     }
-//!
 //!     fn get_iteratives(&self) -> nalgebra::DVector<f64> {
 //!         return self.iteratives.clone();
 //!     }
@@ -104,8 +100,7 @@
 //!     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-//!     let mut rf = nrf::solver::default_with_guess(
-//!         init,
+//!     let mut rf = nrf::solver::default(
 //!         &iter_params,
 //!         &res_config,
 //!         nrf::solver::ResolutionMethod::NewtonRaphson,
@@ -113,6 +108,7 @@
 //!     );
 //!
 //!     let mut my_model = MyDummyModel::new();
+//!     my_model.set_iteratives(&init);
 //!
 //!     let result = rf.solve(&mut my_model).unwrap_err();
 //!     let expected: nrf::errors::SolverError<nrf::model::UserModelFromFunction, nalgebra::Dyn> =
@@ -182,6 +178,7 @@ pub struct NonInvertibleJacobian;
 /// - [SolverError::JacobianError] : during the jacobian evaluation, an error occured
 /// - [SolverError::FinalEvaluationError] : the algorithm managed to converged but the model returned an error at convergence
 /// - [SolverError::NonFiniteResiduals] : a residual (left or right member) is NaN or infinite, at the initial evaluation or after an update; it holds the indices of the equations concerned
+/// - [SolverError::DimensionMismatch] : the model has another number of iteratives than the configurations of the solver; nothing was evaluated
 pub enum SolverError<M, D>
 where
     M: crate::model::Model<D>,
@@ -195,6 +192,7 @@ where
     JacobianError(SolverInternalError<M, D>),
     FinalEvaluationError,
     NonFiniteResiduals(Vec<usize>),
+    DimensionMismatch { model: usize, solver: usize },
 }
 
 impl<M, D> fmt::Display for SolverError<M, D>
@@ -221,6 +219,13 @@ where
             }
             Self::NonFiniteResiduals(indices) => {
                 write!(f, "Non-finite residuals for the equations {:?}", indices)
+            }
+            Self::DimensionMismatch { model, solver } => {
+                write!(
+                    f,
+                    "Dimension mismatch: the model has {} iteratives, the solver is configured for {}",
+                    model, solver
+                )
             }
         }
     }

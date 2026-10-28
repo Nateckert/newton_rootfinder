@@ -65,7 +65,7 @@ fn parse_root_node_fd(
 
     let solver_node = tree.next().unwrap();
     check_node_name_and_panic(solver_node, "solver");
-    let parameters = parse_solver_node(solver_node);
+    let (parameters, problem_size) = parse_solver_node(solver_node);
 
     let iteratives_node = tree.next().unwrap();
     check_node_name_and_panic(iteratives_node, "iteratives");
@@ -75,14 +75,14 @@ fn parse_root_node_fd(
     check_node_name_and_panic(residuals_node, "residuals");
     let (stopping_criterias, update_methods) = parse_residuals_node(residuals_node);
 
-    if parameters.get_problem_size() != iteratives.len() {
-        panic!("Dimension mismatch, got problem_size = {} and the number of iteratives variables is {}", parameters.get_problem_size(), iteratives.len());
+    if problem_size != iteratives.len() {
+        panic!("Dimension mismatch, got problem_size = {} and the number of iteratives variables is {}", problem_size, iteratives.len());
     }
 
-    if parameters.get_problem_size() != stopping_criterias.len() {
+    if problem_size != stopping_criterias.len() {
         panic!(
             "Dimension mismatch, got problem_size = {} and the number of residuals variables is {}",
-            parameters.get_problem_size(),
+            problem_size,
             stopping_criterias.len()
         );
     }
@@ -115,7 +115,6 @@ mod tests {
         let (solver_parameters, iteratives_parsed, stopping_criterias, update_methods) =
             parse_root_node_fd(&DATA);
 
-        assert_eq!(solver_parameters.get_problem_size(), 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
         assert_eq!(

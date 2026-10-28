@@ -11,8 +11,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   The default implementation calls `Model::evaluate`.
 - `SolverError::NonFiniteResiduals`, holding the indices of the equations concerned,
   returned when a residual is NaN or infinite at the initial evaluation or after an update.
+- `SolverError::DimensionMismatch`, returned by `RootFinder::solve` before any evaluation
+  when the model has another number of iteratives than the configurations of the solver.
 
 ### Changed
+- *Breaking change*: `Model::len_problem` is removed, the dimension of the problem being the length of the iteratives (#16).
+- *Breaking change*: `SolverParameters::new` no longer takes the problem size and `get_problem_size` is removed (#16).
+  `RootFinder::new` checks that the iteratives and the residuals configurations have the same length, and panics otherwise;
+  `solve` checks the model against them. The XML parser still reads the `problem_size` attribute and checks the other nodes against it.
+- *Breaking change*: `RootFinder::new` no longer takes the initial guess: a resolution starts from the iteratives the model holds
+  when `solve` is called, set with `Model::set_iteratives` or left by a previous resolution (#22).
+  `default_with_guess` becomes `default`, without the guess.
+  The dimension type `D` of a solver is inferred from the model it solves, or named when the solver is built before any model.
 - *Breaking change*: the memory of a model is a value of its own type, the associated type `Model::Memory: Clone + Default`,
   instead of a `nalgebra::DVector<f64>`: `Model::get_memory(&self) -> Self::Memory` and `Model::set_memory(&mut self, &Self::Memory)`.
   Saving and restoring it no longer allocates, and the state no longer has to be encoded as `f64` (#35).

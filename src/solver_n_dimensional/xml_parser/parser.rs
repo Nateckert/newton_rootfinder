@@ -58,7 +58,6 @@ mod tests {
         let (solver_parameters, iteratives_parsed, stopping_criterias, update_methods) =
             parse_root_node(&DATA);
 
-        assert_eq!(solver_parameters.get_problem_size(), 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
         assert_eq!(

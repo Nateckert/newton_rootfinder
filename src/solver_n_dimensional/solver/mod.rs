@@ -2,11 +2,12 @@
 //!
 //! The solver is defined in the `RootFinder` struct.
 //!
-//! To create a new solver, it is required to give the 4 following:
+//! To create a new solver, it is required to give the 3 following:
 //! - The parameters through the `SolverParameters` struct
 //! - The iteratives configuration through a reference to a slice of `Iteratives`
 //! - The residuals configuration through a reference to a slice of `ResidualsConfig`
-//! - The initial guess to use by the solver
+//!
+//! A resolution starts from the iteratives the model holds when `solve` is called.
 //!
 //! # Features
 //! 1. Simulation log available for debugging, check the `set_debug()` method
@@ -38,9 +39,10 @@
 //!   let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
 //!   let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
 //!   let damping = false;
-//!   let mut rf = nrf::solver::default_with_guess(init_guess, &iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
+//!   let mut rf = nrf::solver::default(&iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
 //!   let mut user_model =
 //!       nrf::model::UserModelFromFunction::new(problem_size, square2);
+//!   user_model.set_iteratives(&init_guess);
 //!
 //!   rf.solve(&mut user_model).unwrap();
 //!
@@ -57,7 +59,7 @@ mod point;
 mod resolution_method;
 mod rootfinder;
 
-pub use default::default_with_guess;
+pub use default::default;
 pub use jacobian::evaluate_jacobian_from_analytical_function;
 pub(crate) use jacobian::evaluate_jacobian_from_finite_difference_at;
 pub use jacobian::JacobianMatrix;

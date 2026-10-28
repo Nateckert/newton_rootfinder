@@ -13,16 +13,12 @@ fn broyden_case10_fd() {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case10(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case10);
+    user_model.set_iteratives(&init_broyden1965_case10());
 
     rf.solve(&mut user_model).unwrap();
 

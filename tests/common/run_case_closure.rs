@@ -17,15 +17,10 @@ pub fn run_closure_case_fd(
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(
-        init,
-        &iter_params,
-        &res_config,
-        resolution_method,
-        damping,
-    );
+    let mut rf = nrf::solver::default(&iter_params, &res_config, resolution_method, damping);
     let mut user_model = nrf::model::UserModelFromClosure::new(problem_size, closure);
 
+    user_model.set_iteratives(&init);
     rf.solve(&mut user_model).unwrap();
 
     for i in 0..problem_size {
@@ -52,16 +47,11 @@ pub fn run_closure_case_jac(
     let stopping_residuals = vec![residuals::NormalizationMethod::Abs; problem_size];
     let update_methods = vec![residuals::NormalizationMethod::Abs; problem_size];
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
-    let mut rf = nrf::solver::default_with_guess(
-        init,
-        &iter_params,
-        &res_config,
-        resolution_method,
-        damping,
-    );
+    let mut rf = nrf::solver::default(&iter_params, &res_config, resolution_method, damping);
     let mut user_model =
         nrf::model::UserModelFromClosureAndJacobian::new(problem_size, closure, jac);
 
+    user_model.set_iteratives(&init);
     rf.solve(&mut user_model).unwrap();
 
     for i in 0..problem_size {

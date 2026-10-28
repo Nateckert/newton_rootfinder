@@ -21,6 +21,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
 use newton_rootfinder as nrf;
+use nrf::model::Model;
 use util::test_cases::broyden1965::{broyden1965_case8, init_broyden1965_case8};
 
 fn solvers_comparison(c: &mut Criterion) {
@@ -43,6 +44,8 @@ fn solvers_comparison(c: &mut Criterion) {
     group_function.finish();
 
     let mut group_function = c.benchmark_group("Advanced solver on Broyden test case 8");
+    // Every resolution starts from the initial guess, set on the model
+    let init = init_broyden1965_case8();
 
     // Newton Raphson method
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -51,17 +54,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("NR", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("NR", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // Stationary Newton method
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -70,17 +73,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("SN", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("SN", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // First Broyden method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -89,17 +92,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("BROY1_jac", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("BROY1_jac", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // Second Broyden method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -108,17 +111,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("BROY2_jac", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("BROY2_jac", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // First Broyden method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -127,17 +130,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("BROY1_inv", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("BROY1_inv", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // Second Broyden method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -146,17 +149,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("BROY2_inv", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("BROY2_inv", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // First Greenstad method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -165,17 +168,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("GRST1", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("GRST1", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // Second Greenstad method on jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -184,17 +187,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("GRST2", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("GRST2", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // First Greenstad method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -203,17 +206,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("GRST1_inv", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("GRST1_inv", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     // Second Greenstad method on inverse jacobian
     let (solver_parameters, iteratives_vec, stopping_criterias, update_methods) =
@@ -222,17 +225,17 @@ fn solvers_comparison(c: &mut Criterion) {
     let iteratives = nrf::iteratives::Iteratives::new(&iteratives_vec);
     let residuals_config =
         nrf::residuals::ResidualsConfig::new(&stopping_criterias, &update_methods);
-    let problem_size = solver_parameters.get_problem_size();
+    let problem_size = iteratives_vec.len();
 
-    let mut rf = nrf::solver::RootFinder::new(
-        solver_parameters,
-        init_broyden1965_case8(),
-        &iteratives,
-        &residuals_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(solver_parameters, &iteratives, &residuals_config);
 
     let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, broyden1965_case8);
-    group_function.bench_function("GRST2_inv", |b| b.iter(|| rf.solve(&mut user_model)));
+    group_function.bench_function("GRST2_inv", |b| {
+        b.iter(|| {
+            user_model.set_iteratives(&init);
+            rf.solve(&mut user_model)
+        })
+    });
 
     group_function.finish();
 }

@@ -57,7 +57,7 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
-    let problem_size = model.len_problem();
+    let problem_size = perturbations.len();
     let mut jacobian: nalgebra::OMatrix<f64, D, D> =
         super::super::super::omatrix_zeros_like_ovector(perturbations);
     let memory_ref = &reference.memory;

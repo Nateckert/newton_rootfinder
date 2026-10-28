@@ -49,10 +49,6 @@ impl Model<Dimension> for Steps {
     type UnusableValuesError = std::convert::Infallible;
     type Memory = ();
 
-    fn len_problem(&self) -> usize {
-        2
-    }
-
     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 2>) {
         self.x = *iteratives;
     }

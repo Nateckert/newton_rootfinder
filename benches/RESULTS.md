@@ -93,3 +93,29 @@ in that state.
 | Minimal 1D solver/With derivative provided | 15.091 ns | 13.312 ns |
 | Minimal 1D solver/Finite differences | 21.571 ns | 20.229 ns |
 | Advanced solver with static types/Newton-Raphson with finite differences | panics (`Convergence not reached`) | 126.19 ns |
+
+### Starting from the iteratives of the model (same day)
+
+With the resolution starting from the iteratives the model holds, instead of a guess given to the
+solver, the benches set the model back to its guess inside the timed loop: each measurement is one
+resolution and one `set_iteratives`. Same machine, same benches.
+
+| benchmark | after the reset | starting from the model |
+|---|---|---|
+| Solver parsing/NR | 29.105 µs | 25.992 µs |
+| Advanced solver on Broyden test case 8/NR | 42.737 µs | 42.714 µs |
+| Advanced solver on Broyden test case 8/SN | 18.244 µs | 18.749 µs |
+| Advanced solver on Broyden test case 8/BROY1_jac | 51.829 µs | 52.173 µs |
+| Advanced solver on Broyden test case 8/BROY2_jac | 97.793 µs | 98.451 µs |
+| Advanced solver on Broyden test case 8/BROY1_inv | 31.233 µs | 33.057 µs |
+| Advanced solver on Broyden test case 8/BROY2_inv | 33.272 µs | 34.644 µs |
+| Advanced solver on Broyden test case 8/GRST1 | 77.621 µs | 78.270 µs |
+| Advanced solver on Broyden test case 8/GRST2 | 52.608 µs | 53.949 µs |
+| Advanced solver on Broyden test case 8/GRST1_inv | 29.024 µs | 30.979 µs |
+| Advanced solver on Broyden test case 8/GRST2_inv | 32.621 µs | 33.191 µs |
+| Advanced solver with dynamic types/Newton-Raphson with finite differences | 1.4370 µs | 1.4322 µs |
+| Advanced solver with dynamic types/Stationary Newton with finite differences | 2.7255 µs | 2.7927 µs |
+| Advanced solver with dynamic types/Newton-Raphson with derivative provided | 1.2449 µs | 1.2519 µs |
+| Minimal 1D solver/With derivative provided | 13.312 ns | 13.078 ns |
+| Minimal 1D solver/Finite differences | 20.229 ns | 20.538 ns |
+| Advanced solver with static types/Newton-Raphson with finite differences | 126.19 ns | 118.23 ns |

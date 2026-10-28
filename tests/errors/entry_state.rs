@@ -22,11 +22,11 @@ struct Arctangent {
 }
 
 impl Arctangent {
-    /// A model left by a previous resolution on `x = 7`, its memory `5`
+    /// A model on `x = 2`, the memory `5` left by a previous resolution
     fn new(unusable: Option<(f64, f64)>, not_a_number: Option<(f64, f64)>) -> Self {
         Arctangent {
-            x: 7.0,
-            residual: 7.0_f64.atan(),
+            x: 2.0,
+            residual: 2.0_f64.atan(),
             last_x: 5.0,
             unusable,
             not_a_number,
@@ -53,10 +53,6 @@ impl Model<nalgebra::Const<1>> for Arctangent {
     type InaccurateValuesError = std::convert::Infallible;
     type UnusableValuesError = Unusable;
     type Memory = f64;
-
-    fn len_problem(&self) -> usize {
-        1
-    }
 
     fn set_iteratives(&mut self, iteratives: &nalgebra::SVector<f64, 1>) {
         self.x = iteratives[0];
@@ -106,23 +102,17 @@ fn solve(
     let res_config = residuals::ResidualsConfig::new(&stopping_residuals, &update_methods);
     let damping = false;
     let parameters = nrf::solver::SolverParameters::new(
-        1,
         1e-6,
         max_iter,
         nrf::solver::ResolutionMethod::NewtonRaphson,
         damping,
     );
-    let mut rf = nrf::solver::RootFinder::new(
-        parameters,
-        nalgebra::SVector::from([2.0]),
-        &iter_params,
-        &res_config,
-    );
+    let mut rf = nrf::solver::RootFinder::new(parameters, &iter_params, &res_config);
     rf.solve(model)
 }
 
 fn assert_entry_state(model: &Arctangent) {
-    assert_eq!(model.x, 7.0);
+    assert_eq!(model.x, 2.0);
     assert_eq!(model.last_x, 5.0);
 }
 

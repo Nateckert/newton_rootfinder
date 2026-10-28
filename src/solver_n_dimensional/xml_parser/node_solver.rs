@@ -4,8 +4,9 @@ use super::util;
 use crate::solver::SolverParameters;
 use crate::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
 
-/// Parse a solver node
-pub fn parse_solver_node(solver_node: &Element) -> SolverParameters {
+/// Parse a solver node: the parameters of the solver and the problem size,
+/// which the caller checks against the iteratives and the residuals nodes
+pub fn parse_solver_node(solver_node: &Element) -> (SolverParameters, usize) {
     let node_info = "solver node";
     let problem_size = util::parse_int_attribute(solver_node, "problem_size", node_info);
     let max_iter = util::parse_int_attribute(solver_node, "max_iter", node_info);
@@ -17,12 +18,9 @@ pub fn parse_solver_node(solver_node: &Element) -> SolverParameters {
         None => false,
     };
 
-    SolverParameters::new(
+    (
+        SolverParameters::new(tolerance, max_iter, resolution_method, damping),
         problem_size,
-        tolerance,
-        max_iter,
-        resolution_method,
-        damping,
     )
 }
 
@@ -54,8 +52,8 @@ mod tests {
     fn parsing_solver_node_1() {
         const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="NR"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let solver_parameters = parse_solver_node(&solver_node);
-        assert_eq!(solver_parameters.get_problem_size(), 3);
+        let (solver_parameters, problem_size) = parse_solver_node(&solver_node);
+        assert_eq!(problem_size, 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(
             solver_parameters.get_resolution_method(),
@@ -69,8 +67,8 @@ mod tests {
     fn parsing_solver_node_resolution_method_1() {
         const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="SN"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let solver_parameters = parse_solver_node(&solver_node);
-        assert_eq!(solver_parameters.get_problem_size(), 3);
+        let (solver_parameters, problem_size) = parse_solver_node(&solver_node);
+        assert_eq!(problem_size, 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(
             solver_parameters.get_resolution_method(),
@@ -84,8 +82,8 @@ mod tests {
     fn parsing_solver_node_resolution_method_2() {
         const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY1"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let solver_parameters = parse_solver_node(&solver_node);
-        assert_eq!(solver_parameters.get_problem_size(), 3);
+        let (solver_parameters, problem_size) = parse_solver_node(&solver_node);
+        assert_eq!(problem_size, 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(
             solver_parameters.get_resolution_method(),
@@ -101,8 +99,8 @@ mod tests {
     fn parsing_solver_node_resolution_method_3() {
         const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY2"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let solver_parameters = parse_solver_node(&solver_node);
-        assert_eq!(solver_parameters.get_problem_size(), 3);
+        let (solver_parameters, problem_size) = parse_solver_node(&solver_node);
+        assert_eq!(problem_size, 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(
             solver_parameters.get_resolution_method(),
@@ -118,8 +116,8 @@ mod tests {
     fn parsing_solver_node_resolution_method_4() {
         const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY1_INV"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let solver_parameters = parse_solver_node(&solver_node);
-        assert_eq!(solver_parameters.get_problem_size(), 3);
+        let (solver_parameters, problem_size) = parse_solver_node(&solver_node);
+        assert_eq!(problem_size, 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(
             solver_parameters.get_resolution_method(),
@@ -135,8 +133,8 @@ mod tests {
     fn parsing_solver_node_resolution_method_5() {
         const DATA: &'static str = r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" damping="true" resolution_method="BROY2_INV"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let solver_parameters = parse_solver_node(&solver_node);
-        assert_eq!(solver_parameters.get_problem_size(), 3);
+        let (solver_parameters, problem_size) = parse_solver_node(&solver_node);
+        assert_eq!(problem_size, 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(
             solver_parameters.get_resolution_method(),
@@ -174,8 +172,8 @@ mod tests {
         const DATA: &'static str =
             r#"<solver problem_size="3" max_iter="60" tolerance="1e-6" resolution_method="SN"/>"#;
         let solver_node: Element = DATA.parse().unwrap();
-        let solver_parameters = parse_solver_node(&solver_node);
-        assert_eq!(solver_parameters.get_problem_size(), 3);
+        let (solver_parameters, problem_size) = parse_solver_node(&solver_node);
+        assert_eq!(problem_size, 3);
         assert_eq!(solver_parameters.get_max_iter(), 60);
         assert_eq!(solver_parameters.get_tolerance(), 1e-6);
         assert_eq!(
