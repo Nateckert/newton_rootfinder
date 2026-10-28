@@ -8,7 +8,9 @@ use crate::residuals::ResidualsValues;
 use chrono::prelude::*;
 
 const SEPARATION_ITER: &str = "=========================\n\n";
+#[rustfmt::skip]
 const SEPARATION_LINE: &str =  "+-------+-------------------------------+----------------------------------------------------------------+---------------------------------+\n";
+#[rustfmt::skip]
 const TITLE_LINE: &str =       "| Id    |           Iteratives          |        Left                    =                Right          |         Stopping criteria       |\n";
 const FLOAT_WIDTH: usize = 30;
 const INT_WIDTH: usize = 6;

@@ -18,7 +18,7 @@
 //! - BroydenSecondMethod_INV-FD:   [826.59 ns 831.91 ns 837.23 ns]
 //!
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 use newton_rootfinder as nrf;
 use nrf::model::Model;

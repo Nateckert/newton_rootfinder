@@ -1,7 +1,7 @@
 use super::JacobianMatrix;
 
-use super::super::quasi_method_update_inv_jac;
 use super::super::UpdateQuasiNewtonMethod;
+use super::super::quasi_method_update_inv_jac;
 use super::super::{broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac};
 
 pub fn approximate_inv_jacobian<D>(

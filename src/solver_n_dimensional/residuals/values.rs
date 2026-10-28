@@ -1,4 +1,4 @@
-use super::{deriv_normalization, NormalizationMethod};
+use super::{NormalizationMethod, deriv_normalization};
 use std::fmt;
 
 /// Residuals values outputs of the model

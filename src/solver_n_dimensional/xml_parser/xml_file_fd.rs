@@ -76,7 +76,11 @@ fn parse_root_node_fd(
     let (stopping_criterias, update_methods) = parse_residuals_node(residuals_node);
 
     if problem_size != iteratives.len() {
-        panic!("Dimension mismatch, got problem_size = {} and the number of iteratives variables is {}", problem_size, iteratives.len());
+        panic!(
+            "Dimension mismatch, got problem_size = {} and the number of iteratives variables is {}",
+            problem_size,
+            iteratives.len()
+        );
     }
 
     if problem_size != stopping_criterias.len() {
