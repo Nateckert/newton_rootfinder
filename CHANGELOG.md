@@ -31,6 +31,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - *Breaking change*: `SolverError::ModelInitialEvaluationError` holds the error of the model, `M::UnusableValuesError`,
   instead of its text, as `SolverError::ModelEvaluationError` does for a later evaluation (#29).
   Its `Display` text is unchanged.
+- *Breaking change*: `nalgebra` 0.33 becomes 0.35, the vectors and matrices of the public API being its types:
+  a crate using `newton_rootfinder` moves to `nalgebra` 0.35 as well.
+- The minimal `rustc` version goes from 1.69 to 1.89, the one required by `nalgebra` 0.35.
+- `whoami` 1.5 becomes 2.1 for the feature `additional_log_info`:
+  the OS, host and username the log can not read are written `unknown`.
+- `criterion` 0.5 becomes 0.8 for the benches.
 
 ### Fixed
 - A NaN residual was reported converged: the maximum error and its comparison with the tolerance ignore NaN.
