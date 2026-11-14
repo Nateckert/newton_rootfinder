@@ -439,9 +439,12 @@ where
             ResolutionMethod::NewtonRaphson => (),
             ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => (),
             _ => {
-                let residuals_current = self
-                    .residuals_config
-                    .evaluate_update_residuals(&current.residuals);
+                let residuals_current = match self.residuals_values_current.take() {
+                    Some(residuals) => residuals,
+                    None => self
+                        .residuals_config
+                        .evaluate_update_residuals(&current.residuals),
+                };
                 let residuals_next = self
                     .residuals_config
                     .evaluate_update_residuals(&next.residuals);
