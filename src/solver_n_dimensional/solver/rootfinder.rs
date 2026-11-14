@@ -439,9 +439,18 @@ where
             ResolutionMethod::NewtonRaphson => (),
             ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => (),
             _ => {
+                let residuals_current = match self.residuals_values_current.take() {
+                    Some(residuals) => residuals,
+                    None => self
+                        .residuals_config
+                        .evaluate_update_residuals(&current.residuals),
+                };
+                let residuals_next = self
+                    .residuals_config
+                    .evaluate_update_residuals(&next.residuals);
                 self.iteratives_step_size = Some(&next.iteratives - &current.iteratives);
-                self.residuals_step_size = Some(errors_next.clone() - errors);
-                self.residuals_values_current = Some(errors_next.clone())
+                self.residuals_step_size = Some(&residuals_next - residuals_current);
+                self.residuals_values_current = Some(residuals_next)
             }
         };
 

@@ -7,4 +7,5 @@ pub mod greenstadt1_jac;
 pub mod greenstadt2_inv_jac;
 pub mod greenstadt2_jac;
 pub mod newton_raphson;
+pub mod sign_change;
 pub mod stationary_newton;
