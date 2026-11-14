@@ -439,9 +439,6 @@ where
             ResolutionMethod::NewtonRaphson => (),
             ResolutionMethod::QuasiNewton(QuasiNewtonMethod::StationaryNewton) => (),
             _ => {
-                // The update works on the residuals the step is computed from,
-                // signed: the errors of the convergence test are their absolute
-                // values, whose secant is wrong once a residual changes sign
                 let residuals_current = self
                     .residuals_config
                     .evaluate_update_residuals(&current.residuals);

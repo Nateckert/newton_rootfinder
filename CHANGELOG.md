@@ -6,11 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Fixed
-- The quasi-Newton updates, Broyden's and Greenstadt's methods on the jacobian or on its inverse,
-  took their secant on the errors of the convergence test, the absolute values of the residuals,
-  instead of the signed residuals the step is computed from.
-  Once a residual changed sign on the way to the root, the approximated jacobian was wrong:
-  the resolution diverged, or stopped on a non invertible jacobian.
+- The Broyden and Greenstadt methods now update the jacobian, or its inverse, with the signed residuals instead of the absolute errors.
 
 ## [0.12.0] - 2026-10-28
 
