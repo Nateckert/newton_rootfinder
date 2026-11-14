@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Changed
+- The step of an iteration is the solution of `jacobian * step = -residuals`, computed with the LU factorization
+  of the jacobian instead of the product by its inverse (#31).
+  The Newton-Raphson, stationary Newton and jacobian update methods no longer form the inverse:
+  an iteration costs less linear algebra, and the step keeps its accuracy on an ill-conditioned jacobian.
+  The methods updating the inverse form it once, at their first update.
+  The iterates can differ from the ones of the previous versions in their last digits.
+- The log of a resolution shows the jacobian with what the solver does with it:
+  `Step solved with the LU factorization of the jacobian` replaces `Jacobian up to date with its inverse`,
+  and the inverse is printed only once a method updating it has formed it.
+- `JacobianMatrix::get_inverse` returns `None` for a jacobian whose inverse has not been formed.
+  `JacobianMatrix::solve` and `JacobianMatrix::form_inverse` are added.
+
 ### Fixed
 - The Broyden and Greenstadt methods now update the jacobian, or its inverse, with the signed residuals instead of the absolute errors.
 

@@ -17,6 +17,9 @@ pub fn approximate_inv_jacobian<D>(
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
+    // After a jacobian computed from the model, the inverse is not formed yet
+    jacobian.form_inverse();
+
     let inv_jac_next = match method {
         UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_inv_jac(
             jacobian.get_inverse().as_ref().unwrap(),
