@@ -37,6 +37,10 @@ harness = false
 name = "broyden_case8"
 harness = false
 
+[[bench]]
+name = "linear_algebra"
+harness = false
+
 [dependencies]
 nalgebra = "0.35"
 minidom = { version = "0.12", optional = true }
