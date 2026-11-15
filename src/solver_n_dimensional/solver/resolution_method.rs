@@ -54,7 +54,7 @@ pub enum QuasiNewtonMethod {
     /// The first computed jacobian will be used for all iterations.
     StationaryNewton,
     /// The update of the methods will be performed on the jacobian matrix:
-    /// it will be inverted afterwards before applying the step update.
+    /// it will be factorized afterwards to compute the step update.
     JacobianUpdate(UpdateQuasiNewtonMethod),
     /// The update of the methods will be performed directly on the inverse jacobian matrix:
     /// Thus the jacobian won't be computed at all after the first step.

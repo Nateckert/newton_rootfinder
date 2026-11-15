@@ -38,7 +38,8 @@ where
             residuals_values_current,
         ),
         UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
-            let c = jacobian.get_inverse().as_ref().unwrap() * residuals_step_size;
+            // c = H * y, the solution of J * c = y
+            let c = jacobian.solve(residuals_step_size).unwrap();
             greenstadt_second_method_udpate_jac(
                 jacobian.get_jacobian().as_ref().unwrap(),
                 iteratives_step_size,

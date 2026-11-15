@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Changed
+- When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer
+  inverted: the equivalent linear system is factorized and solved, which speeds up the computation
+  and gives more accurate results (#31). The iterates can differ in their last digits.
+- The log of a resolution prints the inverse of the jacobian only for the methods that still compute it.
+- `JacobianMatrix::get_inverse` returns `None` until the inverse is formed.
+  `JacobianMatrix::solve`, `form_inverse` and `factorization_only` are added.
+
 ### Fixed
 - The Broyden and Greenstadt methods now update the jacobian, or its inverse, with the signed residuals instead of the absolute errors.
 

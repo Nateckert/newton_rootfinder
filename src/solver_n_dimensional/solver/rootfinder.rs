@@ -144,11 +144,25 @@ where
     /// are the ones of a new solver, nothing being kept from a previous call to `solve`
     fn reset(&mut self) {
         self.iter = 0;
-        self.jacobian = JacobianMatrix::new();
+        self.jacobian = if self.reads_jacobian_matrix() {
+            JacobianMatrix::new()
+        } else {
+            JacobianMatrix::factorization_only()
+        };
         self.iteratives_step_size = None;
         self.residuals_step_size = None;
         self.residuals_values_current = None;
         self.valid_last_model_evaluation = true;
+    }
+
+    /// The matrix of the jacobian is read back by the methods updating it and by the log:
+    /// the other resolutions keep its factorization only, sparing a copy at each jacobian
+    fn reads_jacobian_matrix(&self) -> bool {
+        self.debug
+            || matches!(
+                self.parameters.get_resolution_method(),
+                ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(_))
+            )
     }
 
     fn evaluate_errors<M>(&self, model: &M) -> nalgebra::OVector<f64, D>
@@ -242,7 +256,7 @@ where
             self.jac_to_log();
         }
         match successful_jac_computation {
-            Ok(()) => Ok(self.compute_next_from_inv_jac(current)),
+            Ok(()) => Ok(self.compute_next_from_jacobian(current)),
             Err(error) => Err(error),
         }
     }
@@ -250,8 +264,8 @@ where
     /// Perform the jacobian evaluation
     ///
     /// Based on the resolution method:
-    /// - the jacobian can be computed and inverted
-    /// - the jacobian can be approximated and inverted
+    /// - the jacobian can be computed and factorized
+    /// - the jacobian can be approximated and factorized
     /// - the inverse of the jacobian can be approximated
     fn evaluate_jacobian_quasi_newton_step<M>(
         &mut self,
@@ -320,7 +334,7 @@ where
         M: model::Model<D>,
     {
         match self.evaluate_jacobian_quasi_newton_step(model, current, resolution_method) {
-            Ok(()) => Ok(self.compute_next_from_inv_jac(current)),
+            Ok(()) => Ok(self.compute_next_from_jacobian(current)),
             Err(crate::errors::SolverInternalError::InvalidJacobianError(error)) => Err(
                 crate::errors::SolverInternalError::InvalidJacobianError(error),
             ),
@@ -330,7 +344,7 @@ where
         }
     }
 
-    fn compute_next_from_inv_jac<M>(&self, current: &Point<M, D>) -> nalgebra::OVector<f64, D>
+    fn compute_next_from_jacobian<M>(&self, current: &Point<M, D>) -> nalgebra::OVector<f64, D>
     where
         M: model::Model<D>,
     {
@@ -338,7 +352,8 @@ where
             .residuals_config
             .evaluate_update_residuals(&current.residuals);
 
-        let raw_step = -self.jacobian.get_inverse().as_ref().unwrap() * residuals;
+        // The step solves `jacobian * step = -residuals`
+        let raw_step = -self.jacobian.solve(&residuals).unwrap();
 
         self.iters_params
             .step_limitations(&current.iteratives, &raw_step)
