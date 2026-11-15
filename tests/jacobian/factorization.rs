@@ -177,3 +177,93 @@ fn the_log_shows_the_inverse_only_when_the_resolution_holds_it() {
     assert!(!log.contains("Jacobian:"));
     assert!(!log.contains("LU factorization"));
 }
+
+/// A matrix whose rows the factorization has to permute: its first pivot is zero,
+/// and the largest entry of each column is never on the diagonal
+#[test]
+fn a_system_with_permuted_rows_is_solved() {
+    let matrix = nalgebra::DMatrix::from_row_slice(
+        4,
+        4,
+        &[
+            0.0, 2.0, 1.0, -1.0, //
+            1.0, 1.0, 5.0, 2.0, //
+            4.0, -3.0, 0.5, 1.0, //
+            2.0, 6.0, -1.0, 8.0,
+        ],
+    );
+    let expected = nalgebra::DVector::from_vec(vec![1.0, -2.0, 3.0, 0.5]);
+    let rhs = &matrix * &expected;
+
+    let mut jacobian = JacobianMatrix::<nalgebra::Dyn>::new();
+    jacobian
+        .update_jacobian_with_exact_value(matrix)
+        .ok()
+        .unwrap();
+    let solution = jacobian.solve(&rhs).unwrap();
+
+    for i in 0..4 {
+        assert!(float_cmp::approx_eq!(
+            f64,
+            solution[i],
+            expected[i],
+            epsilon = 1e-14
+        ));
+    }
+}
+
+/// The solution is the one of the triangular solves of `nalgebra`,
+/// for the static dimensions as for the dynamic ones
+#[test]
+fn the_solution_is_the_one_of_the_lu_solve_of_nalgebra() {
+    // Entries without structure, from a linear congruential sequence
+    let mut state = 12345_u64;
+    let mut next = move || {
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
+        ((state >> 11) as f64) / ((1_u64 << 53) as f64) * 2.0 - 1.0
+    };
+
+    for size in 1..=12 {
+        let matrix = nalgebra::DMatrix::from_fn(size, size, |_, _| next());
+        let rhs = nalgebra::DVector::from_fn(size, |_, _| next());
+        let reference = matrix.clone().lu().solve(&rhs).unwrap();
+
+        let mut jacobian = JacobianMatrix::<nalgebra::Dyn>::new();
+        jacobian
+            .update_jacobian_with_exact_value(matrix)
+            .ok()
+            .unwrap();
+        let solution = jacobian.solve(&rhs).unwrap();
+
+        for i in 0..size {
+            assert!(float_cmp::approx_eq!(
+                f64,
+                solution[i],
+                reference[i],
+                epsilon = 1e-12 * reference.amax().max(1.0)
+            ));
+        }
+    }
+
+    let matrix = nalgebra::SMatrix::<f64, 3, 3>::from_fn(|_, _| next());
+    let rhs = nalgebra::SVector::<f64, 3>::from_fn(|_, _| next());
+    let reference = matrix.lu().solve(&rhs).unwrap();
+
+    let mut jacobian = JacobianMatrix::<nalgebra::Const<3>>::new();
+    jacobian
+        .update_jacobian_with_exact_value(matrix)
+        .ok()
+        .unwrap();
+    let solution = jacobian.solve(&rhs).unwrap();
+
+    for i in 0..3 {
+        assert!(float_cmp::approx_eq!(
+            f64,
+            solution[i],
+            reference[i],
+            epsilon = 1e-12 * reference.amax().max(1.0)
+        ));
+    }
+}

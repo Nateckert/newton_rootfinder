@@ -1,3 +1,4 @@
+mod factorization;
 mod jacobian_analytic;
 mod jacobian_approximation;
 mod jacobian_finite_diff;

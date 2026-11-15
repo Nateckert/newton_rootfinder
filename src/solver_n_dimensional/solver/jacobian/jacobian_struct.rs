@@ -1,5 +1,7 @@
 use std::fmt;
 
+use super::factorization::Factorization;
+
 /// The jacobian of the model, in the form the resolution method works with:
 /// - the matrix and its LU factorization, the step being the solution of `jacobian * step = -residuals`
 /// - or its inverse alone, once a method updating the inverse has taken over
@@ -13,7 +15,7 @@ where
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     matrix: Option<nalgebra::OMatrix<f64, D, D>>,
-    factorization: Option<nalgebra::LU<f64, D, D>>,
+    factorization: Option<Factorization<D>>,
     inverse: Option<nalgebra::OMatrix<f64, D, D>>,
     compute_jacobian_at_next_iteration: bool,
     is_current_jacobian_approximated: bool,
@@ -65,17 +67,18 @@ where
         &mut self,
         matrix: nalgebra::OMatrix<f64, D, D>,
     ) -> Result<(), crate::errors::NonInvertibleJacobian> {
-        let factorization = matrix.clone().lu();
-
-        if factorization.is_invertible() {
-            self.matrix = Some(matrix);
-            self.factorization = Some(factorization);
-            self.inverse = None;
-            self.compute_jacobian_at_next_iteration = false;
-            Ok(())
-        } else {
-            self.invalidate_jacobian();
-            Err(crate::errors::NonInvertibleJacobian)
+        match Factorization::new(matrix.clone()) {
+            Some(factorization) => {
+                self.matrix = Some(matrix);
+                self.factorization = Some(factorization);
+                self.inverse = None;
+                self.compute_jacobian_at_next_iteration = false;
+                Ok(())
+            }
+            None => {
+                self.invalidate_jacobian();
+                Err(crate::errors::NonInvertibleJacobian)
+            }
         }
     }
 
@@ -110,9 +113,10 @@ where
     /// otherwise as the product of the inverse by `rhs`.
     ///
     /// `None` when neither the jacobian nor its inverse is known
+    #[inline]
     pub fn solve(&self, rhs: &nalgebra::OVector<f64, D>) -> Option<nalgebra::OVector<f64, D>> {
         match (&self.factorization, &self.inverse) {
-            (Some(factorization), _) => factorization.solve(rhs),
+            (Some(factorization), _) => Some(factorization.solve(rhs)),
             (None, Some(inverse)) => Some(inverse * rhs),
             (None, None) => None,
         }
@@ -126,7 +130,7 @@ where
             self.inverse = self
                 .factorization
                 .as_ref()
-                .and_then(|factorization| factorization.try_inverse());
+                .map(|factorization| factorization.inverse());
         }
     }
 

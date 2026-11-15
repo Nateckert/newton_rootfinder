@@ -6,10 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Changed
-- The step of an iteration is the solution of `jacobian * step = -residuals`, computed with the LU factorization
+- The step of an iteration is the solution of `jacobian * step = -residuals`, computed with an LU factorization
   of the jacobian instead of the product by its inverse (#31).
   The Newton-Raphson, stationary Newton and jacobian update methods no longer form the inverse:
-  an iteration costs less linear algebra, and the step keeps its accuracy on an ill-conditioned jacobian.
+  with the jacobian provided, a Newton-Raphson resolution is 2 times faster at 10 unknowns and 3.6 times at 100
+  (`benches/RESULTS.md`), and the step keeps its accuracy on an ill-conditioned jacobian.
   The methods updating the inverse form it once, at their first update.
   The iterates can differ from the ones of the previous versions in their last digits.
 - The log of a resolution shows the jacobian with what the solver does with it:
