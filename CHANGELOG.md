@@ -6,18 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Changed
-- The step of an iteration is the solution of `jacobian * step = -residuals`, computed with an LU factorization
-  of the jacobian instead of the product by its inverse (#31).
-  The Newton-Raphson, stationary Newton and jacobian update methods no longer form the inverse:
-  with the jacobian provided, a Newton-Raphson resolution is 2 times faster at 10 unknowns and 3.6 times at 100
-  (`benches/RESULTS.md`), and the step keeps its accuracy on an ill-conditioned jacobian.
-  The methods updating the inverse form it once, at their first update.
-  The iterates can differ from the ones of the previous versions in their last digits.
-- The log of a resolution shows the jacobian with what the solver does with it:
-  `Step solved with the LU factorization of the jacobian` replaces `Jacobian up to date with its inverse`,
-  and the inverse is printed only once a method updating it has formed it.
-- `JacobianMatrix::get_inverse` returns `None` for a jacobian whose inverse has not been formed.
-  `JacobianMatrix::solve` and `JacobianMatrix::form_inverse` are added.
+- When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer
+  inverted: the equivalent linear system is factorized and solved, which speeds up the computation
+  and gives more accurate results (#31). The iterates can differ in their last digits.
+- The log of a resolution prints the inverse of the jacobian only for the methods that still compute it.
+- `JacobianMatrix::get_inverse` returns `None` until the inverse is formed.
+  `JacobianMatrix::solve`, `form_inverse` and `factorization_only` are added.
 
 ### Fixed
 - The Broyden and Greenstadt methods now update the jacobian, or its inverse, with the signed residuals instead of the absolute errors.

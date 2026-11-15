@@ -267,3 +267,42 @@ fn the_solution_is_the_one_of_the_lu_solve_of_nalgebra() {
         ));
     }
 }
+
+/// The resolutions that never read the matrix back keep its factorization only
+#[test]
+fn a_jacobian_can_keep_its_factorization_only() {
+    let mut jacobian = JacobianMatrix::<nalgebra::Dyn>::factorization_only();
+    jacobian
+        .update_jacobian_with_exact_value(matrix())
+        .ok()
+        .unwrap();
+
+    assert!(jacobian.get_jacobian().is_none());
+    assert!(jacobian.get_inverse().is_none());
+
+    let rhs = nalgebra::DVector::from_vec(vec![5.0, 10.0]);
+    let solution = jacobian.solve(&rhs).unwrap();
+    assert_eq!(solution, nalgebra::DVector::from_vec(vec![1.0, 3.0]));
+
+    let log = jacobian.to_string();
+    assert!(log.contains("Step solved with the LU factorization of the jacobian"));
+    assert!(log.contains("Jacobian not kept beside its factorization"));
+    assert!(!log.contains("Jacobian:"));
+
+    // The methods updating the inverse still get it from the factorization
+    jacobian.form_inverse();
+    let inverse = jacobian.get_inverse().clone().unwrap();
+    let identity = &inverse * matrix();
+    assert!(float_cmp::approx_eq!(
+        f64,
+        identity[(0, 0)],
+        1.0,
+        epsilon = 1e-15
+    ));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        identity[(1, 0)],
+        0.0,
+        epsilon = 1e-15
+    ));
+}

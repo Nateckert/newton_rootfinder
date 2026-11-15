@@ -8,6 +8,10 @@ use super::factorization::Factorization;
 ///
 /// The inverse is formed only for the methods of
 /// [super::super::QuasiNewtonMethod::InverseJacobianUpdate], whose state it is.
+///
+/// The matrix itself is read back by the methods of
+/// [super::super::QuasiNewtonMethod::JacobianUpdate], which update it, and by the log:
+/// a jacobian built with [JacobianMatrix::factorization_only] does not keep it.
 pub struct JacobianMatrix<D>
 where
     D: nalgebra::DimMin<D, Output = D>,
@@ -17,6 +21,7 @@ where
     matrix: Option<nalgebra::OMatrix<f64, D, D>>,
     factorization: Option<Factorization<D>>,
     inverse: Option<nalgebra::OMatrix<f64, D, D>>,
+    keep_matrix: bool,
     compute_jacobian_at_next_iteration: bool,
     is_current_jacobian_approximated: bool,
 }
@@ -38,13 +43,27 @@ where
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
+    /// A jacobian keeping the matrices it is given beside their factorization
     pub fn new() -> Self {
         JacobianMatrix {
             matrix: None,
             factorization: None,
             inverse: None,
+            keep_matrix: true,
             compute_jacobian_at_next_iteration: true,
             is_current_jacobian_approximated: false,
+        }
+    }
+
+    /// A jacobian keeping the factorization of the matrices it is given, and not the matrices:
+    /// [JacobianMatrix::get_jacobian] returns `None`.
+    ///
+    /// It spares a copy of the matrix at each update, for the resolutions that never read it back:
+    /// the ones of the Newton-Raphson, stationary Newton and inverse update methods, without the log
+    pub fn factorization_only() -> Self {
+        JacobianMatrix {
+            keep_matrix: false,
+            ..JacobianMatrix::new()
         }
     }
 
@@ -67,9 +86,16 @@ where
         &mut self,
         matrix: nalgebra::OMatrix<f64, D, D>,
     ) -> Result<(), crate::errors::NonInvertibleJacobian> {
-        match Factorization::new(matrix.clone()) {
+        // The factorization overwrites the matrix it is given
+        let kept_matrix = if self.keep_matrix {
+            Some(matrix.clone())
+        } else {
+            None
+        };
+
+        match Factorization::new(matrix) {
             Some(factorization) => {
-                self.matrix = Some(matrix);
+                self.matrix = kept_matrix;
                 self.factorization = Some(factorization);
                 self.inverse = None;
                 self.compute_jacobian_at_next_iteration = false;
@@ -166,17 +192,20 @@ where
 
         // The log shows what the resolution works with, and nothing else:
         // the inverse appears only once a method updating it has formed it
-        match (&self.matrix, &self.inverse) {
-            (Some(jac), _) => {
-                content.push_str("Step solved with the LU factorization of the jacobian\n\n");
-                content.push_str("Jacobian:\n");
-                content.push_str(&jac.to_string());
+        if self.factorization.is_some() {
+            content.push_str("Step solved with the LU factorization of the jacobian\n\n");
+            match &self.matrix {
+                Some(jac) => {
+                    content.push_str("Jacobian:\n");
+                    content.push_str(&jac.to_string());
+                }
+                None => content.push_str("Jacobian not kept beside its factorization\n"),
             }
-            (None, Some(_)) => {
-                content.push_str("Jacobian not up to date with its inverse.\n");
-                content.push_str("The update of the inverse is more recent\n");
-            }
-            (None, None) => content.push_str("Jacobian not computed\n"),
+        } else if self.inverse.is_some() {
+            content.push_str("Jacobian not up to date with its inverse.\n");
+            content.push_str("The update of the inverse is more recent\n");
+        } else {
+            content.push_str("Jacobian not computed\n");
         }
 
         if let Some(inv) = &self.inverse {
@@ -201,6 +230,7 @@ where
             .field("Matrix", &self.matrix)
             .field("Matrix Factorization", &self.factorization)
             .field("Matrix Inverse", &self.inverse)
+            .field("Keep the matrix: ", &self.keep_matrix)
             .field(
                 "Compute jacobian at next iteration: ",
                 &self.compute_jacobian_at_next_iteration,

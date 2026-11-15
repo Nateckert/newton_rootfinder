@@ -209,3 +209,28 @@ static types, counted with `perf stat` (lowest of seven runs, in billions of cyc
 The stationary Newton method on three unknowns is the one case left slower, by 8 %:
 it solves many times with one factorization, and a substitution chains its operations
 where the product by an inverse runs them side by side.
+
+### The jacobian not kept beside its factorization
+
+The factorization is computed in place of the matrix, so keeping the jacobian beside it costs a copy,
+and an allocation with the dynamic types. Only the methods updating the jacobian and the log read the matrix back:
+the other resolutions, the log off, now keep the factorization only.
+
+Processor cycles of one resolution of the same system, by finite differences, counted with `perf stat`
+(lowest of seven runs, the runs of both versions alternated):
+
+| types | method | unknowns | before: matrix copied | after: factorization only | speed-up |
+|---|---|---|---|---|---|
+| dynamic | NR | 1 | 4 666 | 4 585 | 1.02 |
+| dynamic | NR | 3 | 7 928 | 7 811 | 1.01 |
+| dynamic | NR | 6 | 14 118 | 13 779 | 1.02 |
+| dynamic | NR | 20 | 61 559 | 61 199 | 1.01 |
+| dynamic | NR | 50 | 350 301 | 347 615 | 1.01 |
+| dynamic | NR | 100 | 1 924 987 | 1 927 761 | 1.00 |
+| static | NR | 1 | 452 | 454 | 1.00 |
+| static | NR | 3 | 2 221 | 2 226 | 1.00 |
+| static | NR | 6 | 5 014 | 5 018 | 1.00 |
+
+The gain is small: 1 to 2 % with the dynamic types up to 50 unknowns, the allocation saved at each jacobian,
+and nothing measurable with the static types, where the copy stays on the stack, nor with the stationary Newton method,
+which computes one jacobian for a resolution (between 0.99 and 1.02 from 1 to 100 unknowns, the noise of the measure).

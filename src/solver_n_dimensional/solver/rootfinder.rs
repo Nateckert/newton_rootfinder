@@ -144,11 +144,25 @@ where
     /// are the ones of a new solver, nothing being kept from a previous call to `solve`
     fn reset(&mut self) {
         self.iter = 0;
-        self.jacobian = JacobianMatrix::new();
+        self.jacobian = if self.reads_jacobian_matrix() {
+            JacobianMatrix::new()
+        } else {
+            JacobianMatrix::factorization_only()
+        };
         self.iteratives_step_size = None;
         self.residuals_step_size = None;
         self.residuals_values_current = None;
         self.valid_last_model_evaluation = true;
+    }
+
+    /// The matrix of the jacobian is read back by the methods updating it and by the log:
+    /// the other resolutions keep its factorization only, sparing a copy at each jacobian
+    fn reads_jacobian_matrix(&self) -> bool {
+        self.debug
+            || matches!(
+                self.parameters.get_resolution_method(),
+                ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(_))
+            )
     }
 
     fn evaluate_errors<M>(&self, model: &M) -> nalgebra::OVector<f64, D>
