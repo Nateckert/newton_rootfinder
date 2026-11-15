@@ -125,6 +125,7 @@ resolution and one `set_iteratives`. Same machine, same benches.
 Measured on an 11th Gen Intel Core i9-11950H at 2.60 GHz with 30 GB of memory, rustc 1.98.1,
 with `cargo bench --all-features`, the bench pinned to one core.
 Each value is the lowest median of three runs, the runs of both versions alternated.
+The speed-up is the time before divided by the time after: 2 is a resolution twice as fast, under 1 a slower one.
 
 Until this change the jacobian was factorized, then inverted, and the step was the product by the inverse.
 The step is now the solution of the factorized system: the inverse is formed only by the methods updating it,
@@ -135,7 +136,7 @@ once, at their first update.
 Bench `linear_algebra`: the function of the Broyden cases 5 to 8, defined for any dimension, with its jacobian
 provided, so that the linear algebra dominates as the dimension grows.
 
-| method | unknowns | product by the inverse | solution of the factorized system | ratio |
+| method | unknowns | before: product by the inverse | after: solution of the factorized system | speed-up |
 |---|---|---|---|---|
 | NR | 5 | 2.732 µs | 2.144 µs | 1.27 |
 | NR | 10 | 7.982 µs | 4.010 µs | 1.99 |
@@ -165,7 +166,7 @@ provided, so that the linear algebra dominates as the dimension grows.
 
 ### The other benches
 
-| benchmark | product by the inverse | solution of the factorized system | ratio |
+| benchmark | before: product by the inverse | after: solution of the factorized system | speed-up |
 |---|---|---|---|
 | Advanced solver on Broyden test case 8/NR | 42.70 µs | 20.86 µs | 2.05 |
 | Advanced solver on Broyden test case 8/SN | 18.31 µs | 10.78 µs | 1.70 |
@@ -192,7 +193,7 @@ of a static dimension stays in the registers.
 The factorization of the crate keeps the permutation as indices and the diagonal as its reciprocals.
 
 Processor cycles of two million resolutions of `x_i^2 + 0.1 * x_(i+1) = 2.1` from 1, by finite differences,
-static types, counted with `perf stat` (lowest of seven runs):
+static types, counted with `perf stat` (lowest of seven runs, in billions of cycles, fewer is faster):
 
 | method | unknowns | product by the inverse | factorization of `nalgebra` | factorization of the crate |
 |---|---|---|---|---|
