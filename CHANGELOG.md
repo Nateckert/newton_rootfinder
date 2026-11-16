@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.13.0] - 2026-11-16
 
 ### Changed
 - When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer

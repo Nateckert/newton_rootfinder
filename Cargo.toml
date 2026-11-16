@@ -1,7 +1,7 @@
 [package]
 name = "newton_rootfinder"
 rust-version = "1.89"
-version = "0.12.0"
+version = "0.13.0"
 authors = ["nathan.eckert <coding.thermodynamist@proton.me>"]
 edition = "2024"
 description = "Newton based methods for root finding"
