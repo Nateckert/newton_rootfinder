@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resolution log</title>
+<style>
+:root {
+  --bg: #ffffff; --fg: #1d1d1f; --muted: #6b6b70; --line: #d8d8dc; --panel: #f4f4f6;
+  --ok: #1a7f37; --bad: #c62828; --warn: #9a6700; --cell: 11, 87, 208;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161618; --fg: #e8e8ea; --muted: #9a9aa0; --line: #3a3a3e; --panel: #202023;
+    --ok: #4cc26a; --bad: #ff6b6b; --warn: #e3b341; --cell: 122, 167, 255;
+  }
+}
+body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); margin: 0; padding: 16px 24px 48px; }
+h1 { font-size: 1.3rem; margin: 0 0 2px; }
+h3 { font-size: 0.95rem; margin: 14px 0 4px; }
+.muted { color: var(--muted); }
+.ok { color: var(--ok); }
+.bad { color: var(--bad); }
+.warn { color: var(--warn); }
+.toolbar { margin: 10px 0 14px; }
+details { border-left: 2px solid var(--line); margin: 4px 0 4px 4px; padding-left: 12px; }
+details.failed { border-left-color: var(--bad); }
+summary { cursor: pointer; padding: 2px 0; }
+summary .label { font-weight: 600; }
+.badge { font-size: 12px; padding: 0 7px; border-radius: 9px; border: 1px solid currentColor; white-space: nowrap; }
+.facts { color: var(--muted); font-size: 13px; }
+.panel { background: var(--panel); border-radius: 6px; padding: 6px 12px; margin: 6px 0; }
+.message { white-space: pre-wrap; }
+.scroll { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; margin: 4px 0; font-variant-numeric: tabular-nums; font-size: 13px; }
+th, td { border: 1px solid var(--line); padding: 2px 8px; text-align: right; white-space: nowrap; }
+th { background: var(--panel); font-weight: 600; }
+th.left, td.left { text-align: left; }
+td.largest { font-weight: 700; }
+.nonfinite { color: var(--bad); font-weight: 700; }
+.limited { color: var(--warn); }
+td.zero { color: var(--muted); }
+tr.empty td, td.empty { outline: 2px solid var(--bad); outline-offset: -2px; }
+svg { display: block; margin: 4px 0; }
+svg .axis { stroke: var(--line); }
+svg .curve { stroke: var(--fg); fill: none; stroke-width: 1.5; }
+svg .tolerance { stroke: var(--ok); stroke-dasharray: 4 3; }
+svg circle { fill: var(--fg); }
+svg circle.damping { fill: var(--warn); }
+svg circle.nonfinite { fill: var(--bad); }
+svg text { fill: var(--muted); font-size: 11px; }
+body.failed-only .passed { display: none; }
+</style>
+</head>
+<body>
+<h1>Resolution log</h1>
+<div id="summary" class="muted"></div>
+<div class="toolbar"><label><input type="checkbox" id="failed-only"> Failed resolutions only</label> <button id="open-all" type="button">Open all</button> <button id="close-all" type="button">Close all</button></div>
+<div id="tree"></div>
+<script type="application/x-ndjson" id="log">
+/*LINES*/
+</script>
+<script>
+"use strict";
+
+const events = [];
+let unreadable = 0;
+for (const line of document.getElementById("log").textContent.split("\n")) {
+  const text = line.trim();
+  if (!text) continue;
+  try { events.push(JSON.parse(text)); } catch (error) { unreadable += 1; }
+}
+
+// A number of the log: the non-finite ones are strings
+const num = (value) => (typeof value === "number" ? value : Number(value));
+
+function el(tag, attributes, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attributes || {})) {
+    if (value !== undefined && value !== null && value !== false) node.setAttribute(key, value);
+  }
+  for (const child of children) {
+    if (child === undefined || child === null || child === false) continue;
+    node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+  }
+  return node;
+}
+
+function show(value) {
+  const x = num(value);
+  if (Number.isNaN(x)) return "NaN";
+  if (x === Infinity) return "∞";
+  if (x === -Infinity) return "−∞";
+  if (x === 0) return "0";
+  const magnitude = Math.abs(x);
+  if (magnitude >= 1e-3 && magnitude < 1e6) return String(Number(x.toPrecision(7)));
+  return x.toExponential(4).replace(/\.?0+e/, "e");
+}
+
+function numberCell(value, extraClass) {
+  const x = num(value);
+  const classes = [extraClass, Number.isFinite(x) ? null : "nonfinite"].filter(Boolean).join(" ");
+  return el("td", { class: classes || null, title: String(value) }, show(value));
+}
+
+function duration(start, end) {
+  if (!start || !end) return null;
+  const seconds = end.time - start.time;
+  return seconds < 1e-3 ? `${(seconds * 1e6).toFixed(0)} µs` : seconds < 1 ? `${(seconds * 1e3).toFixed(1)} ms` : `${seconds.toFixed(2)} s`;
+}
+
+// The tree of the scopes, the resolutions and the notes
+const nodes = new Map();
+const roots = [];
+let header = null;
+function attach(node, parent) {
+  const owner = parent !== undefined && parent !== null ? nodes.get(parent) : undefined;
+  (owner ? owner.children : roots).push(node);
+}
+for (const event of events) {
+  switch (event.event) {
+    case "log": header = event; break;
+    case "scope":
+    case "start": {
+      const node = { kind: event.event === "scope" ? "scope" : "resolution", id: event.id, start: event, children: [], events: [] };
+      nodes.set(event.id, node);
+      attach(node, event.parent);
+      break;
+    }
+    case "scope_end":
+    case "end": { const node = nodes.get(event.id); if (node) node.end = event; break; }
+    case "note": attach({ kind: "note", note: event }, event.parent); break;
+    default: { const node = nodes.get(event.id); if (node) node.events.push(event); }
+  }
+}
+
+const failed = (node) => node.kind === "resolution" && (!node.end || node.end.outcome !== "converged");
+const failures = (node) => (failed(node) ? 1 : 0) + (node.children || []).reduce((sum, child) => sum + failures(child), 0);
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const count = (list, test) => list.reduce((sum, node) => sum + (test(node) ? 1 : 0) + count(node.children || [], test), 0);
+
+const resolutions = count(roots, (node) => node.kind === "resolution");
+const failedCount = count(roots, failed);
+const facts = [];
+if (header) {
+  facts.push(`newton_rootfinder ${header.version}`);
+  if (header.opened) facts.push(`opened ${new Date(header.opened).toLocaleString()}`);
+}
+facts.push(plural(resolutions, "resolution"));
+facts.push(`${failedCount} failed`);
+if (unreadable) facts.push(`${plural(unreadable, "line")} unreadable`);
+document.getElementById("summary").textContent = facts.join(" · ");
+document.getElementById("failed-only").addEventListener("change", (event) => {
+  document.body.classList.toggle("failed-only", event.target.checked);
+});
+
+// A details element whose body is built when first opened
+function lazy(summary, build, open, classes) {
+  const details = el("details", { class: classes || null }, el("summary", null, ...summary));
+  let built = false;
+  const ensure = () => { if (details.open && !built) { built = true; build(details); } };
+  details.addEventListener("toggle", ensure);
+  details.ensure = ensure;
+  if (open) { details.open = true; ensure(); }
+  return details;
+}
+
+function render(node, container) {
+  if (node.kind === "note") { container.append(renderNote(node.note)); return; }
+  const inside = failures(node);
+  const classes = [inside ? "failed" : "passed"].join(" ");
+  if (node.kind === "scope") {
+    const summary = [el("span", { class: "label" }, node.start.label), " ",
+      el("span", { class: "facts" }, `scope · ${plural(count(node.children, (child) => child.kind === "resolution"), "resolution")}`),
+      inside ? [" ", el("span", { class: "badge bad" }, `${inside} failed`)] : null].flat();
+    container.append(lazy(summary, (details) => node.children.forEach((child) => render(child, details)), inside > 0, classes));
+  } else {
+    container.append(renderResolution(node, inside > 0, classes));
+  }
+}
+
+function renderNote(note) {
+  const table = el("table", null);
+  for (const [key, value] of Object.entries(note.fields || {})) {
+    table.append(el("tr", null, el("th", { class: "left" }, key), typeof value === "number" ? numberCell(value) : el("td", { class: "left" }, value)));
+  }
+  return el("div", { class: "panel" }, el("div", null, el("strong", null, note.label), el("span", { class: "facts" }, " · note")), table);
+}
+
+function outcomeBadge(end) {
+  if (!end) return el("span", { class: "badge bad" }, "interrupted");
+  return el("span", { class: `badge ${end.outcome === "converged" ? "ok" : "bad"}` }, end.outcome.replaceAll("_", " "));
+}
+
+function duringText(during) {
+  if (!during) return null;
+  const of = during.of === "jacobian" && during.column !== undefined ? `column ${during.column} of the jacobian` : during.of === "guess" ? "the guess" : during.of === "damping" ? "a damped step" : during.of === "step" ? "the step" : during.of;
+  return `during ${of}, iteration ${during.iteration} of the parent`;
+}
+
+function renderResolution(node, open, classes) {
+  const start = node.start;
+  const end = node.end;
+  const summary = [el("span", { class: "label" }, start.label || `resolution ${start.id}`), " ", outcomeBadge(end), " ",
+    el("span", { class: "facts" }, [end && end.iterations !== undefined ? plural(end.iterations, "iteration") : null,
+      end && end.max_error !== undefined && end.max_error !== null ? `max error ${show(end.max_error)}` : null,
+      duration(start, end), duringText(start.during)].filter(Boolean).join(" · "))];
+  return lazy(summary, (details) => buildResolution(node, details), open, classes);
+}
+
+function names(entries, prefix) {
+  return (entries || []).map((entry, index) => (entry && entry.name ? entry.name : `${prefix} ${index}`));
+}
+
+function buildResolution(node, details) {
+  const start = node.start;
+  const end = node.end;
+  const iterativeNames = names(start.iteratives, "iterative");
+  const residualNames = names(start.residuals, "residual");
+
+  const settings = [`method ${start.method}`, `tolerance ${show(start.tolerance)}`, `at most ${start.max_iterations} iterations`, start.damping ? "damping" : "no damping"];
+  details.append(el("div", { class: "facts" }, settings.join(" · ")));
+  if (end && end.message) details.append(el("div", { class: "panel bad message" }, end.message));
+  if (!end) details.append(el("div", { class: "panel bad" }, "No end: the resolution was interrupted, or the log is cut short."));
+
+  const evaluations = node.events.filter((event) => event.event === "evaluation" && !event.error);
+  if (evaluations.length) details.append(chart(evaluations, num(start.tolerance)));
+
+  details.append(describe(start, iterativeNames, residualNames));
+  renderIterations(node, details, iterativeNames, residualNames);
+
+  const nested = node.children;
+  if (nested.length) {
+    details.append(el("h3", null, `Inside its evaluations: ${plural(count(nested, (child) => child.kind === "resolution"), "resolution")}`));
+    nested.forEach((child) => render(child, details));
+  }
+}
+
+function describe(start, iterativeNames, residualNames) {
+  const rows = [];
+  const header = el("tr", null, el("th", { class: "left" }, "Iterative"), el("th", { class: "left" }, "Settings"), el("th", { class: "left" }, "Residual"), el("th", { class: "left" }, "Settings"));
+  const describeEntry = (entry) => {
+    const parts = [];
+    for (const [key, value] of Object.entries((entry && entry.details) || {})) parts.push(`${key}: ${value}`);
+    for (const [key, value] of Object.entries((entry && entry.settings) || {})) parts.push(`${key} ${typeof value === "string" && !["NaN", "Infinity", "-Infinity"].includes(value) ? value : show(value)}`);
+    return parts.join(", ");
+  };
+  for (let i = 0; i < Math.max(iterativeNames.length, residualNames.length); i += 1) {
+    rows.push(el("tr", null, el("td", { class: "left" }, iterativeNames[i]), el("td", { class: "left" }, describeEntry((start.iteratives || [])[i])),
+      el("td", { class: "left" }, residualNames[i]), el("td", { class: "left" }, describeEntry((start.residuals || [])[i]))));
+  }
+  const table = el("table", null, header, ...rows);
+  return el("details", null, el("summary", null, "Iteratives and residuals"), el("div", { class: "scroll" }, table));
+}
+
+function chart(evaluations, tolerance) {
+  const width = 420, height = 150, left = 44, bottom = 22, top = 8, right = 10;
+  const values = evaluations.map((event) => num(event.max_error));
+  const finite = values.filter((x) => Number.isFinite(x) && x > 0);
+  const logs = finite.map(Math.log10);
+  if (tolerance > 0) logs.push(Math.log10(tolerance));
+  let high = Math.ceil(Math.max(...logs, 0));
+  let low = Math.floor(Math.min(...logs, high - 1));
+  const x = (i) => left + (evaluations.length === 1 ? 0 : (i * (width - left - right)) / (evaluations.length - 1));
+  const y = (log) => top + ((high - log) * (height - top - bottom)) / (high - low);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+  const add = (tag, attributes, text) => {
+    const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+    if (text !== undefined) node.textContent = text;
+    svg.append(node);
+    return node;
+  };
+  add("line", { class: "axis", x1: left, y1: top, x2: left, y2: height - bottom });
+  add("line", { class: "axis", x1: left, y1: height - bottom, x2: width - right, y2: height - bottom });
+  const step = Math.max(1, Math.ceil((high - low) / 5));
+  for (let power = low; power <= high; power += step) {
+    add("text", { x: left - 4, y: y(power) + 4, "text-anchor": "end" }, `1e${power}`);
+  }
+  if (tolerance > 0) add("line", { class: "tolerance", x1: left, y1: y(Math.log10(tolerance)), x2: width - right, y2: y(Math.log10(tolerance)) });
+  let path = "";
+  evaluations.forEach((event, i) => {
+    const value = values[i];
+    const plotted = Number.isFinite(value) ? (value > 0 ? Math.log10(value) : low) : high;
+    path += `${path ? "L" : "M"}${x(i).toFixed(1)},${y(plotted).toFixed(1)}`;
+  });
+  add("path", { class: "curve", d: path });
+  evaluations.forEach((event, i) => {
+    const value = values[i];
+    const plotted = Number.isFinite(value) ? (value > 0 ? Math.log10(value) : low) : high;
+    const point = add("circle", { cx: x(i), cy: y(plotted), r: 3, class: Number.isFinite(value) ? (event.of === "damping" ? "damping" : "") : "nonfinite" });
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = `iteration ${event.iteration}, ${event.of}: max error ${show(value)}`;
+    point.append(title);
+  });
+  add("text", { x: width - right, y: height - 6, "text-anchor": "end" }, "evaluations");
+  return el("div", null, el("h3", null, "Largest error"), svg);
+}
+
+function renderIterations(node, details, iterativeNames, residualNames) {
+  const byIteration = new Map();
+  for (const event of node.events) {
+    if (!byIteration.has(event.iteration)) byIteration.set(event.iteration, []);
+    byIteration.get(event.iteration).push(event);
+  }
+  if (!byIteration.size) return;
+  details.append(el("h3", null, "Iterations"));
+  const iterations = [...byIteration.keys()].sort((a, b) => a - b);
+  let previous = null;
+  iterations.forEach((iteration, position) => {
+    const list = byIteration.get(iteration);
+    const before = previous;
+    const evaluations = list.filter((event) => event.event === "evaluation" && !event.error);
+    if (evaluations.length) previous = evaluations[evaluations.length - 1];
+    const last = position === iterations.length - 1;
+    const largest = evaluations.length ? show(evaluations[evaluations.length - 1].max_error) : null;
+    const notes = [];
+    if (list.some((event) => event.event === "evaluation" && event.of === "damping")) notes.push("damped");
+    if (list.some((event) => event.event === "refused")) notes.push("refused");
+    if (list.some((event) => event.event === "jacobian" && event.singular)) notes.push("singular jacobian");
+    if (list.some((event) => event.event === "evaluation" && event.error)) notes.push("evaluation refused by the model");
+    if (list.some((event) => event.event === "evaluation" && event.inaccurate)) notes.push("inaccurate");
+    const summary = [`Iteration ${iteration}`, largest !== null ? el("span", { class: "facts" }, ` · max error ${largest}`) : null,
+      notes.length ? el("span", { class: "warn" }, ` · ${notes.join(", ")}`) : null];
+    const problem = notes.some((note) => note !== "damped");
+    details.append(lazy(summary, (body) => buildIteration(list, before, body, iterativeNames, residualNames), last || problem));
+  });
+}
+
+function buildIteration(list, before, body, iterativeNames, residualNames) {
+  const step = list.find((event) => event.event === "step");
+  for (const event of list) {
+    if (event.event === "jacobian") body.append(jacobian(event, iterativeNames, residualNames));
+    else if (event.event === "refused") body.append(el("div", { class: "panel warn" }, "Step refused: the jacobian is computed again at the next iteration."));
+    else if (event.event === "evaluation") body.append(evaluation(event, event.of === "step" ? step : null, before, iterativeNames, residualNames));
+  }
+}
+
+function evaluation(event, step, before, iterativeNames, residualNames) {
+  const box = el("div", null, el("div", { class: "facts" }, `Evaluation of ${event.of === "guess" ? "the guess" : event.of === "damping" ? "a damped step" : "the step"}`));
+  if (event.error) {
+    box.append(el("div", { class: "panel bad message" }, `The model refused it: ${event.error}`));
+    const table = el("table", null, el("tr", null, el("th", { class: "left" }, "Iterative"), el("th", null, "Value")));
+    (event.iteratives || []).forEach((value, i) => table.append(el("tr", null, el("td", { class: "left" }, iterativeNames[i]), numberCell(value))));
+    box.append(el("div", { class: "scroll" }, table));
+    return box;
+  }
+  if (event.inaccurate) box.append(el("div", { class: "panel warn message" }, `Inaccurate: ${event.inaccurate}`));
+  const head = el("tr", null, el("th", { class: "left" }, "Iterative"), el("th", null, "Value"),
+    step ? el("th", { title: "the solution of the linear system, before the limits of the iterative" }, "Newton step") : null,
+    step && before ? el("th", null, "Step taken") : null,
+    el("th", { class: "left" }, "Residual"), el("th", null, "Left"), el("th", null, "Right"), el("th", null, "Error"));
+  const table = el("table", null, head);
+  const errors = (event.errors || []).map(num);
+  const largest = num(event.max_error);
+  const n = Math.max((event.iteratives || []).length, errors.length);
+  for (let i = 0; i < n; i += 1) {
+    const cells = [el("td", { class: "left" }, iterativeNames[i]), numberCell(event.iteratives[i])];
+    if (step) {
+      const newton = num(step.step[i]);
+      cells.push(numberCell(newton));
+      if (before) {
+        const taken = num(event.iteratives[i]) - num(before.iteratives[i]);
+        const limited = Number.isFinite(newton) && Math.abs(taken - newton) > 1e-9 * Math.max(1, Math.abs(newton));
+        const cell = numberCell(taken, limited ? "limited" : null);
+        if (limited) cell.title = `${taken}: limited by the bounds or the step limits of the iterative`;
+        cells.push(cell);
+      }
+    }
+    cells.push(el("td", { class: "left" }, residualNames[i]), numberCell(event.left[i]), numberCell(event.right[i]),
+      numberCell(event.errors[i], errors[i] === largest ? "largest" : null));
+    table.append(el("tr", null, ...cells));
+  }
+  box.append(el("div", { class: "scroll" }, table));
+  if (event.values && Object.keys(event.values).length) {
+    const values = el("table", null, el("tr", null, el("th", { class: "left" }, "Value of the model"), el("th", null, "")));
+    for (const [key, value] of Object.entries(event.values)) {
+      values.append(el("tr", null, el("td", { class: "left" }, key), typeof value === "number" || ["NaN", "Infinity", "-Infinity"].includes(value) ? numberCell(value) : el("td", { class: "left" }, value)));
+    }
+    box.append(el("div", { class: "scroll" }, values));
+  }
+  return box;
+}
+
+function jacobian(event, iterativeNames, residualNames) {
+  const matrix = event.matrix || event.inverse || [];
+  const inverse = !event.matrix;
+  const magnitudes = matrix.flat().map((value) => Math.abs(num(value))).filter((x) => Number.isFinite(x) && x > 0);
+  const highest = Math.log10(Math.max(...magnitudes, 1e-300));
+  const lowest = Math.log10(Math.min(...magnitudes, 1e300));
+  const rowNames = inverse ? iterativeNames : residualNames;
+  const columnNames = inverse ? residualNames : iterativeNames;
+  const zeroRows = matrix.map((row) => row.every((value) => num(value) === 0));
+  const zeroColumns = (matrix[0] || []).map((_, j) => matrix.every((row) => num(row[j]) === 0));
+  const table = el("table", null, el("tr", null, el("th", null, ""), ...columnNames.map((name, j) => el("th", { class: zeroColumns[j] ? "empty" : null }, name))));
+  matrix.forEach((row, i) => {
+    const cells = row.map((value, j) => {
+      const x = num(value);
+      const cell = numberCell(value, x === 0 ? "zero" : null);
+      if (Number.isFinite(x) && x !== 0) {
+        const weight = highest === lowest ? 0.35 : 0.08 + (0.5 * (Math.log10(Math.abs(x)) - lowest)) / (highest - lowest);
+        cell.style.background = `rgba(var(--cell), ${weight.toFixed(2)})`;
+      }
+      if (zeroColumns[j]) cell.classList.add("empty");
+      return cell;
+    });
+    table.append(el("tr", { class: zeroRows[i] ? "empty" : null }, el("th", { class: "left" }, rowNames[i]), ...cells));
+  });
+  const warnings = [];
+  if (event.singular) warnings.push("singular: the matrix could not be factorized");
+  if (zeroRows.some(Boolean)) warnings.push("a residual depends on no iterative");
+  if (zeroColumns.some(Boolean)) warnings.push("an iterative appears in no residual");
+  const title = `${inverse ? "Inverse of the jacobian" : "Jacobian"} · ${event.how.replaceAll("_", " ")}`;
+  const summary = [title, warnings.length ? el("span", { class: "bad" }, ` · ${warnings.join(", ")}`) : null];
+  return lazy(summary, (body) => body.append(el("div", { class: "scroll" }, table)), warnings.length > 0);
+}
+
+const tree = document.getElementById("tree");
+roots.forEach((node) => render(node, tree));
+if (!roots.length) tree.append(el("p", { class: "muted" }, "No resolution in this log."));
+
+// Opening everything builds every body, for the search of the browser or a print
+function openAll() {
+  let closed = tree.querySelectorAll("details:not([open])");
+  while (closed.length) {
+    closed.forEach((details) => { details.open = true; if (details.ensure) details.ensure(); });
+    closed = tree.querySelectorAll("details:not([open])");
+  }
+}
+document.getElementById("open-all").addEventListener("click", openAll);
+document.getElementById("close-all").addEventListener("click", () => tree.querySelectorAll("details[open]").forEach((details) => { details.open = false; }));
+if (location.hash === "#all") openAll();
+</script>
+</body>
+</html>

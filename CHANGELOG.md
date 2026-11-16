@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - `Model::describe` and `Model::report`, by default doing nothing: the model names its iteratives and its residuals,
   and writes values of its evaluations, in the log.
 - `Log::failures_only`: a log keeping the failed resolutions alone.
+- `log::write_page`: an HTML page showing a log, opened in a browser without a network.
 
 ### Changed
 - When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer

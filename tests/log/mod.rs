@@ -2,6 +2,7 @@
 mod broyden;
 mod failures;
 mod model;
+mod page;
 mod resolutions;
 
 use std::io::{self, Write};
