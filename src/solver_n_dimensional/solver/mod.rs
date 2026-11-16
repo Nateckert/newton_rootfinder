@@ -10,7 +10,7 @@
 //! A resolution starts from the iteratives the model holds when `solve` is called.
 //!
 //! # Features
-//! 1. Simulation log available for debugging, check the `set_debug()` method
+//! 1. A log of the resolutions for debugging, check the `log_to()` method
 //! 2. Damping, check the `set_damping()` method
 //!
 //!
@@ -53,7 +53,6 @@
 
 mod default;
 mod jacobian;
-mod log;
 mod parameters;
 mod point;
 mod resolution_method;

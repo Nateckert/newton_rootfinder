@@ -31,8 +31,8 @@ use std::fmt;
 /// - `Adapt`: behave poorly if one member of the residual is close to zero and the other one is big,
 ///   as the value will be close to either -2 or 2.
 ///
-/// The values the solver computes with them are printed in its log,
-/// see [activate_debug](crate::solver::RootFinder::activate_debug).
+/// The values the solver computes with them are written in its log,
+/// see [log_to](crate::solver::RootFinder::log_to).
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum NormalizationMethod {
     Abs,

@@ -187,6 +187,18 @@ impl Iterative for IterativeParamsFD {
     fn with_finite_diff(&self) -> bool {
         true
     }
+
+    fn log_settings(&self, settings: &mut crate::log::Fields) {
+        self.iterative_params.log_settings(settings);
+        let perturbation = match self.perturbation_method {
+            PerturbationMethod::Max => "max",
+            PerturbationMethod::Sum => "sum",
+        };
+        settings
+            .text("perturbation", perturbation)
+            .number("dx_abs", self.dx_abs)
+            .number("dx_rel", self.dx_rel);
+    }
 }
 
 impl fmt::Display for IterativeParamsFD {

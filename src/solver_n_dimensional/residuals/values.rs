@@ -60,15 +60,12 @@ where
             .collect()
     }
 
-    pub(crate) fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
-        let mut str_eq = String::new();
-        str_eq.push_str(&format!(
-            "{:width$} = {:width$}",
-            self.left[index].to_string(),
-            self.right[index],
-            width = float_width
-        ));
-        str_eq
+    pub(crate) fn left(&self) -> &nalgebra::OVector<f64, D> {
+        &self.left
+    }
+
+    pub(crate) fn right(&self) -> &nalgebra::OVector<f64, D> {
+        &self.right
     }
 }
 

@@ -96,33 +96,51 @@ fn nothing_is_solved_without_a_jacobian() {
     assert!(jacobian.solve(&rhs).is_none());
 }
 
-/// The log shows what the resolution works with:
-/// the inverse appears only once it has been formed
+/// The log writes what the resolution works with:
+/// the matrix and whether it is factorized, or the inverse once it has been formed
 #[test]
-fn the_log_shows_the_inverse_only_when_the_resolution_holds_it() {
+fn the_log_reads_what_the_resolution_holds() {
     let mut jacobian = JacobianMatrix::<nalgebra::Dyn>::new();
-    assert_eq!(
-        jacobian.to_string(),
-        "Jacobian matrix\n=================\n\nJacobian not computed\n\n"
-    );
+    assert!(jacobian.get_jacobian().is_none());
+    assert!(jacobian.get_inverse().is_none());
 
     jacobian
         .update_jacobian_with_exact_value(matrix())
         .ok()
         .unwrap();
-    let log = jacobian.to_string();
-    assert!(log.contains("Step solved with the LU factorization of the jacobian"));
-    assert!(log.contains("Jacobian:"));
-    assert!(!log.contains("Inverse"));
+    assert_eq!(jacobian.get_jacobian().as_ref().unwrap(), &matrix());
+    assert!(jacobian.is_factorized());
+    assert!(jacobian.get_inverse().is_none());
 
     jacobian.form_inverse();
     let inverse = jacobian.get_inverse().clone().unwrap();
     jacobian.update_inverse(inverse);
-    let log = jacobian.to_string();
-    assert!(log.contains("Jacobian not up to date with its inverse."));
-    assert!(log.contains("Inverse of the jacobian Matrix:"));
-    assert!(!log.contains("Jacobian:"));
-    assert!(!log.contains("LU factorization"));
+    assert!(jacobian.get_jacobian().is_none());
+    assert!(!jacobian.is_factorized());
+    assert!(jacobian.get_inverse().is_some());
+}
+
+/// A singular matrix stops the resolution: it is kept, without a factorization, for the log
+#[test]
+fn a_singular_matrix_is_kept_for_the_log() {
+    let mut jacobian = JacobianMatrix::<nalgebra::Dyn>::new();
+    let singular = nalgebra::DMatrix::from_row_slice(2, 2, &[1.0, 2.0, 2.0, 4.0]);
+    assert!(
+        jacobian
+            .update_jacobian_with_exact_value(singular.clone())
+            .is_err()
+    );
+    assert_eq!(jacobian.get_jacobian().as_ref().unwrap(), &singular);
+    assert!(!jacobian.is_factorized());
+    assert!(jacobian.get_inverse().is_none());
+
+    let mut factorization_only = JacobianMatrix::<nalgebra::Dyn>::factorization_only();
+    assert!(
+        factorization_only
+            .update_jacobian_with_exact_value(singular)
+            .is_err()
+    );
+    assert!(factorization_only.get_jacobian().is_none());
 }
 
 /// A matrix whose rows the factorization has to permute: its first pivot is zero,
@@ -231,10 +249,7 @@ fn a_jacobian_can_keep_its_factorization_only() {
     let solution = jacobian.solve(&rhs).unwrap();
     assert_eq!(solution, nalgebra::DVector::from_vec(vec![1.0, 3.0]));
 
-    let log = jacobian.to_string();
-    assert!(log.contains("Step solved with the LU factorization of the jacobian"));
-    assert!(log.contains("Jacobian not kept beside its factorization"));
-    assert!(!log.contains("Jacobian:"));
+    assert!(jacobian.is_factorized());
 
     // The methods updating the inverse still get it from the factorization
     jacobian.form_inverse();
