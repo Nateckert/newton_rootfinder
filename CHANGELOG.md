@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Added
-- The `log` module: a `Log` records the resolutions in [JSON Lines](https://jsonlines.org/), one event per line,
+- `log::Log` records the resolutions in [JSON Lines](https://jsonlines.org/), one event per line,
   written as it happens: the start of a resolution with its settings, each evaluation of the model
   (or the message of the model when it refuses one), each step before the limits of the iteratives,
   each jacobian computed or updated (a singular one included), the refused steps, and the outcome.
   A script reads it with its standard library; the numbers read back to the same value, a non-finite one written `"NaN"` or `"Infinity"`.
   - One log serves every resolution of a program: a `Log` is a handle, cloned and sent to other threads,
     and a resolution started inside the evaluation of another one is placed under it.
-  - `Log::detail` chooses what a resolution writes (`Detail::Outcome`, `Iterations`, `Jacobians`),
+  - `Log::detail` chooses what a resolution writes (`log::Detail::Outcome`, `Iterations`, `Jacobians`),
     `Log::scope` groups resolutions, `Log::note` writes facts the solver does not know.
   - An error of writing stops the log, never the resolution: `Log::close` returns it.
   - With the log off, a resolution pays a test per event.
@@ -31,7 +31,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer
   inverted: the equivalent linear system is factorized and solved, which speeds up the computation
   and gives more accurate results (#31). The iterates can differ in their last digits.
-- *Breaking change*: the log of a resolution is the `log` module, in JSON Lines, instead of a text file of tables.
+- *Breaking change*: a resolution writes its log in JSON Lines, in the `log::Log` given to `RootFinder::log_to`,
+  instead of a text file of tables.
 - `RootFinder` and `solver::default` no longer require the iteratives to implement `Display`, only the log used it.
 - *Breaking change*: `SolverError::JacobianError`, which held a `SolverInternalError`, is replaced by two variants:
   `SolverError::JacobianEvaluationError`, holding the `ModelError` the model returned while the jacobian was evaluated,
