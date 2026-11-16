@@ -37,6 +37,10 @@ fn non_convergence_case() {
 
     user_model.set_iteratives(&init);
     let result = rf.solve(&mut user_model).unwrap_err();
+    assert!(matches!(
+        result,
+        nrf::errors::SolverError::NonInvertibleJacobian
+    ));
     let expected = "Jacobian error: Non invertible jacobian";
     assert_eq!(result.to_string(), expected);
 }
