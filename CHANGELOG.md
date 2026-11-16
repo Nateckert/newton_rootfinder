@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   `log::Log`, given to a solver with `RootFinder::log_to`.
   See the [documentation of the `log` module](https://docs.rs/newton_rootfinder/0.13.0/newton_rootfinder/log/index.html).
 - `Iterative::log_settings`, by default doing nothing: the settings of an iterative in the log.
+- `Model::describe` and `Model::report`, by default doing nothing: the model names its iteratives and its residuals,
+  and writes values of its evaluations, in the log.
 
 ### Changed
 - When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer

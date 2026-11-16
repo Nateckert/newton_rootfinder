@@ -8,6 +8,10 @@
 //! cheap to clone and to send to another thread, each clone writing to the same file.
 //! A solver writes in it once given it with [crate::solver::RootFinder::log_to].
 //!
+//! The model adds what the solver does not know: the names of its iteratives and residuals
+//! ([crate::model::Model::describe]), the values an evaluation computed besides them
+//! ([crate::model::Model::report]), and the message of an evaluation it finds inaccurate or refuses.
+//!
 //! ```no_run
 //! use newton_rootfinder as nrf;
 //! # use nrf::iteratives;
@@ -60,8 +64,8 @@
 //! | `log` | once, first line | `format`, the version of the crate, `opened`: the time the log was opened, UTC |
 //! | `scope`, `scope_end` | a [Scope] opened and closed | `parent`, `label` |
 //! | `note` | [Log::note] | `parent`, `label`, `fields` |
-//! | `start` | [crate::solver::RootFinder::solve] called | `parent`, `label`, `method`, `tolerance`, `max_iterations`, `damping`, the `settings` of each iterative and of each residual |
-//! | `evaluation` | the model evaluated at the guess, at a step or at a damped step | `iteration`, `of` (`guess`, `step`, `damping`), `iteratives`, `left` and `right` sides of the residuals, `errors` (the stopping criteria), `max_error`; or `iteratives` and `error`, the message of the model, when the evaluation failed |
+//! | `start` | [crate::solver::RootFinder::solve] called | `parent`, `during`, `label`, `method`, `tolerance`, `max_iterations`, `damping`, for each iterative and each residual its `name` and `details` given by the model, and its `settings` |
+//! | `evaluation` | the model evaluated at the guess, at a step or at a damped step | `iteration`, `of` (`guess`, `step`, `damping`), `iteratives`, `left` and `right` sides of the residuals, `errors` (the stopping criteria), `max_error`, `inaccurate`: the message of the model finding its values inaccurate, `values` the model reports; or `iteratives` and `error`, the message of the model, when the evaluation failed |
 //! | `step` | a step computed | `iteration`, `step`: the solution of the linear system, before the limits of the iteratives; the evaluation that follows shows the iteratives proposed |
 //! | `jacobian` | the jacobian computed, approximated or its inverse updated | `iteration`, `how` (`finite_differences`, `analytic` or the update method), `matrix` or `inverse`; `singular`: `true` for a matrix that could not be factorized |
 //! | `refused` | a step of a quasi-Newton method refused | `iteration`: the jacobian is computed at the next one |
@@ -69,7 +73,9 @@
 //!
 //! - `id` names a scope or a resolution, unique in the log. `parent` is the scope or the resolution in progress
 //!   on the same thread when a scope, a resolution or a note starts, `null` at the top:
-//!   a resolution started by the evaluation of a model, inside another one, is placed under it.
+//!   a resolution started by the evaluation of a model, inside another one, is placed under it,
+//!   `during` the evaluation of its parent it belongs to: `{"iteration":3,"of":"jacobian","column":2}`
+//!   for the evaluation of the third column of a jacobian by finite differences, at the third iteration.
 //! - `time`: seconds since the log was opened, from a monotonic clock.
 //! - `outcome`: `converged`, or the variant of [crate::errors::SolverError] in snake case
 //!   (`non_convergence_error`, `model_evaluation_error`, ...), its message the `Display` of the error.
@@ -91,11 +97,13 @@
 //! With the log off, a resolution pays a test per event, and keeps the jacobian as its factorization alone.
 
 mod clock;
+mod description;
 mod json;
 mod resolution;
 #[cfg(test)]
 mod tests;
 
+pub use description::{Description, Entry};
 pub(crate) use resolution::{Evaluation, JacobianSource, ResolutionLog};
 
 use std::collections::HashMap;
@@ -152,7 +160,7 @@ struct State {
     error: Option<io::Error>,
     next_id: u64,
     /// The scopes and resolutions in progress, innermost last, per thread
-    open: HashMap<ThreadId, Vec<u64>>,
+    open: HashMap<ThreadId, Vec<Open>>,
 }
 
 impl Log {
@@ -199,7 +207,7 @@ impl Log {
     /// Open a scope: the scopes, resolutions and notes started on this thread until it is dropped are placed under it
     #[must_use = "the scope closes when dropped"]
     pub fn scope(&self, label: &str) -> Scope {
-        let id = self.open(|line, id, parent, time| {
+        let id = self.open(|line, id, parent, _, time| {
             line.push_str("{\"event\":\"scope\",\"id\":");
             json::unsigned(line, id);
             json::key(line, "parent");
@@ -277,19 +285,36 @@ impl Log {
     /// Open a scope or a resolution: its line is built from its id, its parent and the time
     fn open<F>(&self, build: F) -> u64
     where
-        F: FnOnce(&mut String, u64, Option<u64>, f64),
+        F: FnOnce(&mut String, u64, Option<u64>, Option<During>, f64),
     {
         let time = self.elapsed();
         let mut state = self.lock();
         let id = state.next_id;
         state.next_id += 1;
         let stack = state.open.entry(thread::current().id()).or_default();
-        let parent = stack.last().copied();
-        stack.push(id);
+        let (parent, during) = match stack.last() {
+            Some(open) => (Some(open.id), open.during),
+            None => (None, None),
+        };
+        stack.push(Open { id, during: None });
         let mut line = String::with_capacity(256);
-        build(&mut line, id, parent, time);
+        build(&mut line, id, parent, during, time);
         state.write_line(&line);
         id
+    }
+
+    /// The evaluation the resolution `id` is making, innermost on this thread:
+    /// the resolutions started inside it are placed in it
+    fn evaluating(&self, id: u64, during: During) {
+        let mut state = self.lock();
+        if let Some(open) = state
+            .open
+            .get_mut(&thread::current().id())
+            .and_then(|stack| stack.last_mut())
+            && open.id == id
+        {
+            open.during = Some(during);
+        }
     }
 
     /// Write an event of a scope or of a resolution in progress
@@ -346,7 +371,8 @@ impl State {
     fn innermost(&self) -> Option<u64> {
         self.open
             .get(&thread::current().id())
-            .and_then(|stack| stack.last().copied())
+            .and_then(|stack| stack.last())
+            .map(|open| open.id)
     }
 
     /// Remove a scope or a resolution from the ones in progress,
@@ -357,19 +383,19 @@ impl State {
         let thread = if self
             .open
             .get(&current)
-            .is_some_and(|stack| stack.contains(&id))
+            .is_some_and(|stack| stack.iter().any(|open| open.id == id))
         {
             Some(current)
         } else {
             self.open
                 .iter()
-                .find(|(_, stack)| stack.contains(&id))
+                .find(|(_, stack)| stack.iter().any(|open| open.id == id))
                 .map(|(thread, _)| *thread)
         };
         match thread {
             Some(thread) => {
                 let stack = self.open.get_mut(&thread).unwrap();
-                stack.retain(|&open| open != id);
+                stack.retain(|open| open.id != id);
                 if stack.is_empty() {
                     self.open.remove(&thread);
                     true
@@ -380,6 +406,21 @@ impl State {
             None => true,
         }
     }
+}
+
+/// A scope or a resolution in progress
+struct Open {
+    id: u64,
+    during: Option<During>,
+}
+
+/// The evaluation a resolution is making: `of` the guess, a step, a damped step or the jacobian,
+/// `column` the column of a jacobian by finite differences
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct During {
+    pub(crate) iteration: usize,
+    pub(crate) of: &'static str,
+    pub(crate) column: Option<usize>,
 }
 
 /// A scope of a [Log], closed when dropped: see [Log::scope]
@@ -422,6 +463,10 @@ impl<'a> Fields<'a> {
 
     pub(crate) fn close(self) {
         self.line.push('}');
+    }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        self.empty
     }
 
     fn name(&mut self, name: &str) {
