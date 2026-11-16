@@ -276,7 +276,7 @@ impl ResolutionLog {
             line.push_str(&values);
         }
         line.push('}');
-        self.log.write(&line);
+        self.log.write(id, line);
     }
 
     /// An evaluation the model could not make: the iteratives, and the message of the model
@@ -305,7 +305,7 @@ impl ResolutionLog {
         json::key(&mut line, "error");
         json::string(&mut line, message);
         line.push('}');
-        self.log.write(&line);
+        self.log.write(id, line);
     }
 
     /// The step solving the linear system, before the limits of the iteratives
@@ -325,7 +325,7 @@ impl ResolutionLog {
         json::key(&mut line, "step");
         json::numbers(&mut line, step.iter().copied());
         line.push('}');
-        self.log.write(&line);
+        self.log.write(id, line);
     }
 
     /// What the resolution holds of the jacobian it has just obtained:
@@ -367,7 +367,7 @@ impl ResolutionLog {
             (None, None) => return,
         }
         line.push('}');
-        self.log.write(&line);
+        self.log.write(id, line);
     }
 
     /// A step of a quasi-Newton method refused: the jacobian is computed at the next iteration
@@ -381,7 +381,7 @@ impl ResolutionLog {
         json::key(&mut line, "iteration");
         json::unsigned(&mut line, iteration as u64);
         line.push('}');
-        self.log.write(&line);
+        self.log.write(id, line);
     }
 
     #[cold]
@@ -418,7 +418,7 @@ impl ResolutionLog {
             None => line.push_str("null"),
         }
         line.push('}');
-        self.log.close_node(id, &line, result.is_err());
+        self.log.close_node(id, line, result.is_err());
     }
 }
 
@@ -431,7 +431,7 @@ impl Drop for ResolutionLog {
             json::key(&mut line, "outcome");
             json::string(&mut line, "panic");
             line.push('}');
-            self.log.close_node(id, &line, true);
+            self.log.close_node(id, line, true);
         }
     }
 }
