@@ -88,6 +88,14 @@
 //! - A reader ignores the events and the fields it does not know:
 //!   the lines may gain some without a change of `format`.
 //!
+//! # The failures only
+//!
+//! A log built with [Log::failures_only] keeps the lines of each scope and resolution in memory until it ends:
+//! a resolution that converged leaves nothing, nor a scope where none failed.
+//! When a resolution fails, the lines of the scopes and resolutions it is in are written first,
+//! then its own: the file keeps the order of the events, and a run of many resolutions,
+//! a sweep or a transient, leaves the failures alone.
+//!
 //! # Writing
 //!
 //! The log writes through a buffer, flushed when a resolution fails,
@@ -111,7 +119,7 @@ use std::fmt;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
-use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread::{self, ThreadId};
 use std::time::Instant;
@@ -152,6 +160,7 @@ pub struct Log {
 struct Shared {
     opened: Instant,
     detail: AtomicU8,
+    failures_only: AtomicBool,
     state: Mutex<State>,
 }
 
@@ -175,6 +184,7 @@ impl Log {
             shared: Arc::new(Shared {
                 opened: Instant::now(),
                 detail: AtomicU8::new(Detail::default() as u8),
+                failures_only: AtomicBool::new(false),
                 state: Mutex::new(State {
                     writer: Some(Box::new(BufWriter::new(writer))),
                     error: None,
@@ -201,6 +211,17 @@ impl Log {
     /// The detail of the resolutions started from now on, by every handle of the log
     pub fn detail(self, detail: Detail) -> Log {
         self.shared.detail.store(detail as u8, Ordering::Relaxed);
+        self
+    }
+
+    /// Keep the lines of the resolutions that fail only, for the scopes and resolutions started from now on
+    ///
+    /// The lines of a scope or a resolution are kept in memory until it ends:
+    /// a resolution that converged, or a scope where none failed, leaves nothing.
+    /// When a resolution fails, the lines of the scopes and resolutions it is in are written first,
+    /// these writing directly from then on.
+    pub fn failures_only(self) -> Log {
+        self.shared.failures_only.store(true, Ordering::Relaxed);
         self
     }
 
@@ -250,7 +271,7 @@ impl Log {
         fields(&mut writer);
         writer.close();
         line.push('}');
-        state.write_line(&line);
+        state.emit(parent, line);
     }
 
     /// Flush the log, and return the first error of writing, if any:
@@ -288,6 +309,7 @@ impl Log {
         F: FnOnce(&mut String, u64, Option<u64>, Option<During>, f64),
     {
         let time = self.elapsed();
+        let kept = self.shared.failures_only.load(Ordering::Relaxed);
         let mut state = self.lock();
         let id = state.next_id;
         state.next_id += 1;
@@ -296,10 +318,22 @@ impl Log {
             Some(open) => (Some(open.id), open.during),
             None => (None, None),
         };
-        stack.push(Open { id, during: None });
         let mut line = String::with_capacity(256);
         build(&mut line, id, parent, during, time);
-        state.write_line(&line);
+        if kept {
+            stack.push(Open {
+                id,
+                during: None,
+                kept: Some(vec![line]),
+            });
+        } else {
+            stack.push(Open {
+                id,
+                during: None,
+                kept: None,
+            });
+            state.write_line(&line);
+        }
         id
     }
 
@@ -317,18 +351,36 @@ impl Log {
         }
     }
 
-    /// Write an event of a scope or of a resolution in progress
-    fn write(&self, line: &str) {
-        self.lock().write_line(line);
+    /// Write an event of the scope or the resolution `id`, in progress
+    fn write(&self, id: u64, line: String) {
+        self.lock().emit(Some(id), line);
     }
 
-    /// Close a scope or a resolution with its last line
-    fn close_node(&self, id: u64, line: &str, flush: bool) {
+    /// Close a scope or a resolution with its last line: `failed` for a resolution that did not converge
+    fn close_node(&self, id: u64, line: String, failed: bool) {
         let mut state = self.lock();
-        let outermost = state.remove(id);
-        state.write_line(line);
-        if flush || outermost {
-            state.flush();
+        match state.remove(id) {
+            Some((thread, open)) => {
+                match open.kept {
+                    Some(mut lines) => {
+                        if failed {
+                            state.write_kept(thread);
+                            lines.push(line);
+                            for line in &lines {
+                                state.write_line(line);
+                            }
+                        }
+                    }
+                    None => state.write_line(&line),
+                }
+                if failed || !state.open.contains_key(&thread) {
+                    state.flush();
+                }
+            }
+            None => {
+                state.write_line(&line);
+                state.flush();
+            }
         }
     }
 }
@@ -368,6 +420,56 @@ impl State {
         }
     }
 
+    /// Keep the line for the scope or the resolution `id` when it keeps its lines, else write it
+    fn emit(&mut self, id: Option<u64>, line: String) {
+        if let Some(id) = id
+            && let Some(lines) = self.find(id).and_then(|open| open.kept.as_mut())
+        {
+            lines.push(line);
+        } else {
+            self.write_line(&line);
+        }
+    }
+
+    /// The scope or the resolution `id` in progress, looked for on the current thread first
+    fn find(&mut self, id: u64) -> Option<&mut Open> {
+        let current = thread::current().id();
+        let thread = if self
+            .open
+            .get(&current)
+            .is_some_and(|stack| stack.iter().any(|open| open.id == id))
+        {
+            current
+        } else {
+            *self
+                .open
+                .iter()
+                .find(|(_, stack)| stack.iter().any(|open| open.id == id))?
+                .0
+        };
+        self.open
+            .get_mut(&thread)?
+            .iter_mut()
+            .rev()
+            .find(|open| open.id == id)
+    }
+
+    /// Write the lines the scopes and resolutions in progress on `thread` kept, the outermost first:
+    /// they write directly from then on
+    fn write_kept(&mut self, thread: ThreadId) {
+        let mut lines = Vec::new();
+        if let Some(stack) = self.open.get_mut(&thread) {
+            for open in stack.iter_mut() {
+                if let Some(kept) = open.kept.take() {
+                    lines.extend(kept);
+                }
+            }
+        }
+        for line in &lines {
+            self.write_line(line);
+        }
+    }
+
     fn innermost(&self) -> Option<u64> {
         self.open
             .get(&thread::current().id())
@@ -377,8 +479,8 @@ impl State {
 
     /// Remove a scope or a resolution from the ones in progress,
     /// looked for on the current thread first, a scope may be dropped on another one.
-    /// Returns whether no other one is in progress on its thread
-    fn remove(&mut self, id: u64) -> bool {
+    /// Returns its thread, without its entry when no other one is in progress on it
+    fn remove(&mut self, id: u64) -> Option<(ThreadId, Open)> {
         let current = thread::current().id();
         let thread = if self
             .open
@@ -392,19 +494,14 @@ impl State {
                 .find(|(_, stack)| stack.iter().any(|open| open.id == id))
                 .map(|(thread, _)| *thread)
         };
-        match thread {
-            Some(thread) => {
-                let stack = self.open.get_mut(&thread).unwrap();
-                stack.retain(|open| open.id != id);
-                if stack.is_empty() {
-                    self.open.remove(&thread);
-                    true
-                } else {
-                    false
-                }
-            }
-            None => true,
+        let thread = thread?;
+        let stack = self.open.get_mut(&thread)?;
+        let position = stack.iter().position(|open| open.id == id)?;
+        let open = stack.remove(position);
+        if stack.is_empty() {
+            self.open.remove(&thread);
         }
+        Some((thread, open))
     }
 }
 
@@ -412,6 +509,8 @@ impl State {
 struct Open {
     id: u64,
     during: Option<During>,
+    /// Its lines, kept until it ends, when the log keeps the failures only
+    kept: Option<Vec<String>>,
 }
 
 /// The evaluation a resolution is making: `of` the guess, a step, a damped step or the jacobian,
@@ -436,7 +535,7 @@ impl Drop for Scope {
         json::key(&mut line, "time");
         json::number(&mut line, self.log.elapsed());
         line.push('}');
-        self.log.close_node(self.id, &line, false);
+        self.log.close_node(self.id, line, false);
     }
 }
 

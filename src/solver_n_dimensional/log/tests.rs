@@ -188,3 +188,20 @@ fn an_error_of_writing_stops_the_log_and_is_returned_when_closing() {
     let error = log.close().unwrap_err();
     assert_eq!(error.to_string(), "disk full");
 }
+
+#[test]
+fn keeping_the_failures_only_drops_the_scopes_where_none_failed() {
+    let buffer = Buffer::default();
+    let log = Log::new(buffer.clone()).failures_only();
+    {
+        let _scope = log.scope("nothing failed");
+        log.note("kept, then dropped", |_| {});
+    }
+    log.note("at the top", |_| {});
+    log.close().unwrap();
+
+    let lines = buffer.lines();
+    assert_eq!(lines.len(), 2);
+    assert!(lines[1].starts_with("{\"event\":\"note\",\"parent\":null,"));
+    assert!(lines[1].contains("\"label\":\"at the top\""));
+}
