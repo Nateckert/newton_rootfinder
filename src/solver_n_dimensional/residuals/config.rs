@@ -97,7 +97,7 @@ impl<'a> ResidualsConfig<'a> {
     }
 
     /// Evaluation of the value of the update residuals thanks to the `normalization()` function
-    pub fn evaluate_update_residuals<D>(
+    pub(crate) fn evaluate_update_residuals<D>(
         &self,
         values: &ResidualsValues<D>,
     ) -> nalgebra::OVector<f64, D>
@@ -116,7 +116,7 @@ impl<'a> ResidualsConfig<'a> {
     }
 
     /// Evaluation of the value of the stopping residuals thanks to the `normalization()` function
-    pub fn evaluate_stopping_residuals<D>(
+    pub(crate) fn evaluate_stopping_residuals<D>(
         &self,
         values: &ResidualsValues<D>,
     ) -> nalgebra::OVector<f64, D>

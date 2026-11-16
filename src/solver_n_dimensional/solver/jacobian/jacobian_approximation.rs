@@ -2,11 +2,11 @@ use super::JacobianMatrix;
 
 use super::super::UpdateQuasiNewtonMethod;
 use super::super::{
-    broyden_first_method_udpate_jac, broyden_second_method_udpate_jac,
-    greenstadt_second_method_udpate_jac, quasi_method_update_jac,
+    broyden_first_method_update_jac, broyden_second_method_update_jac,
+    greenstadt_second_method_update_jac, quasi_method_update_jac,
 };
 
-pub fn approximate_jacobian<D>(
+pub(crate) fn approximate_jacobian<D>(
     jacobian: &mut JacobianMatrix<D>,
     method: UpdateQuasiNewtonMethod,
     iteratives_step_size: &nalgebra::OVector<f64, D>,
@@ -21,12 +21,12 @@ where
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     let jac_next = match method {
-        UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_udpate_jac(
+        UpdateQuasiNewtonMethod::BroydenFirstMethod => broyden_first_method_update_jac(
             jacobian.get_jacobian().as_ref().unwrap(),
             iteratives_step_size,
             residuals_step_size,
         ),
-        UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_udpate_jac(
+        UpdateQuasiNewtonMethod::BroydenSecondMethod => broyden_second_method_update_jac(
             jacobian.get_jacobian().as_ref().unwrap(),
             iteratives_step_size,
             residuals_step_size,
@@ -40,7 +40,7 @@ where
         UpdateQuasiNewtonMethod::GreenstadtSecondMethod => {
             // c = H * y, the solution of J * c = y
             let c = jacobian.solve(residuals_step_size).unwrap();
-            greenstadt_second_method_udpate_jac(
+            greenstadt_second_method_update_jac(
                 jacobian.get_jacobian().as_ref().unwrap(),
                 iteratives_step_size,
                 residuals_step_size,

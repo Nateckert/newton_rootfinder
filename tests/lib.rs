@@ -1,5 +1,6 @@
 mod advanced_parametrization;
 mod common;
+mod configuration;
 mod damping;
 mod entry;
 mod errors;

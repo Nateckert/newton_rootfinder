@@ -1,7 +1,9 @@
 use crate::iteratives;
 use minidom::Element;
 
-pub fn parse_iteratives_jac_node(iteratives_node: &Element) -> Vec<iteratives::IterativeParams> {
+pub(crate) fn parse_iteratives_jac_node(
+    iteratives_node: &Element,
+) -> Vec<iteratives::IterativeParams> {
     let mut iteratives = Vec::new();
 
     let iterative_default = parse_iterative_jac_node(iteratives_node, "iteratives node");
@@ -24,7 +26,7 @@ pub fn parse_iteratives_jac_node(iteratives_node: &Element) -> Vec<iteratives::I
     iteratives
 }
 
-pub fn parse_iterative_jac_node(
+pub(crate) fn parse_iterative_jac_node(
     iterative_node: &Element,
     node_info: &str,
 ) -> iteratives::IterativeParams {
@@ -38,7 +40,7 @@ pub fn parse_iterative_jac_node(
     iteratives::IterativeParams::new(max_step_abs, max_step_rel, min_value, max_value)
 }
 
-pub fn parse_iterative_jac_node_with_default(
+pub(crate) fn parse_iterative_jac_node_with_default(
     iterative_node: &Element,
     iterative_default: &iteratives::IterativeParams,
     node_info: &str,

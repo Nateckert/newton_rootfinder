@@ -1,7 +1,9 @@
 use crate::iteratives;
 use minidom::Element;
 
-pub fn parse_iteratives_fd_node(iteratives_node: &Element) -> Vec<iteratives::IterativeParamsFD> {
+pub(crate) fn parse_iteratives_fd_node(
+    iteratives_node: &Element,
+) -> Vec<iteratives::IterativeParamsFD> {
     let mut iteratives = Vec::new();
 
     let iterative_fd_default = parse_iterative_fd_node(iteratives_node, "iteratives node");

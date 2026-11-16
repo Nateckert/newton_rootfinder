@@ -174,7 +174,7 @@ impl fmt::Display for UpdateQuasiNewtonMethod {
 }
 
 /// Broyden first method update formula
-pub fn broyden_first_method_udpate_jac<D>(
+pub(crate) fn broyden_first_method_update_jac<D>(
     jac: &nalgebra::OMatrix<f64, D, D>,
     s: &nalgebra::OVector<f64, D>,
     y: &nalgebra::OVector<f64, D>,
@@ -189,7 +189,7 @@ where
 }
 
 /// Broyden first method update formula
-pub fn broyden_first_method_udpate_inv_jac<D>(
+pub(crate) fn broyden_first_method_update_inv_jac<D>(
     inv_jac: &nalgebra::OMatrix<f64, D, D>,
     s: &nalgebra::OVector<f64, D>,
     y: &nalgebra::OVector<f64, D>,
@@ -204,7 +204,7 @@ where
 }
 
 /// Broyden second method update formula
-pub fn broyden_second_method_udpate_jac<D>(
+pub(crate) fn broyden_second_method_update_jac<D>(
     jac: &nalgebra::OMatrix<f64, D, D>,
     s: &nalgebra::OVector<f64, D>,
     y: &nalgebra::OVector<f64, D>,
@@ -219,7 +219,7 @@ where
 }
 
 /// Broyden Second method update formula
-pub fn broyden_second_method_udpate_inv_jac<D>(
+pub(crate) fn broyden_second_method_update_inv_jac<D>(
     inv_jac: &nalgebra::OMatrix<f64, D, D>,
     s: &nalgebra::OVector<f64, D>,
     y: &nalgebra::OVector<f64, D>,
@@ -236,7 +236,7 @@ where
 /// Generic function for quasi method update.
 /// This implements Spedicato's formula.
 /// To be used when no formula simplification can be done before implementation
-pub fn quasi_method_update_inv_jac<D>(
+pub(crate) fn quasi_method_update_inv_jac<D>(
     inv_jac: &nalgebra::OMatrix<f64, D, D>,
     s: &nalgebra::OVector<f64, D>,
     y: &nalgebra::OVector<f64, D>,
@@ -254,7 +254,7 @@ where
 /// Generic function for quasi method update.
 /// This implements Spedicato's formula.
 /// To be used when no formula simplification can be done before implementation
-pub fn quasi_method_update_jac<D>(
+pub(crate) fn quasi_method_update_jac<D>(
     jac: &nalgebra::OMatrix<f64, D, D>,
     s: &nalgebra::OVector<f64, D>,
     y: &nalgebra::OVector<f64, D>,
@@ -270,7 +270,7 @@ where
 }
 
 /// Greenstadt second method update formula
-pub fn greenstadt_second_method_udpate_jac<D>(
+pub(crate) fn greenstadt_second_method_update_jac<D>(
     jac: &nalgebra::OMatrix<f64, D, D>,
     s: &nalgebra::OVector<f64, D>,
     y: &nalgebra::OVector<f64, D>,

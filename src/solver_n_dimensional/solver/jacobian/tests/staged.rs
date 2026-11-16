@@ -1,7 +1,7 @@
+use super::super::compute_jacobian_from_finite_difference;
 use crate as nrf;
 use nrf::model::{Model, ModelError};
 use nrf::residuals;
-use nrf::solver::compute_jacobian_from_finite_difference;
 
 type Dimension = nalgebra::Const<2>;
 

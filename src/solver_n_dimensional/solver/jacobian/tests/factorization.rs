@@ -2,9 +2,7 @@
 //! the LU factorization of the jacobian: its inverse is formed only by the
 //! methods updating it.
 
-use crate as nrf;
-
-use nrf::solver::JacobianMatrix;
+use super::super::JacobianMatrix;
 
 fn matrix() -> nalgebra::DMatrix<f64> {
     nalgebra::DMatrix::from_row_slice(2, 2, &[2.0, 1.0, 1.0, 3.0])

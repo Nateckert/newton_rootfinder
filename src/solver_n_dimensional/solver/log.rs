@@ -15,7 +15,7 @@ const TITLE_LINE: &str =       "| Id    |           Iteratives          |       
 const FLOAT_WIDTH: usize = 30;
 const INT_WIDTH: usize = 6;
 
-pub struct SolverLog {
+pub(crate) struct SolverLog {
     path: String,
 }
 
@@ -58,7 +58,7 @@ fn write_rustc_info(content: &mut String) {
 ///
 /// This object defines the format and concatenate the debugging informations
 impl SolverLog {
-    pub fn new(path: &str) -> Self {
+    pub(crate) fn new(path: &str) -> Self {
         let mut file = File::create(path).unwrap();
 
         let mut content = String::new();
@@ -88,12 +88,12 @@ impl SolverLog {
         }
     }
 
-    pub fn add_content(&self, new_content: &str) {
+    pub(crate) fn add_content(&self, new_content: &str) {
         let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
         write!(file, "{}", new_content).unwrap();
     }
 
-    pub fn add_parameters(
+    pub(crate) fn add_parameters(
         &self,
         solver_parameters: &str,
         iteratives_config: &str,
@@ -104,7 +104,7 @@ impl SolverLog {
         self.add_content(residuals_config);
     }
 
-    pub fn add_damping<D>(
+    pub(crate) fn add_damping<D>(
         &self,
         iteratives: &nalgebra::OVector<f64, D>,
         residuals: &ResidualsValues<D>,
@@ -118,7 +118,7 @@ impl SolverLog {
         self.add_content(&iteration_log_header);
         self.add_iteration(iteratives, residuals, errors);
     }
-    pub fn add_new_iteration<D>(
+    pub(crate) fn add_new_iteration<D>(
         &self,
         iteratives: &nalgebra::OVector<f64, D>,
         residuals: &ResidualsValues<D>,

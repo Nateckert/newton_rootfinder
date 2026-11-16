@@ -25,13 +25,12 @@ use crate::residuals;
 /// assert_eq!(user_model.get_iteratives().len(), 1);
 /// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
 /// assert_eq!(user_model.jacobian_provided(), false);
-/// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 /// ```
 pub struct UserModelFromClosure<'a> {
-    pub inputs: nalgebra::DVector<f64>,
-    pub closure: &'a dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
-    pub left: nalgebra::DVector<f64>,
-    pub right: nalgebra::DVector<f64>,
+    inputs: nalgebra::DVector<f64>,
+    closure: &'a dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
+    left: nalgebra::DVector<f64>,
+    right: nalgebra::DVector<f64>,
 }
 
 impl<'a> UserModelFromClosure<'a> {
@@ -102,20 +101,15 @@ impl<'a> Model<nalgebra::Dyn> for UserModelFromClosure<'a> {
 ///
 /// assert_eq!(user_model.get_iteratives().len(), 1);
 /// assert_eq!(user_model.get_iteratives(), nalgebra::DVector::from_vec(vec!(2.0)));
-/// assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
 ///
 /// assert_eq!(user_model.jacobian_provided(), true);
-/// let jacobians_values = user_model.get_jacobian().unwrap();
-/// let (jac_left, jac_right) = jacobians_values.get_jacobians();
-/// assert_eq!(jac_left[(0,0)], 4.0);
-/// assert_eq!(jac_right[(0,0)], 0.0);
 /// ```
 pub struct UserModelFromClosureAndJacobian<'a, 'b> {
-    pub inputs: nalgebra::DVector<f64>,
-    pub closure: &'a dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
-    pub jac: &'b dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
-    pub left: nalgebra::DVector<f64>,
-    pub right: nalgebra::DVector<f64>,
+    inputs: nalgebra::DVector<f64>,
+    closure: &'a dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DVector<f64>,
+    jac: &'b dyn Fn(&nalgebra::DVector<f64>) -> nalgebra::DMatrix<f64>,
+    left: nalgebra::DVector<f64>,
+    right: nalgebra::DVector<f64>,
 }
 
 impl<'a, 'b> UserModelFromClosureAndJacobian<'a, 'b> {
@@ -222,5 +216,10 @@ mod tests {
         );
         assert_eq!(user_model.jacobian_provided(), true);
         assert_eq!(user_model.get_residuals().get_values(0), (4.0, 0.0));
+
+        let jacobians_values = user_model.get_jacobian().unwrap();
+        let (jac_left, jac_right) = jacobians_values.get_jacobians();
+        assert_eq!(jac_left[(0, 0)], 4.0);
+        assert_eq!(jac_right[(0, 0)], 0.0);
     }
 }

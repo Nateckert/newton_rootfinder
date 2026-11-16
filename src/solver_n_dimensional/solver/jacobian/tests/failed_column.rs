@@ -1,10 +1,10 @@
 use std::error::Error;
 use std::fmt;
 
+use super::super::compute_jacobian_from_finite_difference;
 use crate as nrf;
 use nrf::model::{Model, ModelError};
 use nrf::residuals;
-use nrf::solver::compute_jacobian_from_finite_difference;
 
 /// The residual `atan(x)`, whose evaluation fails for `x` in `unusable`.
 ///

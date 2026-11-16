@@ -1,9 +1,9 @@
+use super::super::compute_jacobian_from_finite_difference;
 use crate as nrf;
 use nrf::model::Model;
 use nrf::residuals;
-use nrf::solver::compute_jacobian_from_finite_difference;
 
-pub fn non_linear(inputs: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
+fn non_linear(inputs: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
     let mut outputs = nalgebra::DVector::zeros(2);
     outputs[0] = inputs[0] + 4.0 * inputs[1];
     outputs[1] = inputs[0] * inputs[1];
