@@ -119,6 +119,14 @@ impl Iterative for IterativeParams {
         // limitation by min_value and max_value
         (value_next_lim.max(self.min_value)).min(self.max_value)
     }
+
+    fn log_settings(&self, settings: &mut crate::log::Fields) {
+        settings
+            .number("max_step_abs", self.max_step_abs)
+            .number("max_step_rel", self.max_step_rel)
+            .number("min_value", self.min_value)
+            .number("max_value", self.max_value);
+    }
 }
 
 impl fmt::Display for IterativeParams {

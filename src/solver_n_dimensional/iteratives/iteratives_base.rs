@@ -24,6 +24,10 @@ pub trait Iterative {
     fn with_finite_diff(&self) -> bool {
         false
     }
+    /// Write the parametrization of the iterative, read at the start of each resolution a [log](crate::log) records
+    ///
+    /// By default nothing: the log shows no setting of the iterative
+    fn log_settings(&self, #[allow(unused_variables)] settings: &mut crate::log::Fields) {}
 }
 
 /// A slice of iteratives
@@ -45,6 +49,10 @@ where
 
     pub fn len(&self) -> usize {
         self.iteratives_params.len()
+    }
+
+    pub(crate) fn params(&self) -> &[T] {
+        self.iteratives_params
     }
     /// Compute a limited step for several iteratives
     ///

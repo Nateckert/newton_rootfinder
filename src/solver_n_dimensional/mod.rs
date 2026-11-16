@@ -2,6 +2,7 @@
 
 pub mod errors;
 pub mod iteratives;
+pub mod log;
 pub mod model;
 pub mod residuals;
 pub mod solver;

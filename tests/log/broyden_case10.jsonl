@@ -1,0 +1,22 @@
+{"event":"log","format":1,"version":"VERSION","opened":"OPENED"}
+{"event":"start","id":1,"parent":null,"time":0,"label":"Broyden 1965, case 10","method":"newton_raphson","tolerance":1e-6,"max_iterations":60,"damping":false,"iteratives":[{"settings":{"max_step_abs":5.0,"max_step_rel":2.0,"min_value":1.0,"max_value":15.0,"perturbation":"max","dx_abs":5e-8,"dx_rel":5e-8}},{"settings":{"max_step_abs":5.0,"max_step_rel":"Infinity","min_value":3.0,"max_value":10.0,"perturbation":"max","dx_abs":5e-8,"dx_rel":5e-8}}],"residuals":[{"settings":{"stopping":"abs","update":"abs"}},{"settings":{"stopping":"abs","update":"abs"}}]}
+{"event":"evaluation","id":1,"time":0,"iteration":0,"of":"guess","iteratives":[15.0,-2.0],"left":[34.0,10.0],"right":[0.0,0.0],"errors":[34.0,10.0],"max_error":34.0}
+{"event":"jacobian","id":1,"time":0,"iteration":1,"how":"finite_differences","matrix":[[0.9999999974752427,-33.99999897624184],[0.9999999998437185,-6.000000531969363]]}
+{"event":"step","id":1,"time":0,"iteration":1,"step":[-4.85714211371714,0.8571429051780296]}
+{"event":"evaluation","id":1,"time":0,"iteration":1,"of":"step","iteratives":[10.14285788628286,3.0],"left":[9.14285788628286,-24.85714211371714],"right":[0.0,0.0],"errors":[9.14285788628286,24.85714211371714],"max_error":24.85714211371714}
+{"event":"jacobian","id":1,"time":0,"iteration":2,"how":"finite_differences","matrix":[[1.0000000009383803,0.999999407724772],[0.999999997435705,19.000001501012775]]}
+{"event":"step","id":1,"time":0,"iteration":2,"step":[-11.031745424265111,1.8888886670761884]}
+{"event":"evaluation","id":1,"time":0,"iteration":2,"of":"step","iteratives":[5.14285788628286,4.888888667076189],"left":[-14.97922165748751,48.45011315123016],"right":[0.0,0.0],"errors":[14.97922165748751,48.45011315123016],"max_error":48.45011315123016}
+{"event":"jacobian","id":1,"time":0,"iteration":3,"how":"finite_differences","matrix":[[1.000000004305319,-24.814812902184556],[0.9999999973972655,67.48147842203487]]}
+{"event":"step","id":1,"time":0,"iteration":3,"step":[-2.074411297172973,-0.6872360082187112]}
+{"event":"evaluation","id":1,"time":0,"iteration":3,"of":"step","iteratives":[3.068446589109887,4.201652658857477],"left":[-4.240926525580471,7.07468755618525],"right":[0.0,0.0],"errors":[4.240926525580471,7.07468755618525],"max_error":7.07468755618525}
+{"event":"jacobian","id":1,"time":0,"iteration":4,"how":"finite_differences","matrix":[[1.000000009022212,-12.945130205426038],[1.000000009022212,47.36496342754474]]}
+{"event":"step","id":1,"time":0,"iteration":4,"step":[1.8121108861904767,-0.1876238851597407]}
+{"event":"evaluation","id":1,"time":0,"iteration":4,"of":"step","iteratives":[4.880557475300364,4.014028773697737],"left":[-0.2611106680709705,0.4723272159480416],"right":[0.0,0.0],"errors":[0.2611106680709705,0.4723272159480416],"max_error":0.4723272159480416}
+{"event":"jacobian","id":1,"time":0,"iteration":5,"how":"finite_differences","matrix":[[0.9999999987660185,-10.19699465319853],[0.9999999987660185,42.365341183593884]]}
+{"event":"step","id":1,"time":0,"iteration":5,"step":[0.1188250931431346,-0.013953677521036321]}
+{"event":"evaluation","id":1,"time":0,"iteration":5,"of":"step","iteratives":[4.999382568443498,4.0000750961767],"left":[-0.0013684327999774482,0.002536681177996769],"right":[0.0,0.0],"errors":[0.0013684327999774482,0.002536681177996769],"max_error":0.002536681177996769}
+{"event":"jacobian","id":1,"time":0,"iteration":6,"how":"finite_differences","matrix":[[1.0000000056706229,-10.00105276887188],[1.0000000056706229,42.00195515435811]]}
+{"event":"step","id":1,"time":0,"iteration":6,"step":[0.0006174137204291293,-7.509400194194892e-5]}
+{"event":"evaluation","id":1,"time":0,"iteration":6,"of":"step","iteratives":[4.999999982163928,4.000000002174758],"left":[-3.958365368816885e-8,7.350377018155996e-8],"right":[0.0,0.0],"errors":[3.958365368816885e-8,7.350377018155996e-8],"max_error":7.350377018155996e-8}
+{"event":"end","id":1,"time":0,"outcome":"converged","iterations":6,"max_error":7.350377018155996e-8}

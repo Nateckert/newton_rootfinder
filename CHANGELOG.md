@@ -5,17 +5,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Added
+- A log of the resolutions in [JSON Lines](https://jsonlines.org/), one log for every resolution of a program:
+  `log::Log`, given to a solver with `RootFinder::log_to`.
+  See the [documentation of the `log` module](https://docs.rs/newton_rootfinder/0.13.0/newton_rootfinder/log/index.html).
+- `Iterative::log_settings`, by default doing nothing: the settings of an iterative in the log.
+
 ### Changed
 - When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer
   inverted: the equivalent linear system is factorized and solved, which speeds up the computation
   and gives more accurate results (#31). The iterates can differ in their last digits.
-- The log of a resolution prints the inverse of the jacobian only for the methods that still compute it.
+- `RootFinder` and `solver::default` no longer require the iteratives to implement `Display`.
 - *Breaking change*: `SolverError::JacobianError`, which held a `SolverInternalError`, is replaced by two variants:
   `SolverError::JacobianEvaluationError`, holding the `ModelError` the model returned while the jacobian was evaluated,
   and `SolverError::NonInvertibleJacobian`, for a singular jacobian. Their `Display` texts are unchanged.
   `errors::SolverInternalError` is no longer public.
 
 ### Removed
+- *Breaking change*: `RootFinder::activate_debug` and its text file, replaced by `RootFinder::log_to`.
+- *Breaking change*: the feature `additional_log_info` and its dependencies `chrono`, `whoami` and `rustc_version_runtime`:
+  a program writes such facts in the log with `Log::note`.
+
 The public API is reduced to what a user of the crate calls: a model, its parametrization, the solver, its errors,
 its log and the XML configuration. The machinery of a resolution is no longer exported.
 The code compiled for a resolution is unchanged.

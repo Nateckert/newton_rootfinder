@@ -1,5 +1,3 @@
-use std::fmt;
-
 use super::super::Point;
 use super::JacobianMatrix;
 use crate::errors;
@@ -106,7 +104,7 @@ pub(crate) fn evaluate_jacobian_from_finite_difference_at<'a, M, D, T>(
 ) -> Result<(), crate::errors::SolverInternalError<M, D>>
 where
     M: model::Model<D>,
-    T: Iterative + fmt::Display,
+    T: Iterative,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,

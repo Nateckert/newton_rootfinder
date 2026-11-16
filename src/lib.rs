@@ -191,20 +191,11 @@
 //!
 //! ## Debugging
 //!
-//! In order to be able to debug more easily the resolution process, it is possible to generate a simulation log.
+//! A [log::Log] records the resolutions as they happen, one event per line in [JSON Lines](https://jsonlines.org/):
+//! the settings of a resolution, each evaluation of the model, each step and jacobian, and the outcome.
+//! One log serves every resolution of a program, a resolution started inside the evaluation of another placed under it.
 //!
-//! Check the [solver::RootFinder::activate_debug] method.
-//!
-//! The optional feature `additional_log_info` allows to add in the log informations such as:
-//! - the time of the computation (UTC and local time)
-//! - user information such as plateform, id, ...
-//! - the version of `rustc` used
-//!
-//! To enable this feature, add the following line into your `Cargo.toml` file:
-//! ```toml
-//! [dependencies]
-//! newton_rootfinder = { version = your_version, features = ["additional_log_info"] }
-//! ```
+//! Check the [log] module and the [solver::RootFinder::log_to] method.
 //!
 //! ## User interface
 //!
@@ -397,5 +388,7 @@ pub use solver_n_dimensional::solver;
 pub use solver_n_dimensional::xml_parser;
 
 pub use solver_n_dimensional::errors;
+
+pub use solver_n_dimensional::log;
 
 mod solver_n_dimensional;
