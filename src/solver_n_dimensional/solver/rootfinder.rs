@@ -506,7 +506,8 @@ where
         match result {
             Err(errors::SolverError::ModelInitialEvaluationError(_))
             | Err(errors::SolverError::ModelEvaluationError(_))
-            | Err(errors::SolverError::JacobianError(_))
+            | Err(errors::SolverError::JacobianEvaluationError(_))
+            | Err(errors::SolverError::NonInvertibleJacobian)
             | Err(errors::SolverError::NonFiniteResiduals(_)) => {
                 model.set_memory(&entry_memory);
                 model.set_iteratives(&entry_iteratives);
@@ -573,9 +574,7 @@ where
                     }
                     Err(e) => return Err(e),
                 },
-                Err(error) => {
-                    return Err(errors::SolverError::JacobianError(error));
-                }
+                Err(error) => return Err(error.into()),
             }
 
             self.check_finite_residuals(model, &errors)?;

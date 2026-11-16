@@ -142,7 +142,15 @@ fn an_unusable_proposed_guess_restores_the_entry_state() {
 fn a_failed_jacobian_restores_the_entry_state() {
     let mut model = Arctangent::new(Some((2.00000005, 2.0000002)), None);
     let error = solve(&mut model, 50).unwrap_err();
-    assert!(matches!(error, SolverError::JacobianError(_)));
+    assert!(matches!(
+        error,
+        SolverError::JacobianEvaluationError(ModelError::UnusableValuesError(Unusable))
+    ));
+    assert!(
+        error
+            .to_string()
+            .starts_with("Jacobian error: Invalid jacobian: ")
+    );
     assert_entry_state(&model);
 }
 

@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   inverted: the equivalent linear system is factorized and solved, which speeds up the computation
   and gives more accurate results (#31). The iterates can differ in their last digits.
 - The log of a resolution prints the inverse of the jacobian only for the methods that still compute it.
+- *Breaking change*: `SolverError::JacobianError`, which held a `SolverInternalError`, is replaced by two variants:
+  `SolverError::JacobianEvaluationError`, holding the `ModelError` the model returned while the jacobian was evaluated,
+  and `SolverError::NonInvertibleJacobian`, for a singular jacobian. Their `Display` texts are unchanged.
+  `errors::SolverInternalError` is no longer public.
 
 ### Removed
 The public API is reduced to what a user of the crate calls: a model, its parametrization, the solver, its errors,

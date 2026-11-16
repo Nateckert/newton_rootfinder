@@ -128,8 +128,9 @@ use std::fmt;
 
 /// Errors for solver control flow
 ///
-/// These error are not exposed directly to the API
-pub enum SolverInternalError<M, D>
+/// Not part of the API: a resolution gives them to the user as
+/// [SolverError::JacobianEvaluationError] and [SolverError::NonInvertibleJacobian]
+pub(crate) enum SolverInternalError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
@@ -140,30 +141,20 @@ where
     InvalidJacobianInverseError,
 }
 
-impl<M, D> fmt::Display for SolverInternalError<M, D>
+impl<M, D> From<SolverInternalError<M, D>> for SolverError<M, D>
 where
     M: crate::model::Model<D>,
     D: nalgebra::Dim,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::InvalidJacobianError(error) => write!(f, "Invalid jacobian: {}", error),
-            Self::InvalidJacobianInverseError => write!(f, "Non invertible jacobian"),
+    fn from(error: SolverInternalError<M, D>) -> Self {
+        match error {
+            SolverInternalError::InvalidJacobianError(model_error) => {
+                Self::JacobianEvaluationError(model_error)
+            }
+            SolverInternalError::InvalidJacobianInverseError => Self::NonInvertibleJacobian,
         }
-    }
-}
-
-impl<M, D> fmt::Debug for SolverInternalError<M, D>
-where
-    M: crate::model::Model<D>,
-    D: nalgebra::Dim,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
     }
 }
 
@@ -175,7 +166,8 @@ pub(crate) struct NonInvertibleJacobian;
 /// - [SolverError::NonConvergenceError] : finished all the iterations but didn't find a root
 /// - [SolverError::ModelInitialEvaluationError] : the algorithm must be able to evaluate the model correctly at the begin of the resolution process, it failed in that case; it holds the error of the model
 /// - [SolverError::ModelEvaluationError] : during the iterative process, while performing an update, a model error occured
-/// - [SolverError::JacobianError] : during the jacobian evaluation, an error occured
+/// - [SolverError::JacobianEvaluationError] : the model returned an error while the jacobian was evaluated, by finite-difference or by the model itself; it holds the error of the model
+/// - [SolverError::NonInvertibleJacobian] : the jacobian, or its approximation by a quasi-Newton method, is singular
 /// - [SolverError::FinalEvaluationError] : the algorithm managed to converged but the model returned an error at convergence
 /// - [SolverError::NonFiniteResiduals] : a residual (left or right member) is NaN or infinite, at the initial evaluation or after an update; it holds the indices of the equations concerned
 /// - [SolverError::DimensionMismatch] : the model has another number of iteratives than the configurations of the solver; nothing was evaluated
@@ -189,7 +181,8 @@ where
     NonConvergenceError,
     ModelInitialEvaluationError(M::UnusableValuesError),
     ModelEvaluationError(crate::model::ModelError<M, D>),
-    JacobianError(SolverInternalError<M, D>),
+    JacobianEvaluationError(crate::model::ModelError<M, D>),
+    NonInvertibleJacobian,
     FinalEvaluationError,
     NonFiniteResiduals(Vec<usize>),
     DimensionMismatch { model: usize, solver: usize },
@@ -211,8 +204,11 @@ where
             Self::ModelEvaluationError(error) => {
                 write!(f, "Model evaluation failed: {}", error)
             }
-            Self::JacobianError(error) => {
-                write!(f, "Jacobian error: {}", error)
+            Self::JacobianEvaluationError(error) => {
+                write!(f, "Jacobian error: Invalid jacobian: {}", error)
+            }
+            Self::NonInvertibleJacobian => {
+                write!(f, "Jacobian error: Non invertible jacobian")
             }
             Self::FinalEvaluationError => {
                 write!(f, "Final model evaluation failed")
