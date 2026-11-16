@@ -1,9 +1,9 @@
-use newton_rootfinder as nrf;
+use crate as nrf;
 use nrf::model::Model;
 use nrf::residuals;
 use nrf::solver::compute_jacobian_from_finite_difference;
 
-use crate::common::float_matrix_comparison;
+use crate::solver_n_dimensional::test_util::float_matrix_comparison;
 use util::test_cases::broyden1965;
 
 #[test]

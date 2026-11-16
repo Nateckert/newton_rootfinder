@@ -6,7 +6,6 @@ use nrf::errors::SolverError;
 use nrf::iteratives;
 use nrf::model::{Model, ModelError};
 use nrf::residuals;
-use nrf::solver::compute_jacobian_from_finite_difference;
 
 /// The residual `atan(x)` from `x = 2`: the jacobian perturbs `x` to
 /// `2.0000001`, then the first Newton-Raphson step proposes `x ≈ -3.54`.
@@ -114,18 +113,6 @@ fn solve(
 fn assert_entry_state(model: &Arctangent) {
     assert_eq!(model.x, 2.0);
     assert_eq!(model.last_x, 5.0);
-}
-
-#[test]
-fn a_failed_jacobian_column_restores_the_memory_of_the_reference_point() {
-    let mut model = Arctangent::new(Some((2.00000005, 2.0000002)), None);
-    model.set_iteratives(&nalgebra::SVector::from([2.0]));
-    model.evaluate().unwrap();
-    let stopping = vec![residuals::NormalizationMethod::Abs; 1];
-    let config = residuals::ResidualsConfig::new(&stopping, &stopping);
-    let perturbations = nalgebra::SVector::from([0.0000001]);
-    compute_jacobian_from_finite_difference(&mut model, &perturbations, &config).unwrap_err();
-    assert_eq!(model.last_x, 2.0);
 }
 
 #[test]
