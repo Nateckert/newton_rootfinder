@@ -3,7 +3,7 @@ use crate::errors;
 use crate::model;
 use crate::residuals;
 
-pub fn evaluate_jacobian_from_analytical_function<'a, M, D>(
+pub(crate) fn evaluate_jacobian_from_analytical_function<'a, M, D>(
     jacobian_matrix: &mut JacobianMatrix<D>,
     model: &mut M,
     residuals_config: &'a residuals::ResidualsConfig<'a>,

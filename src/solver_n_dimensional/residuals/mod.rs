@@ -17,19 +17,27 @@ pub use values::ResidualsValues;
 
 use std::fmt;
 
-/// Normalization method used by the `normalization` function.
+/// How the two members of an equation, `left` and `right`, are compared
+///
+/// - `Abs` (absolute) is the plain difference: `left - right`
+/// - `Rel` (relative) is the difference relative to the mean of the two members:
+///   `(left - right)/(abs(left+right)/2)`
+/// - `Adapt` (adaptative) behaves like `Abs` for near zero values and like `Rel` for big values:
+///   `(left - right)/(1+abs(left+right)/2)`
+///
+/// Default of each formula:
+/// - `Abs`: does not take into account the order of magnitude of the residuals
+/// - `Rel`: behave poorly if the residual is close to zero
+/// - `Adapt`: behave poorly if one member of the residual is close to zero and the other one is big,
+///   as the value will be close to either -2 or 2.
+///
+/// The values the solver computes with them are printed in its log,
+/// see [activate_debug](crate::solver::RootFinder::activate_debug).
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum NormalizationMethod {
     Abs,
     Rel,
     Adapt,
-}
-
-/// Not used yet
-pub enum StoppingCriteria {
-    OutputTol,
-    InputTol,
-    SumInputOutputTol,
 }
 
 impl fmt::Display for NormalizationMethod {
@@ -44,47 +52,8 @@ impl fmt::Display for NormalizationMethod {
     }
 }
 
-/// Compute the residue according to the normalization method
-///
-/// - Abs (absolute) is the plain difference evaluation
-/// - Rel (relative) is the relative value evaluation
-/// - Adapt (adaptative) is designed to behave like Abs for near zero values and like Rel for big values
-///
-/// The formula are:
-/// - Abs: left - right
-/// - Rel: (left - right)/(abs(left+right)/2)
-/// - Adapt: (left - right)/(1+abs(left+right)/2)
-///
-/// Default of each formula:
-/// - Abs: does not take into account the order of magnitude of the residuals
-/// - Rel: behave poorly if the residual is close to zero
-/// - Adapt: behave poorly if one member of the residual is close to zero and the other one is big, as the value will be close to either -2 or 2.
-///
-/// # Examples
-/// ```
-/// use newton_rootfinder as nrf;
-/// use float_cmp::*;
-/// use nrf::residuals::*;
-///
-/// let small_values_abs = normalization(0.1, -0.15, NormalizationMethod::Abs);
-/// assert!(approx_eq!(f64, small_values_abs, 0.25, ulps = 2));
-///
-/// let small_values_rel = normalization(0.1, -0.15, NormalizationMethod::Rel);
-/// assert!(approx_eq!(f64, small_values_rel, 10.0, ulps = 2));
-///
-/// let small_values_adapt = normalization(0.1, -0.15, NormalizationMethod::Adapt);
-/// assert!(approx_eq!(f64, small_values_adapt, 0.24390243902439027, ulps = 2));
-///
-/// let big_values_abs = normalization(101.1, 101.25, NormalizationMethod::Abs);
-/// assert!(approx_eq!(f64, big_values_abs, -0.15000000000000568, ulps = 2));
-///
-/// let big_values_rel = normalization(101.1, 101.25, NormalizationMethod::Rel);
-/// assert!(approx_eq!(f64, big_values_rel, -0.0014825796886583217, ulps = 2));
-///
-/// let big_values_adapt = normalization(101.1, 101.25, NormalizationMethod::Adapt);
-/// assert!(approx_eq!(f64, big_values_adapt, -0.0014680694886225172, ulps = 2));
-/// ```
-pub fn normalization(x: f64, y: f64, normalization_method: NormalizationMethod) -> f64 {
+/// Compute the residue according to the [NormalizationMethod]
+pub(crate) fn normalization(x: f64, y: f64, normalization_method: NormalizationMethod) -> f64 {
     match normalization_method {
         NormalizationMethod::Abs => x - y,
         NormalizationMethod::Rel => (x - y) / ((x + y).abs() / 2.0),
@@ -95,7 +64,7 @@ pub fn normalization(x: f64, y: f64, normalization_method: NormalizationMethod) 
 /// Derivation of the normalization method
 ///
 /// This method is used when the jacobian is provided by the model and not calculated through finite-difference
-pub fn deriv_normalization(
+pub(crate) fn deriv_normalization(
     x: f64,
     y: f64,
     dx: f64,
@@ -144,4 +113,34 @@ pub fn deriv_normalization(
 ///```
 pub fn default_vec_residuals(size: usize) -> Vec<ResidualConfig> {
     vec![ResidualConfig::default(); size]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use float_cmp::approx_eq;
+
+    #[test]
+    fn normalization_of_small_values() {
+        let abs = normalization(0.1, -0.15, NormalizationMethod::Abs);
+        assert!(approx_eq!(f64, abs, 0.25, ulps = 2));
+
+        let rel = normalization(0.1, -0.15, NormalizationMethod::Rel);
+        assert!(approx_eq!(f64, rel, 10.0, ulps = 2));
+
+        let adapt = normalization(0.1, -0.15, NormalizationMethod::Adapt);
+        assert!(approx_eq!(f64, adapt, 0.24390243902439027, ulps = 2));
+    }
+
+    #[test]
+    fn normalization_of_big_values() {
+        let abs = normalization(101.1, 101.25, NormalizationMethod::Abs);
+        assert!(approx_eq!(f64, abs, -0.15000000000000568, ulps = 2));
+
+        let rel = normalization(101.1, 101.25, NormalizationMethod::Rel);
+        assert!(approx_eq!(f64, rel, -0.0014825796886583217, ulps = 2));
+
+        let adapt = normalization(101.1, 101.25, NormalizationMethod::Adapt);
+        assert!(approx_eq!(f64, adapt, -0.0014680694886225172, ulps = 2));
+    }
 }

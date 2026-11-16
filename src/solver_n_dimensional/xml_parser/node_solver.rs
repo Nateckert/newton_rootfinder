@@ -6,7 +6,7 @@ use crate::solver::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod
 
 /// Parse a solver node: the parameters of the solver and the problem size,
 /// which the caller checks against the iteratives and the residuals nodes
-pub fn parse_solver_node(solver_node: &Element) -> (SolverParameters, usize) {
+pub(crate) fn parse_solver_node(solver_node: &Element) -> (SolverParameters, usize) {
     let node_info = "solver node";
     let problem_size = util::parse_int_attribute(solver_node, "problem_size", node_info);
     let max_iter = util::parse_int_attribute(solver_node, "max_iter", node_info);

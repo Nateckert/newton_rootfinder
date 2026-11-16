@@ -12,7 +12,7 @@ use super::factorization::Factorization;
 /// The matrix itself is read back by the methods of
 /// [super::super::QuasiNewtonMethod::JacobianUpdate], which update it, and by the log:
 /// a jacobian built with [JacobianMatrix::factorization_only] does not keep it.
-pub struct JacobianMatrix<D>
+pub(crate) struct JacobianMatrix<D>
 where
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
@@ -44,7 +44,7 @@ where
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
 {
     /// A jacobian keeping the matrices it is given beside their factorization
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         JacobianMatrix {
             matrix: None,
             factorization: None,
@@ -60,22 +60,22 @@ where
     ///
     /// It spares a copy of the matrix at each update, for the resolutions that never read it back:
     /// the ones of the Newton-Raphson, stationary Newton and inverse update methods, without the log
-    pub fn factorization_only() -> Self {
+    pub(crate) fn factorization_only() -> Self {
         JacobianMatrix {
             keep_matrix: false,
             ..JacobianMatrix::new()
         }
     }
 
-    pub fn force_jacobian_computation(&mut self) {
+    pub(crate) fn force_jacobian_computation(&mut self) {
         self.compute_jacobian_at_next_iteration = true
     }
 
-    pub fn compute_jacobian(&self) -> bool {
+    pub(crate) fn compute_jacobian(&self) -> bool {
         self.compute_jacobian_at_next_iteration
     }
 
-    pub fn is_jacobian_approximated(&self) -> bool {
+    pub(crate) fn is_jacobian_approximated(&self) -> bool {
         self.is_current_jacobian_approximated
     }
 
@@ -108,7 +108,7 @@ where
         }
     }
 
-    pub fn update_jacobian_with_exact_value(
+    pub(crate) fn update_jacobian_with_exact_value(
         &mut self,
         matrix: nalgebra::OMatrix<f64, D, D>,
     ) -> Result<(), crate::errors::NonInvertibleJacobian> {
@@ -116,7 +116,7 @@ where
         self.update_jacobian(matrix)
     }
 
-    pub fn update_jacobian_with_approximated_value(
+    pub(crate) fn update_jacobian_with_approximated_value(
         &mut self,
         matrix: nalgebra::OMatrix<f64, D, D>,
     ) -> Result<(), crate::errors::NonInvertibleJacobian> {
@@ -127,7 +127,7 @@ where
     /// When updating the inverse,
     /// the jacobian does not have to be recomputed
     /// but becomes invalid, with its factorization
-    pub fn update_inverse(&mut self, inverse: nalgebra::OMatrix<f64, D, D>) {
+    pub(crate) fn update_inverse(&mut self, inverse: nalgebra::OMatrix<f64, D, D>) {
         self.matrix = None;
         self.factorization = None;
         self.inverse = Some(inverse);
@@ -140,7 +140,10 @@ where
     ///
     /// `None` when neither the jacobian nor its inverse is known
     #[inline]
-    pub fn solve(&self, rhs: &nalgebra::OVector<f64, D>) -> Option<nalgebra::OVector<f64, D>> {
+    pub(crate) fn solve(
+        &self,
+        rhs: &nalgebra::OVector<f64, D>,
+    ) -> Option<nalgebra::OVector<f64, D>> {
         match (&self.factorization, &self.inverse) {
             (Some(factorization), _) => Some(factorization.solve(rhs)),
             (None, Some(inverse)) => Some(inverse * rhs),
@@ -151,7 +154,7 @@ where
     /// Form the inverse from the factorization of the jacobian, unless it is already held.
     ///
     /// Only the methods updating the inverse need it: the others solve with the factorization
-    pub fn form_inverse(&mut self) {
+    pub(crate) fn form_inverse(&mut self) {
         if self.inverse.is_none() {
             self.inverse = self
                 .factorization
@@ -164,16 +167,16 @@ where
     /// by [JacobianMatrix::form_inverse] or given to [JacobianMatrix::update_inverse].
     ///
     /// A jacobian that has just been computed or approximated holds its factorization only
-    pub fn get_inverse(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
+    pub(crate) fn get_inverse(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
         &self.inverse
     }
 
-    pub fn get_jacobian(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
+    pub(crate) fn get_jacobian(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
         &self.matrix
     }
     /// Invalidate a jacobian
     /// For example, if there is an error computing it
-    pub fn invalidate_jacobian(&mut self) {
+    pub(crate) fn invalidate_jacobian(&mut self) {
         self.matrix = None;
         self.factorization = None;
         self.inverse = None;

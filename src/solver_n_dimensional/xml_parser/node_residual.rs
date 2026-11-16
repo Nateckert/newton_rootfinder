@@ -2,7 +2,7 @@ use super::util;
 use crate::residuals;
 use minidom::Element;
 
-pub fn parse_residuals_node(
+pub(crate) fn parse_residuals_node(
     residuals_node: &Element,
 ) -> (
     Vec<residuals::NormalizationMethod>,

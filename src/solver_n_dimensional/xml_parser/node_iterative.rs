@@ -1,7 +1,7 @@
 use crate::iteratives;
 use minidom::Element;
 
-pub fn parse_perturbation_method(
+pub(crate) fn parse_perturbation_method(
     node: &Element,
     node_info: &str,
 ) -> iteratives::PerturbationMethod {
@@ -20,7 +20,7 @@ pub fn parse_perturbation_method(
     }
 }
 
-pub fn parse_perturbation_method_with_default(
+pub(crate) fn parse_perturbation_method_with_default(
     node: &Element,
     default: iteratives::PerturbationMethod,
     node_info: &str,

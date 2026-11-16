@@ -384,6 +384,8 @@
 //!
 //! The values returned by a user model must be such vectors and matrix
 
+#![warn(unreachable_pub)]
+
 pub use solver_n_dimensional::model;
 
 pub use solver_n_dimensional::iteratives;

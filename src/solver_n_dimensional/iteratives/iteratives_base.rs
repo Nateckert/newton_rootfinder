@@ -30,9 +30,7 @@ pub trait Iterative {
 ///
 /// This struct is used as a wrapper to act on a slice of several iteratives
 ///
-/// It provides the same method as the `Iterative` trait with the plural suffix:
-/// - `step_limitations`
-/// - `compute_perturbations`
+/// The solver applies the methods of the `Iterative` trait to each of them.
 pub struct Iteratives<'a, T: Iterative> {
     iteratives_params: &'a [T],
 }
@@ -53,7 +51,7 @@ where
     /// Return the new value after the application of the step limitation (and not the step).
     ///
     /// This is required as it can be limited by an interval for the iteratives.
-    pub fn step_limitations<D>(
+    pub(crate) fn step_limitations<D>(
         &self,
         values: &nalgebra::OVector<f64, D>,
         raw_step: &nalgebra::OVector<f64, D>,
@@ -71,7 +69,7 @@ where
     }
 
     /// Compute the perturbation for several iteratives
-    pub fn compute_perturbations<D>(
+    pub(crate) fn compute_perturbations<D>(
         &self,
         iterative_values: &nalgebra::OVector<f64, D>,
     ) -> nalgebra::OVector<f64, D>

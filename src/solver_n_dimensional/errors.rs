@@ -167,7 +167,7 @@ where
     }
 }
 
-pub struct NonInvertibleJacobian;
+pub(crate) struct NonInvertibleJacobian;
 
 /// Error returned by the [crate::solver::RootFinder::solve] method
 ///

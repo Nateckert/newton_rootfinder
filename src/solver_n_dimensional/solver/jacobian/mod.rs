@@ -7,12 +7,11 @@ mod jacobian_struct;
 #[cfg(test)]
 mod tests;
 
-pub use jacobian_analytic::evaluate_jacobian_from_analytical_function;
+pub(crate) use jacobian_analytic::evaluate_jacobian_from_analytical_function;
+#[cfg(test)]
+pub(crate) use jacobian_finite_diff::compute_jacobian_from_finite_difference;
 pub(crate) use jacobian_finite_diff::evaluate_jacobian_from_finite_difference_at;
-pub use jacobian_finite_diff::{
-    compute_jacobian_from_finite_difference, evaluate_jacobian_from_finite_difference,
-};
-pub use jacobian_struct::JacobianMatrix;
+pub(crate) use jacobian_struct::JacobianMatrix;
 
-pub use jacobian_approximation::approximate_jacobian;
-pub use jacobian_inverse_approximation::approximate_inv_jacobian;
+pub(crate) use jacobian_approximation::approximate_jacobian;
+pub(crate) use jacobian_inverse_approximation::approximate_inv_jacobian;

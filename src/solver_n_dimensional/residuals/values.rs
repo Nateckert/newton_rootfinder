@@ -44,32 +44,23 @@ where
         }
     }
 
-    pub fn len(&self) -> usize {
-        self.problem_size
-    }
-
-    pub fn get_values(&self, index: usize) -> (f64, f64) {
+    pub(crate) fn get_values(&self, index: usize) -> (f64, f64) {
         (self.left[index], self.right[index])
     }
 
-    pub fn shape(&self) -> usize {
-        let (nrows, _ncols) = self.left.shape();
-        nrows
-    }
-
-    pub fn shape_generic(&self) -> D {
+    pub(crate) fn shape_generic(&self) -> D {
         let (nrows, _ncols) = self.left.shape_generic();
         nrows
     }
 
     /// Indices of the equations whose left or right member is NaN or infinite
-    pub fn non_finite_indices(&self) -> Vec<usize> {
+    pub(crate) fn non_finite_indices(&self) -> Vec<usize> {
         (0..self.problem_size)
             .filter(|&i| !(self.left[i].is_finite() && self.right[i].is_finite()))
             .collect()
     }
 
-    pub fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
+    pub(crate) fn get_values_str_eq(&self, index: usize, float_width: usize) -> String {
         let mut str_eq = String::new();
         str_eq.push_str(&format!(
             "{:width$} = {:width$}",
@@ -129,7 +120,7 @@ where
         }
     }
 
-    pub fn normalize(
+    pub(crate) fn normalize(
         &self,
         res_values: &ResidualsValues<D>,
         norm_methods: &[NormalizationMethod],
@@ -154,7 +145,10 @@ where
         jac
     }
 
-    pub fn get_jacobians(&self) -> (&nalgebra::OMatrix<f64, D, D>, &nalgebra::OMatrix<f64, D, D>) {
+    #[cfg(test)]
+    pub(crate) fn get_jacobians(
+        &self,
+    ) -> (&nalgebra::OMatrix<f64, D, D>, &nalgebra::OMatrix<f64, D, D>) {
         (&self.left, &self.right)
     }
 }

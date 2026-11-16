@@ -60,20 +60,19 @@ mod resolution_method;
 mod rootfinder;
 
 pub use default::default;
-pub use jacobian::JacobianMatrix;
-pub use jacobian::evaluate_jacobian_from_analytical_function;
+pub(crate) use jacobian::JacobianMatrix;
+pub(crate) use jacobian::evaluate_jacobian_from_analytical_function;
 pub(crate) use jacobian::evaluate_jacobian_from_finite_difference_at;
-pub use jacobian::{
-    approximate_inv_jacobian, approximate_jacobian, compute_jacobian_from_finite_difference,
-    evaluate_jacobian_from_finite_difference,
-};
+pub(crate) use jacobian::{approximate_inv_jacobian, approximate_jacobian};
 pub use parameters::SolverParameters;
 pub(crate) use point::Point;
-pub use resolution_method::greenstadt_second_method_udpate_jac;
+pub(crate) use resolution_method::greenstadt_second_method_update_jac;
 pub use resolution_method::{QuasiNewtonMethod, ResolutionMethod, UpdateQuasiNewtonMethod};
-pub use resolution_method::{
-    broyden_first_method_udpate_inv_jac, broyden_second_method_udpate_inv_jac,
+pub(crate) use resolution_method::{
+    broyden_first_method_update_inv_jac, broyden_second_method_update_inv_jac,
 };
-pub use resolution_method::{broyden_first_method_udpate_jac, broyden_second_method_udpate_jac};
-pub use resolution_method::{quasi_method_update_inv_jac, quasi_method_update_jac};
+pub(crate) use resolution_method::{
+    broyden_first_method_update_jac, broyden_second_method_update_jac,
+};
+pub(crate) use resolution_method::{quasi_method_update_inv_jac, quasi_method_update_jac};
 pub use rootfinder::RootFinder;

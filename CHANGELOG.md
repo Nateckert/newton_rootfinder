@@ -10,8 +10,36 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   inverted: the equivalent linear system is factorized and solved, which speeds up the computation
   and gives more accurate results (#31). The iterates can differ in their last digits.
 - The log of a resolution prints the inverse of the jacobian only for the methods that still compute it.
-- `JacobianMatrix::get_inverse` returns `None` until the inverse is formed.
-  `JacobianMatrix::solve`, `form_inverse` and `factorization_only` are added.
+
+### Removed
+The public API is reduced to what a user of the crate calls: a model, its parametrization, the solver, its errors,
+its log and the XML configuration. The machinery of a resolution is no longer exported.
+The code compiled for a resolution is unchanged.
+- *Breaking change*: `solver::JacobianMatrix`, `solver::evaluate_jacobian_from_analytical_function`,
+  `solver::approximate_jacobian`, `solver::approximate_inv_jacobian` and
+  `solver::compute_jacobian_from_finite_difference` are no longer public.
+  `solver::evaluate_jacobian_from_finite_difference`, which nothing called, is removed.
+- *Breaking change*: the update formulas of the quasi-Newton methods are no longer public:
+  `solver::broyden_first_method_udpate_jac`, `broyden_first_method_udpate_inv_jac`,
+  `broyden_second_method_udpate_jac`, `broyden_second_method_udpate_inv_jac`,
+  `quasi_method_update_jac`, `quasi_method_update_inv_jac` and `greenstadt_second_method_udpate_jac`.
+- *Breaking change*: `errors::NonInvertibleJacobian` is no longer public.
+- *Breaking change*: `residuals::normalization` and `residuals::deriv_normalization` are no longer public.
+  Their formulas are in the documentation of `NormalizationMethod`,
+  and the values the solver computes with them are in its log.
+- *Breaking change*: `residuals::StoppingCriteria`, which nothing used, is removed.
+- *Breaking change*: `ResidualsConfig::evaluate_update_residuals` and `evaluate_stopping_residuals`,
+  `Iteratives::step_limitations` and `compute_perturbations` are no longer public.
+  What a configuration was given is still read back from it
+  (`ResidualsConfig::len`, `get_update_methods`, `get_stopping_criterias`, `Iteratives::len`),
+  and the `Iterative` trait still gives the step limitation and the perturbation of one iterative.
+- *Breaking change*: `ResidualsValues` and `JacobianValues`, which a model builds for the solver, keep `new` only:
+  `ResidualsValues::get_values`, `shape_generic`, `non_finite_indices`, `get_values_str_eq`
+  and `JacobianValues::normalize`, `get_jacobians` are no longer public,
+  `ResidualsValues::len` and `shape`, which nothing called, are removed.
+- *Breaking change*: the fields of `UserModelFromFunction`, `UserModelFromFunctionAndJacobian`,
+  `UserModelFromClosure` and `UserModelFromClosureAndJacobian` are private.
+  Their iteratives are read with `Model::get_iteratives`.
 
 ### Fixed
 - The Broyden and Greenstadt methods now update the jacobian, or its inverse, with the signed residuals instead of the absolute errors.
