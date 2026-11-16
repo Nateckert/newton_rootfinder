@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use super::{Detail, Fields, Log, json};
+use super::{Description, Detail, During, Fields, Log, json};
 use crate::errors::SolverError;
 use crate::iteratives::{Iterative, Iteratives};
 use crate::model::Model;
@@ -17,6 +17,8 @@ pub(crate) enum Evaluation {
     Guess,
     Step,
     Damping,
+    /// The jacobian, computed by the model or by finite differences
+    Jacobian,
 }
 
 impl Evaluation {
@@ -25,6 +27,7 @@ impl Evaluation {
             Evaluation::Guess => "guess",
             Evaluation::Step => "step",
             Evaluation::Damping => "damping",
+            Evaluation::Jacobian => "jacobian",
         }
     }
 }
@@ -60,6 +63,8 @@ pub(crate) struct ResolutionLog {
     id: Option<u64>,
     /// The largest error of the last evaluation, for the `end` line
     max_error: Option<f64>,
+    /// The message of the model on the evaluation in progress, when it found its values inaccurate
+    inaccurate: Option<String>,
 }
 
 impl ResolutionLog {
@@ -70,6 +75,7 @@ impl ResolutionLog {
             detail: log.get_detail(),
             id: None,
             max_error: None,
+            inaccurate: None,
         }
     }
 
@@ -80,20 +86,39 @@ impl ResolutionLog {
 
     #[cold]
     #[inline(never)]
-    pub(crate) fn start<T: Iterative>(
+    pub(crate) fn start<T, F>(
         &mut self,
         parameters: &SolverParameters,
         iteratives: &Iteratives<T>,
         residuals: &ResidualsConfig,
-    ) {
+        describe: F,
+    ) where
+        T: Iterative,
+        F: FnOnce(&mut Description),
+    {
         self.detail = self.log.get_detail();
         self.max_error = None;
+        self.inaccurate = None;
+        let mut description = Description::new(iteratives.len());
+        describe(&mut description);
         let label = &self.label;
-        let id = self.log.open(|line, id, parent, time| {
+        let id = self.log.open(|line, id, parent, during, time| {
             line.push_str("{\"event\":\"start\",\"id\":");
             json::unsigned(line, id);
             json::key(line, "parent");
             json::optional_unsigned(line, parent);
+            if let Some(during) = during {
+                json::key(line, "during");
+                line.push_str("{\"iteration\":");
+                json::unsigned(line, during.iteration as u64);
+                json::key(line, "of");
+                json::string(line, during.of);
+                if let Some(column) = during.column {
+                    json::key(line, "column");
+                    json::unsigned(line, column as u64);
+                }
+                line.push('}');
+            }
             json::key(line, "time");
             json::number(line, time);
             json::key(line, "label");
@@ -113,7 +138,9 @@ impl ResolutionLog {
                 if i > 0 {
                     line.push(',');
                 }
-                line.push_str("{\"settings\":");
+                line.push('{');
+                description.write_iterative(line, i);
+                line.push_str("\"settings\":");
                 let mut settings = Fields::open(line);
                 iterative.log_settings(&mut settings);
                 settings.close();
@@ -129,7 +156,9 @@ impl ResolutionLog {
                 if i > 0 {
                     line.push(',');
                 }
-                line.push_str("{\"settings\":");
+                line.push('{');
+                description.write_residual(line, i);
+                line.push_str("\"settings\":");
                 let mut settings = Fields::open(line);
                 settings
                     .text("stopping", normalization_name(stopping[i]))
@@ -170,23 +199,51 @@ impl ResolutionLog {
         nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     {
         self.max_error = Some(errors.amax());
+        self.inaccurate = None;
     }
 
+    /// The evaluation the resolution makes now, for the resolutions started inside it
     #[cold]
     #[inline(never)]
-    pub(crate) fn evaluation<D>(
+    pub(crate) fn evaluating(&self, iteration: usize, of: Evaluation, column: Option<usize>) {
+        if let Some(id) = self.id {
+            self.log.evaluating(
+                id,
+                During {
+                    iteration,
+                    of: of.name(),
+                    column,
+                },
+            );
+        }
+    }
+
+    /// The model found the values of the evaluation in progress inaccurate
+    #[cold]
+    #[inline(never)]
+    pub(crate) fn inaccurate(&mut self, message: String) {
+        self.inaccurate = Some(message);
+    }
+
+    /// An evaluation of the model, with the values it reports
+    #[cold]
+    #[inline(never)]
+    pub(crate) fn evaluation<D, F>(
         &mut self,
         iteration: usize,
         of: Evaluation,
         iteratives: &nalgebra::OVector<f64, D>,
         residuals: &ResidualsValues<D>,
         errors: &nalgebra::OVector<f64, D>,
+        report: F,
     ) where
         D: nalgebra::Dim,
         nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
+        F: FnOnce(&mut Fields),
     {
         let max_error = errors.amax();
         self.max_error = Some(max_error);
+        let inaccurate = self.inaccurate.take();
         let Some(id) = self.written(Detail::Iterations) else {
             return;
         };
@@ -205,6 +262,19 @@ impl ResolutionLog {
         json::numbers(&mut line, errors.iter().copied());
         json::key(&mut line, "max_error");
         json::number(&mut line, max_error);
+        if let Some(message) = inaccurate {
+            json::key(&mut line, "inaccurate");
+            json::string(&mut line, &message);
+        }
+        let mut values = String::new();
+        let mut fields = Fields::open(&mut values);
+        report(&mut fields);
+        let reported = !fields.is_empty();
+        fields.close();
+        if reported {
+            json::key(&mut line, "values");
+            line.push_str(&values);
+        }
         line.push('}');
         self.log.write(&line);
     }

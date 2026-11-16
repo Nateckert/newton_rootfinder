@@ -20,6 +20,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - `RootFinder::log_to(&log, label)`: the resolutions of the solver are written in the log under the label.
 - `Iterative::log_settings`, writing the parametrization of an iterative in the log, by default nothing.
   `IterativeParams` and `IterativeParamsFD` write theirs.
+- `Model::describe` and `Model::report`, by default doing nothing, called only with a log:
+  the model names its iteratives and its residuals and gives texts about them (`log::Description`),
+  and writes values its evaluations computed besides the iteratives and the residuals (`log::Fields`).
+- The log writes the message of an evaluation the model finds inaccurate,
+  and, for a resolution started inside the evaluation of another one, which evaluation it belongs to:
+  the guess, a step, a damped step, the jacobian or one of its columns by finite differences.
 
 ### Changed
 - When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer

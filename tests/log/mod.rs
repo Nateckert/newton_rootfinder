@@ -1,5 +1,6 @@
 #[cfg(feature = "xml_config_file")]
 mod broyden;
+mod model;
 mod resolutions;
 
 use std::io::{self, Write};

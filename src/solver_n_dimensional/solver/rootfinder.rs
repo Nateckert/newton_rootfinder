@@ -218,6 +218,9 @@ where
         M: model::Model<D>,
     {
         let (successful_jac_computation, source) = if model.jacobian_provided() {
+            if let Some(log) = &self.log {
+                log.evaluating(self.iter, Evaluation::Jacobian, None);
+            }
             (
                 evaluate_jacobian_from_analytical_function(
                     &mut self.jacobian,
@@ -227,6 +230,8 @@ where
                 JacobianSource::Analytic,
             )
         } else {
+            let log = &self.log;
+            let iteration = self.iter;
             (
                 evaluate_jacobian_from_finite_difference_at(
                     &mut self.jacobian,
@@ -234,6 +239,11 @@ where
                     current,
                     self.iters_params,
                     self.residuals_config,
+                    &mut |column| {
+                        if let Some(log) = log {
+                            log.evaluating(iteration, Evaluation::Jacobian, Some(column));
+                        }
+                    },
                 ),
                 JacobianSource::FiniteDifferences,
             )
@@ -408,12 +418,18 @@ where
     where
         M: model::Model<D>,
     {
+        if let Some(log) = &self.log {
+            log.evaluating(self.iter, of, None);
+        }
         match model.evaluate() {
             Ok(()) => {
                 self.valid_last_model_evaluation = true;
             }
-            Err(ModelError::InaccurateValuesError(_)) => {
+            Err(ModelError::InaccurateValuesError(error)) => {
                 self.valid_last_model_evaluation = false;
+                if let Some(log) = &mut self.log {
+                    log.inaccurate(error.to_string());
+                }
             }
             Err(ModelError::UnusableValuesError(error)) => {
                 self.valid_last_model_evaluation = false;
@@ -501,7 +517,12 @@ where
         M: model::Model<D>,
     {
         if let Some(log) = &mut self.log {
-            log.start(&self.parameters, self.iters_params, self.residuals_config);
+            log.start(
+                &self.parameters,
+                self.iters_params,
+                self.residuals_config,
+                |description| model.describe(description),
+            );
         }
         self.reset();
         let result = self.solve_from_the_model(model);
@@ -554,9 +575,16 @@ where
     {
         // The first evaluation must yield usuable values
         // However, then don't need to be accurate
+        if let Some(log) = &self.log {
+            log.evaluating(self.iter, Evaluation::Guess, None);
+        }
         match model.evaluate() {
             Ok(()) => (),
-            Err(ModelError::InaccurateValuesError(_)) => (),
+            Err(ModelError::InaccurateValuesError(error)) => {
+                if let Some(log) = &mut self.log {
+                    log.inaccurate(error.to_string());
+                }
+            }
             Err(ModelError::UnusableValuesError(error)) => {
                 if let Some(log) = &self.log {
                     log.failed_evaluation(
@@ -646,6 +674,7 @@ where
                     &model.get_iteratives(),
                     &model.get_residuals(),
                     errors,
+                    |values| model.report(values),
                 );
             } else {
                 log.max_error(errors);

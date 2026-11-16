@@ -18,7 +18,7 @@ fn square2(x: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
 }
 
 /// Solve `function` = 0 from `guess` with Newton-Raphson, its resolution written in `log`
-fn solve<M: Model<nalgebra::Dyn>>(
+pub(super) fn solve<M: Model<nalgebra::Dyn>>(
     log: &Log,
     label: &str,
     model: &mut M,
@@ -41,7 +41,7 @@ fn solve<M: Model<nalgebra::Dyn>>(
     rf.solve(model)
 }
 
-fn of_event<'a>(lines: &'a [String], event: &str) -> Vec<&'a String> {
+pub(super) fn of_event<'a>(lines: &'a [String], event: &str) -> Vec<&'a String> {
     let prefix = format!("{{\"event\":\"{}\",", event);
     lines
         .iter()
