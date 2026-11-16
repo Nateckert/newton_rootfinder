@@ -88,6 +88,14 @@
 //! - A reader ignores the events and the fields it does not know:
 //!   the lines may gain some without a change of `format`.
 //!
+//! # The failures only
+//!
+//! A log built with [Log::failures_only] keeps the lines of each scope and resolution in memory until it ends:
+//! a resolution that converged leaves nothing, nor a scope where none failed.
+//! When a resolution fails, the lines of the scopes and resolutions it is in are written first,
+//! then its own: the file keeps the order of the events, and a run of many resolutions,
+//! a sweep or a transient, leaves the failures alone.
+//!
 //! # Writing
 //!
 //! The log writes through a buffer, flushed when a resolution fails,
