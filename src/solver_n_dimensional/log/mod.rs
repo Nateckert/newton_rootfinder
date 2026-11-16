@@ -96,6 +96,13 @@
 //! then its own: the file keeps the order of the events, and a run of many resolutions,
 //! a sweep or a transient, leaves the failures alone.
 //!
+//! # The page
+//!
+//! [write_page] turns a log into an HTML page, for a person rather than a script:
+//! the tree of the resolutions, the failed ones open, the largest error along the evaluations,
+//! each iteration by name, the steps limited by the bounds of an iterative marked, and the jacobians,
+//! a row or a column of zeros marked.
+//!
 //! # Writing
 //!
 //! The log writes through a buffer, flushed when a resolution fails,
@@ -107,6 +114,7 @@
 mod clock;
 mod description;
 mod json;
+mod page;
 mod resolution;
 #[cfg(test)]
 mod tests;
@@ -147,6 +155,24 @@ impl Detail {
             _ => Detail::Jacobians,
         }
     }
+}
+
+/// Write the HTML page of the log at `log` to `page`: one file, the lines of the log in it,
+/// shown in a browser without a network
+///
+/// The page shows the tree of the scopes and the resolutions, the failed ones open,
+/// and for each resolution the largest error along the evaluations,
+/// the iteratives, the steps and the residuals of each iteration by name, and the jacobians.
+/// A log cut short, by a crash for instance, makes a page all the same.
+///
+/// ```no_run
+/// newton_rootfinder::log::write_page("solver_log.jsonl", "solver_log.html")?;
+/// # Ok::<(), std::io::Error>(())
+/// ```
+pub fn write_page<P: AsRef<Path>, Q: AsRef<Path>>(log: P, page: Q) -> io::Result<()> {
+    // A log cut short may end inside a character
+    let lines = String::from_utf8_lossy(&std::fs::read(log)?).into_owned();
+    std::fs::write(page, page::render(&lines))
 }
 
 /// A log of resolutions, written in JSON Lines: see the [module documentation](self)

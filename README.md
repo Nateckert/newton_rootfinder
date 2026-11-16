@@ -54,7 +54,7 @@ The following crates provide solvers for n-dimensional systems of nonlinear equa
 
 | crate | Per-variable settings | Convergence criteria | Model errors | Resolution log |
 |-------|-----------------------|----------------------|--------------|----------------|
-| `newton_rootfinder` | step limits, bounds, finite-difference step | per residual, absolute/relative | `Result`, non-finite residuals detected | ✔️ JSON Lines file |
+| `newton_rootfinder` | step limits, bounds, finite-difference step | per residual, absolute/relative | `Result`, non-finite residuals detected | ✔️ JSON Lines file, HTML page |
 | peroxide::numerical | ❌ | step norm; `newton` has no iteration limit | `Result` (`root`); none (`newton`) | ❌ |
 | bacon_sci::roots | ❌ | step norm | none (the function cannot fail) | ❌ |
 | gomez | bounds (also used to scale the variables) | user closure on the residual norm | none (the function cannot fail) | `log` crate messages |

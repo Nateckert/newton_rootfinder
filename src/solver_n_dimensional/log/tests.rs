@@ -205,3 +205,15 @@ fn keeping_the_failures_only_drops_the_scopes_where_none_failed() {
     assert!(lines[1].starts_with("{\"event\":\"note\",\"parent\":null,"));
     assert!(lines[1].contains("\"label\":\"at the top\""));
 }
+
+#[test]
+fn the_page_holds_the_lines_and_nothing_can_end_its_script() {
+    let lines = "{\"event\":\"log\",\"format\":1}\n{\"event\":\"note\",\"label\":\"</script>\"}\n";
+    let page = super::page::render(lines);
+    assert!(page.starts_with("<!doctype html>"));
+    assert!(page.contains(
+        "{\"event\":\"log\",\"format\":1}\n{\"event\":\"note\",\"label\":\"\\u003c/script>\"}"
+    ));
+    assert!(!page.contains("/*LINES*/"));
+    assert_eq!(page.matches("</script>").count(), 2);
+}
