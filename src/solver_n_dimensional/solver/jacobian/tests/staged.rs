@@ -1,4 +1,4 @@
-use newton_rootfinder as nrf;
+use crate as nrf;
 use nrf::model::{Model, ModelError};
 use nrf::residuals;
 use nrf::solver::compute_jacobian_from_finite_difference;

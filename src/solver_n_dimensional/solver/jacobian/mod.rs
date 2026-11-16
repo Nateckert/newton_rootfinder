@@ -4,6 +4,8 @@ mod jacobian_approximation;
 mod jacobian_finite_diff;
 mod jacobian_inverse_approximation;
 mod jacobian_struct;
+#[cfg(test)]
+mod tests;
 
 pub use jacobian_analytic::evaluate_jacobian_from_analytical_function;
 pub(crate) use jacobian_finite_diff::evaluate_jacobian_from_finite_difference_at;

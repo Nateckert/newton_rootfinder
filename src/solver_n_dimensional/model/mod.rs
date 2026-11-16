@@ -59,6 +59,8 @@ mod error;
 mod model_definition;
 mod model_from_closure;
 mod model_from_func;
+#[cfg(test)]
+mod tests;
 
 pub use error::ModelError;
 pub use model_definition::Model;

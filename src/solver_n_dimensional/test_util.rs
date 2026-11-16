@@ -1,4 +1,4 @@
-pub fn float_matrix_comparison(
+pub(crate) fn float_matrix_comparison(
     jac: &nalgebra::DMatrix<f64>,
     jac_ref: &nalgebra::DMatrix<f64>,
     epsilon: f64,

@@ -5,6 +5,8 @@ pub mod iteratives;
 pub mod model;
 pub mod residuals;
 pub mod solver;
+#[cfg(test)]
+mod test_util;
 mod util_nalgebra;
 
 #[cfg(feature = "xml_config_file")]

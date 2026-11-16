@@ -1,8 +1,8 @@
-use newton_rootfinder as nrf;
+use crate as nrf;
 
 use util::test_cases::broyden1965::*;
 
-use crate::common::float_matrix_comparison;
+use crate::solver_n_dimensional::test_util::float_matrix_comparison;
 
 use nrf::model::Model;
 
