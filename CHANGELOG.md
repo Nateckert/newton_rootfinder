@@ -6,44 +6,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Added
-- `log::Log` records the resolutions in [JSON Lines](https://jsonlines.org/), one event per line,
-  written as it happens: the start of a resolution with its settings, each evaluation of the model
-  (or the message of the model when it refuses one), each step before the limits of the iteratives,
-  each jacobian computed or updated (a singular one included), the refused steps, and the outcome.
-  A script reads it with its standard library; the numbers read back to the same value, a non-finite one written `"NaN"` or `"Infinity"`.
-  - One log serves every resolution of a program: a `Log` is a handle, cloned and sent to other threads,
-    and a resolution started inside the evaluation of another one is placed under it.
-  - `Log::detail` chooses what a resolution writes (`log::Detail::Outcome`, `Iterations`, `Jacobians`),
-    `Log::scope` groups resolutions, `Log::note` writes facts the solver does not know.
-  - An error of writing stops the log, never the resolution: `Log::close` returns it.
-  - With the log off, a resolution pays a test per event.
-- `RootFinder::log_to(&log, label)`: the resolutions of the solver are written in the log under the label.
-- `Iterative::log_settings`, writing the parametrization of an iterative in the log, by default nothing.
-  `IterativeParams` and `IterativeParamsFD` write theirs.
-- `Model::describe` and `Model::report`, by default doing nothing, called only with a log:
-  the model names its iteratives and its residuals and gives texts about them (`log::Description`),
-  and writes values its evaluations computed besides the iteratives and the residuals (`log::Fields`).
-- The log writes the message of an evaluation the model finds inaccurate,
-  and, for a resolution started inside the evaluation of another one, which evaluation it belongs to:
-  the guess, a step, a damped step, the jacobian or one of its columns by finite differences.
+- A log of the resolutions in [JSON Lines](https://jsonlines.org/), one log for every resolution of a program:
+  `log::Log`, given to a solver with `RootFinder::log_to`.
+  See the [documentation of the `log` module](https://docs.rs/newton_rootfinder/0.13.0/newton_rootfinder/log/index.html).
+- `Iterative::log_settings`, by default doing nothing: the settings of an iterative in the log.
+- `Model::describe` and `Model::report`, by default doing nothing: the model names its iteratives and its residuals,
+  and writes values of its evaluations, in the log.
 
 ### Changed
 - When possible (Newton-Raphson, stationary Newton and the methods updating the jacobian), the jacobian is no longer
   inverted: the equivalent linear system is factorized and solved, which speeds up the computation
   and gives more accurate results (#31). The iterates can differ in their last digits.
-- *Breaking change*: a resolution writes its log in JSON Lines, in the `log::Log` given to `RootFinder::log_to`,
-  instead of a text file of tables.
-- `RootFinder` and `solver::default` no longer require the iteratives to implement `Display`, only the log used it.
+- `RootFinder` and `solver::default` no longer require the iteratives to implement `Display`.
 - *Breaking change*: `SolverError::JacobianError`, which held a `SolverInternalError`, is replaced by two variants:
   `SolverError::JacobianEvaluationError`, holding the `ModelError` the model returned while the jacobian was evaluated,
   and `SolverError::NonInvertibleJacobian`, for a singular jacobian. Their `Display` texts are unchanged.
   `errors::SolverInternalError` is no longer public.
 
 ### Removed
-- *Breaking change*: `RootFinder::activate_debug(path)`, replaced by `RootFinder::log_to(&log, label)`.
-- *Breaking change*: the feature `additional_log_info` and its optional dependencies `chrono`, `whoami` and `rustc_version_runtime`.
-  The log writes the version of the crate and the time it was opened, in UTC, from the standard library;
-  a program wanting the system or the compiler in the log writes them with `Log::note`.
+- *Breaking change*: `RootFinder::activate_debug` and its text file, replaced by `RootFinder::log_to`.
+- *Breaking change*: the feature `additional_log_info` and its dependencies `chrono`, `whoami` and `rustc_version_runtime`:
+  a program writes such facts in the log with `Log::note`.
 
 The public API is reduced to what a user of the crate calls: a model, its parametrization, the solver, its errors,
 its log and the XML configuration. The machinery of a resolution is no longer exported.
