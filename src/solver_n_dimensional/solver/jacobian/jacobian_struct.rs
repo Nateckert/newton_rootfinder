@@ -10,7 +10,7 @@ use super::factorization::Factorization;
 /// [super::super::QuasiNewtonMethod::InverseJacobianUpdate], whose state it is.
 ///
 /// The matrix itself is read back by the methods of
-/// [super::super::QuasiNewtonMethod::JacobianUpdate], which update it, and by the log:
+/// [super::super::QuasiNewtonMethod::JacobianUpdate], which update it, and by a log writing the jacobians:
 /// a jacobian built with [JacobianMatrix::factorization_only] does not keep it.
 pub(crate) struct JacobianMatrix<D>
 where
@@ -80,7 +80,8 @@ where
     }
 
     /// When updating the jacobian, it is factorized again:
-    /// a matrix the factorization finds singular is refused.
+    /// a matrix the factorization finds singular is refused,
+    /// kept as the matrix without a factorization for the log, the resolution stopping at it.
     /// An inverse formed from the previous matrix is dropped
     fn update_jacobian(
         &mut self,
@@ -103,6 +104,7 @@ where
             }
             None => {
                 self.invalidate_jacobian();
+                self.matrix = kept_matrix;
                 Err(crate::errors::NonInvertibleJacobian)
             }
         }
@@ -174,51 +176,17 @@ where
     pub(crate) fn get_jacobian(&self) -> &Option<nalgebra::OMatrix<f64, D, D>> {
         &self.matrix
     }
+
+    /// Whether the step is solved with the factorization of the matrix
+    pub(crate) fn is_factorized(&self) -> bool {
+        self.factorization.is_some()
+    }
     /// Invalidate a jacobian
     /// For example, if there is an error computing it
     pub(crate) fn invalidate_jacobian(&mut self) {
         self.matrix = None;
         self.factorization = None;
         self.inverse = None;
-    }
-}
-
-impl<D> fmt::Display for JacobianMatrix<D>
-where
-    D: nalgebra::DimMin<D, Output = D>,
-    nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
-    nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<D>,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut content = String::from("Jacobian matrix\n");
-        content.push_str("=================\n\n");
-
-        // The log shows what the resolution works with, and nothing else:
-        // the inverse appears only once a method updating it has formed it
-        if self.factorization.is_some() {
-            content.push_str("Step solved with the LU factorization of the jacobian\n\n");
-            match &self.matrix {
-                Some(jac) => {
-                    content.push_str("Jacobian:\n");
-                    content.push_str(&jac.to_string());
-                }
-                None => content.push_str("Jacobian not kept beside its factorization\n"),
-            }
-        } else if self.inverse.is_some() {
-            content.push_str("Jacobian not up to date with its inverse.\n");
-            content.push_str("The update of the inverse is more recent\n");
-        } else {
-            content.push_str("Jacobian not computed\n");
-        }
-
-        if let Some(inv) = &self.inverse {
-            content.push_str("Inverse of the jacobian Matrix:\n");
-            content.push_str(&inv.to_string());
-        }
-
-        content.push('\n');
-
-        write!(f, "{}", content)
     }
 }
 

@@ -44,14 +44,10 @@ harness = false
 [dependencies]
 nalgebra = "0.35"
 minidom = { version = "0.12", optional = true }
-whoami = { version = "2.1", optional = true }
-rustc_version_runtime = { version = "0.3", optional = true }
-chrono = { version = "0.4", optional = true }
 
 [features]
-additional_log_info = ["chrono", "rustc_version_runtime", "whoami"]
 xml_config_file = ["minidom"]
 
 [package.metadata.docs.rs]
 # Enable certain features when building docs for docs.rs
-features = ["xml_config_file", "additional_log_info"]
+features = ["xml_config_file"]

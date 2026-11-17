@@ -1,5 +1,3 @@
-use std::fmt;
-
 use super::super::Point;
 use super::JacobianMatrix;
 use crate::errors;
@@ -34,6 +32,7 @@ where
         &reference,
         perturbations,
         update_residuals,
+        &mut |_| (),
     );
     if jacobian.is_err() {
         model.set_memory(&reference.memory);
@@ -46,14 +45,17 @@ where
 /// The model is left on the last perturbed point, with the memory of the reference point;
 /// when a column fails, with the memory of that column:
 /// the solver restores its own state on a failure
-pub(crate) fn compute_jacobian_from_finite_difference_at<M, D>(
+/// `on_column` is called with each column before its evaluation
+pub(crate) fn compute_jacobian_from_finite_difference_at<M, D, F>(
     model: &mut M,
     reference: &Point<M, D>,
     perturbations: &nalgebra::OVector<f64, D>,
     update_residuals: &residuals::ResidualsConfig,
+    on_column: &mut F,
 ) -> Result<nalgebra::OMatrix<f64, D, D>, ModelError<M, D>>
 where
     M: model::Model<D>,
+    F: FnMut(usize),
     D: nalgebra::Dim,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
@@ -71,6 +73,7 @@ where
         iteratives_perturbations[i] += perturbations[i];
 
         model.set_iteratives(&iteratives_perturbations);
+        on_column(i);
         match model.evaluate_column(i) {
             // recovers from inaccurate values
             Ok(()) | Err(ModelError::InaccurateValuesError(_)) => (),
@@ -97,16 +100,18 @@ where
     Ok(jacobian)
 }
 
-pub(crate) fn evaluate_jacobian_from_finite_difference_at<'a, M, D, T>(
+pub(crate) fn evaluate_jacobian_from_finite_difference_at<'a, M, D, T, F>(
     jacobian: &mut JacobianMatrix<D>,
     model: &mut M,
     reference: &Point<M, D>,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
+    on_column: &mut F,
 ) -> Result<(), crate::errors::SolverInternalError<M, D>>
 where
     M: model::Model<D>,
-    T: Iterative + fmt::Display,
+    T: Iterative,
+    F: FnMut(usize),
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D, D>,
@@ -119,6 +124,7 @@ where
         reference,
         &perturbations,
         residuals_config,
+        on_column,
     );
     update_jacobian(jacobian, matrix)
 }

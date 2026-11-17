@@ -3,6 +3,7 @@ use std::fmt;
 use crate::errors;
 use crate::iteratives;
 use crate::iteratives::Iterative;
+use crate::log::{Detail, Evaluation, JacobianSource, Log, ResolutionLog};
 use crate::model;
 use crate::model::ModelError;
 use crate::residuals;
@@ -22,10 +23,10 @@ use super::{QuasiNewtonMethod, ResolutionMethod};
 /// Every call is a resolution of its own, started afresh from the iteratives the model holds:
 /// a solver can be reused for several resolutions, on the same model or on other models of the same dimension.
 ///
-/// The user can activate the debugging before the resolution thanks to the `activate_debug()` method
+/// The resolutions are written in a [Log] once it is given with [RootFinder::log_to]
 pub struct RootFinder<'a, T, D>
 where
-    T: Iterative + fmt::Display + fmt::Debug,
+    T: Iterative + fmt::Debug,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
@@ -36,11 +37,10 @@ where
     parameters: SolverParameters,
     iters_params: &'a iteratives::Iteratives<'a, T>,
     residuals_config: &'a residuals::ResidualsConfig<'a>,
-    debug: bool,
+    log: Option<ResolutionLog>,
 
     // solver placeholder
     iter: usize,
-    solver_log: Option<super::log::SolverLog>,
     jacobian: JacobianMatrix<D>,
     iteratives_step_size: Option<nalgebra::OVector<f64, D>>,
     residuals_step_size: Option<nalgebra::OVector<f64, D>>,
@@ -50,7 +50,7 @@ where
 
 impl<'a, T, D> RootFinder<'a, T, D>
 where
-    T: Iterative + fmt::Display + fmt::Debug,
+    T: Iterative + fmt::Debug,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
@@ -69,8 +69,7 @@ where
         iters_params: &'a iteratives::Iteratives<'a, T>,
         residuals_config: &'a residuals::ResidualsConfig<'a>,
     ) -> Self {
-        let debug = false;
-        let solver_log = None;
+        let log = None;
         let iter = 0;
 
         if iters_params.len() != residuals_config.len() {
@@ -91,9 +90,8 @@ where
             parameters,
             iters_params,
             residuals_config,
-            debug,
+            log,
             iter,
-            solver_log,
             jacobian,
             iteratives_step_size,
             residuals_step_size,
@@ -102,14 +100,14 @@ where
         }
     }
 
-    /// Activate the gathering of the log
+    /// Write the resolutions of this solver in `log`, under `label`
     ///
-    /// The path must be provided (as .txt file)
-    /// This generate a .txt file at the given path with simulation informations.
+    /// Each call to [RootFinder::solve] is a resolution of the log,
+    /// with the detail the log has when it starts: see the [log module](crate::log).
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ```
     /// use newton_rootfinder as nrf;
     /// # use nrf::iteratives;
     /// # use nrf::residuals;
@@ -129,14 +127,14 @@ where
     /// # let mut user_model = nrf::model::UserModelFromFunction::new(problem_size, square2);
     /// # let damping = false;
     /// # nrf::model::Model::set_iteratives(&mut user_model, &init_guess);
+    /// let log = nrf::log::Log::new(std::io::sink());
     /// let mut rf = nrf::solver::default(&iter_params, &res_config, ResolutionMethod::NewtonRaphson, damping);
     ///
-    /// rf.activate_debug(&"solver_log.txt");
-    /// rf.solve(&mut user_model);
+    /// rf.log_to(&log, "square root of 2");
+    /// rf.solve(&mut user_model).unwrap();
     /// ```
-    pub fn activate_debug(&mut self, path: &str) {
-        self.debug = true;
-        self.solver_log = Some(super::log::SolverLog::new(path));
+    pub fn log_to(&mut self, log: &Log, label: &str) {
+        self.log = Some(ResolutionLog::new(log, label));
     }
 
     /// Start a resolution afresh: the iteration count, the jacobian,
@@ -155,10 +153,12 @@ where
         self.valid_last_model_evaluation = true;
     }
 
-    /// The matrix of the jacobian is read back by the methods updating it and by the log:
+    /// The matrix of the jacobian is read back by the methods updating it and by a log writing it:
     /// the other resolutions keep its factorization only, sparing a copy at each jacobian
     fn reads_jacobian_matrix(&self) -> bool {
-        self.debug
+        self.log
+            .as_ref()
+            .is_some_and(|log| log.writes(Detail::Jacobians))
             || matches!(
                 self.parameters.get_resolution_method(),
                 ResolutionMethod::QuasiNewton(QuasiNewtonMethod::JacobianUpdate(_))
@@ -217,29 +217,45 @@ where
     where
         M: model::Model<D>,
     {
-        let successful_jac_computation = if model.jacobian_provided() {
-            evaluate_jacobian_from_analytical_function(
-                &mut self.jacobian,
-                model,
-                self.residuals_config,
+        let (successful_jac_computation, source) = if model.jacobian_provided() {
+            if let Some(log) = &self.log {
+                log.evaluating(self.iter, Evaluation::Jacobian, None);
+            }
+            (
+                evaluate_jacobian_from_analytical_function(
+                    &mut self.jacobian,
+                    model,
+                    self.residuals_config,
+                ),
+                JacobianSource::Analytic,
             )
         } else {
-            evaluate_jacobian_from_finite_difference_at(
-                &mut self.jacobian,
-                model,
-                current,
-                self.iters_params,
-                self.residuals_config,
+            let log = &self.log;
+            let iteration = self.iter;
+            (
+                evaluate_jacobian_from_finite_difference_at(
+                    &mut self.jacobian,
+                    model,
+                    current,
+                    self.iters_params,
+                    self.residuals_config,
+                    &mut |column| {
+                        if let Some(log) = log {
+                            log.evaluating(iteration, Evaluation::Jacobian, Some(column));
+                        }
+                    },
+                ),
+                JacobianSource::FiniteDifferences,
             )
         };
 
-        match successful_jac_computation {
-            Ok(())
-            | Err(errors::SolverInternalError::InvalidJacobianError(
-                ModelError::InaccurateValuesError(_),
-            )) => Ok(()),
-            Err(model_error) => Err(model_error),
+        if let Some(log) = &self.log {
+            log.jacobian(self.iter, source, &self.jacobian);
         }
+
+        // The finite differences recover from inaccurate values column by column:
+        // an error reaching here, inaccurate or not, leaves no jacobian to take a step with
+        successful_jac_computation
     }
 
     fn compute_newton_raphson_step<M>(
@@ -252,9 +268,6 @@ where
     {
         let successful_jac_computation = self.compute_jac(model, current);
 
-        if self.debug {
-            self.jac_to_log();
-        }
         match successful_jac_computation {
             Ok(()) => Ok(self.compute_next_from_jacobian(current)),
             Err(error) => Err(error),
@@ -279,30 +292,23 @@ where
         if self.jacobian.compute_jacobian() {
             let successful_jac_computation = self.compute_jac(model, current);
 
-            match successful_jac_computation {
-                Ok(()) => (),
-                Err(error) => {
-                    if self.debug {
-                        self.jac_to_log();
-                    }
-                    return Err(error);
-                }
-            }
+            successful_jac_computation?;
         } else {
             match resolution_method {
                 QuasiNewtonMethod::StationaryNewton => (),
                 QuasiNewtonMethod::JacobianUpdate(method) => {
-                    match approximate_jacobian(
+                    let approximation = approximate_jacobian(
                         &mut self.jacobian,
                         method,
                         self.iteratives_step_size.as_ref().unwrap(),
                         self.residuals_step_size.as_ref().unwrap(),
                         self.residuals_values_current.as_ref().unwrap(),
-                    ) {
-                        Ok(()) => (),
-                        Err(_) => {
-                            return Err(errors::SolverInternalError::InvalidJacobianInverseError);
-                        }
+                    );
+                    if let Some(log) = &self.log {
+                        log.jacobian(self.iter, JacobianSource::Update(method), &self.jacobian);
+                    }
+                    if approximation.is_err() {
+                        return Err(errors::SolverInternalError::InvalidJacobianInverseError);
                     }
                 }
                 QuasiNewtonMethod::InverseJacobianUpdate(method) => {
@@ -313,12 +319,11 @@ where
                         self.residuals_step_size.as_ref().unwrap(),
                         self.residuals_values_current.as_ref().unwrap(),
                     );
+                    if let Some(log) = &self.log {
+                        log.jacobian(self.iter, JacobianSource::Update(method), &self.jacobian);
+                    }
                 }
             };
-        }
-
-        if self.debug {
-            self.jac_to_log();
         }
 
         Ok(())
@@ -354,6 +359,9 @@ where
 
         // The step solves `jacobian * step = -residuals`
         let raw_step = -self.jacobian.solve(&residuals).unwrap();
+        if let Some(log) = &self.log {
+            log.step(self.iter, &raw_step);
+        }
 
         self.iters_params
             .step_limitations(&current.iteratives, &raw_step)
@@ -379,8 +387,8 @@ where
                 && self.jacobian.is_jacobian_approximated()
             {
                 self.jacobian.force_jacobian_computation();
-                if self.debug {
-                    self.recompute_jacobian_to_log();
+                if let Some(log) = &self.log {
+                    log.refused(self.iter);
                 }
             } else {
                 let damping_factor = 1.0 / 2.0;
@@ -390,31 +398,48 @@ where
                 // not from the one the rejected proposed guess left
                 model.set_memory(&current.memory);
                 model.set_iteratives(&damped_guess);
-                self.evaluate_model(model)?;
+                self.evaluate_model(model, Evaluation::Damping)?;
                 *errors_next = self.evaluate_errors(model);
-
-                if self.debug {
-                    self.damping_to_log(model, errors_next);
-                }
+                self.log_evaluation(model, Evaluation::Damping, errors_next);
             }
         }
         Ok(())
     }
 
-    fn evaluate_model<M>(&mut self, model: &mut M) -> Result<(), errors::SolverError<M, D>>
+    fn evaluate_model<M>(
+        &mut self,
+        model: &mut M,
+        of: Evaluation,
+    ) -> Result<(), errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {
+        if let Some(log) = &self.log {
+            log.evaluating(self.iter, of, None);
+        }
         match model.evaluate() {
             Ok(()) => {
                 self.valid_last_model_evaluation = true;
             }
-            Err(ModelError::InaccurateValuesError(_)) => {
+            Err(ModelError::InaccurateValuesError(error)) => {
                 self.valid_last_model_evaluation = false;
+                if let Some(log) = &mut self.log {
+                    log.inaccurate(error.to_string());
+                }
             }
-            Err(e) => {
+            Err(ModelError::UnusableValuesError(error)) => {
                 self.valid_last_model_evaluation = false;
-                return Err(errors::SolverError::ModelEvaluationError(e));
+                if let Some(log) = &self.log {
+                    log.failed_evaluation(
+                        self.iter,
+                        of,
+                        &model.get_iteratives(),
+                        &error.to_string(),
+                    );
+                }
+                return Err(errors::SolverError::ModelEvaluationError(
+                    ModelError::UnusableValuesError(error),
+                ));
             }
         }
         Ok(())
@@ -437,12 +462,9 @@ where
         let max_error = errors.amax();
 
         model.set_iteratives(proposed_guess);
-        self.evaluate_model(model)?;
+        self.evaluate_model(model, Evaluation::Step)?;
         let mut errors_next = self.evaluate_errors(model);
-
-        if self.debug {
-            self.iteration_to_log(model, &errors_next);
-        }
+        self.log_evaluation(model, Evaluation::Step, &errors_next);
 
         if self.parameters.get_damping() {
             self.damping(model, max_error, current, proposed_guess, &mut errors_next)?;
@@ -485,13 +507,35 @@ where
     /// and a jacobian computed at the first iteration, nothing being kept from a previous call.
     /// A model with another number of iteratives than the configurations of the solver is refused
     /// with [errors::SolverError::DimensionMismatch], before any evaluation.
-    /// With the debugging activated, the log of a call follows the one of the previous call in the same file.
+    /// With a [Log] given by [RootFinder::log_to], each call is a resolution of the log.
     pub fn solve<M>(&mut self, model: &mut M) -> Result<(), crate::errors::SolverError<M, D>>
     where
         M: model::Model<D>,
     {
+        if let Some(log) = &mut self.log {
+            log.start(
+                &self.parameters,
+                self.iters_params,
+                self.residuals_config,
+                |description| model.describe(description),
+            );
+        }
         self.reset();
+        let result = self.solve_from_the_model(model);
+        if let Some(log) = &mut self.log {
+            log.end(&result, self.iter);
+        }
+        result
+    }
 
+    /// The resolution, restoring the point the model held on the failures leaving it unusable
+    fn solve_from_the_model<M>(
+        &mut self,
+        model: &mut M,
+    ) -> Result<(), crate::errors::SolverError<M, D>>
+    where
+        M: model::Model<D>,
+    {
         let entry_iteratives = model.get_iteratives();
         if entry_iteratives.len() != self.iters_params.len() {
             return Err(errors::SolverError::DimensionMismatch {
@@ -527,10 +571,25 @@ where
     {
         // The first evaluation must yield usuable values
         // However, then don't need to be accurate
+        if let Some(log) = &self.log {
+            log.evaluating(self.iter, Evaluation::Guess, None);
+        }
         match model.evaluate() {
             Ok(()) => (),
-            Err(ModelError::InaccurateValuesError(_)) => (),
+            Err(ModelError::InaccurateValuesError(error)) => {
+                if let Some(log) = &mut self.log {
+                    log.inaccurate(error.to_string());
+                }
+            }
             Err(ModelError::UnusableValuesError(error)) => {
+                if let Some(log) = &self.log {
+                    log.failed_evaluation(
+                        self.iter,
+                        Evaluation::Guess,
+                        &model.get_iteratives(),
+                        &error.to_string(),
+                    );
+                }
                 return Err(crate::errors::SolverError::ModelInitialEvaluationError(
                     error,
                 ));
@@ -542,11 +601,7 @@ where
         let mut current = Point::of(model);
         let mut errors = self.evaluate_errors(model);
         let mut max_error = errors.amax();
-
-        if self.debug {
-            self.parameters_to_log();
-            self.iteration_to_log(model, &errors);
-        }
+        self.log_evaluation(model, Evaluation::Guess, &errors);
 
         self.check_finite_residuals(model, &errors)?;
 
@@ -590,57 +645,43 @@ where
         }
     }
 
-    fn parameters_to_log(&self) {
-        self.solver_log.as_ref().unwrap().add_parameters(
-            &self.parameters.to_string(),
-            &self.iters_params.to_string(),
-            &self.residuals_config.to_string(),
-        );
-    }
-
-    fn iteration_to_log<M>(&self, model: &M, errors: &nalgebra::OVector<f64, D>)
+    /// Write an evaluation the model made in the log, if any
+    #[inline]
+    fn log_evaluation<M>(&mut self, model: &M, of: Evaluation, errors: &nalgebra::OVector<f64, D>)
     where
         M: model::Model<D>,
     {
-        let iteratives = model.get_iteratives();
-        let residuals = model.get_residuals();
-        self.solver_log.as_ref().unwrap().add_new_iteration(
-            &iteratives,
-            &residuals,
-            errors,
-            self.iter,
-        );
+        if self.log.is_some() {
+            self.write_evaluation(model, of, errors);
+        }
     }
 
-    fn recompute_jacobian_to_log(&self) {
-        self.solver_log.as_ref().unwrap().add_content(
-            "Iteration refused, the jacobian will be recomputed at the next iteration\n\n",
-        );
-    }
-
-    fn damping_to_log<M>(&self, model: &M, errors: &nalgebra::OVector<f64, D>)
+    #[cold]
+    #[inline(never)]
+    fn write_evaluation<M>(&mut self, model: &M, of: Evaluation, errors: &nalgebra::OVector<f64, D>)
     where
         M: model::Model<D>,
     {
-        let iteratives = model.get_iteratives();
-        let residuals = model.get_residuals();
-        self.solver_log
-            .as_ref()
-            .unwrap()
-            .add_damping(&iteratives, &residuals, errors);
-    }
-
-    fn jac_to_log(&self) {
-        self.solver_log
-            .as_ref()
-            .unwrap()
-            .add_content(&self.jacobian.to_string());
+        if let Some(log) = &mut self.log {
+            if log.writes(Detail::Iterations) {
+                log.evaluation(
+                    self.iter,
+                    of,
+                    &model.get_iteratives(),
+                    &model.get_residuals(),
+                    errors,
+                    |values| model.report(values),
+                );
+            } else {
+                log.max_error(errors);
+            }
+        }
     }
 }
 
 impl<'a, T, D> fmt::Debug for RootFinder<'a, T, D>
 where
-    T: Iterative + fmt::Display + fmt::Debug,
+    T: Iterative + fmt::Debug,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,
@@ -652,7 +693,7 @@ where
             .field("Solver parameters", &self.parameters)
             .field("Iterative configuration", &self.iters_params)
             .field("Residual configuration", &self.residuals_config)
-            .field("Debug option activated", &self.debug)
+            .field("Log", &self.log)
             .field("Current iteration", &self.iter)
             .field(
                 "Status last model evaluation",

@@ -81,7 +81,7 @@ pub fn default<'a, T, D>(
     damping: bool,
 ) -> RootFinder<'a, T, D>
 where
-    T: Iterative + fmt::Display + fmt::Debug,
+    T: Iterative + fmt::Debug,
     D: nalgebra::DimMin<D, Output = D>,
     nalgebra::DefaultAllocator: nalgebra::base::allocator::Allocator<D>,
     nalgebra::DefaultAllocator: nalgebra::allocator::Allocator<nalgebra::U1, D>,

@@ -127,6 +127,9 @@ where
     /// If this method is overriden, the solver will be able to use it to evaluate the jacobian, instead of using finite-difference.
     /// If overriden, the [Model::jacobian_provided] must also be overriden to return `true`.
     ///
+    /// An error ends the resolution with [crate::errors::SolverError::JacobianEvaluationError],
+    /// an [super::ModelError::InaccurateValuesError] too: it holds no jacobian to take a step with.
+    ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
     fn get_jacobian(&mut self) -> Result<residuals::JacobianValues<D>, super::ModelError<Self, D>> {
         let left = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());
@@ -150,4 +153,42 @@ where
     ///
     /// The default implementation is empty.
     fn set_memory(&mut self, #[allow(unused_variables)] memory: &Self::Memory) {}
+
+    /// This method names the iteratives and the residuals in a [log](crate::log),
+    /// and gives texts about them: the equation a residual measures and its source, a unit...
+    ///
+    /// The solver calls it once at the start of each resolution a log records, and never without a log.
+    ///
+    /// The default implementation names nothing: the log shows the indices.
+    ///
+    /// ```
+    /// # fn describe(description: &mut newton_rootfinder::log::Description) {
+    /// description.iterative(0, "diameter");
+    /// description
+    ///     .residual(0, "pressure_drop = k * velocity^2")
+    ///     .with("source", "duct.model:12");
+    /// # }
+    /// ```
+    fn describe(&self, #[allow(unused_variables)] description: &mut crate::log::Description) {}
+
+    /// This method writes in a [log](crate::log) values the last evaluation computed
+    /// besides the iteratives and the residuals: the intermediate values of the model,
+    /// the branch a condition took...
+    ///
+    /// The solver calls it right after each evaluation a log records with the detail
+    /// [crate::log::Detail::Iterations] or more, the model holding that evaluation, and never without a log.
+    /// It writes values the evaluation computed: a value computed for the log alone
+    /// would show the reader something the resolution did not see.
+    ///
+    /// The default implementation writes nothing.
+    ///
+    /// ```
+    /// # struct Duct { velocity: f64 }
+    /// # impl Duct {
+    /// fn report(&self, values: &mut newton_rootfinder::log::Fields) {
+    ///     values.number("velocity", self.velocity).text("regime", "turbulent");
+    /// }
+    /// # }
+    /// ```
+    fn report(&self, #[allow(unused_variables)] values: &mut crate::log::Fields) {}
 }
