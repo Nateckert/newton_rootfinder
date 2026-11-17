@@ -45,7 +45,7 @@ The following crates provide solvers for n-dimensional systems of nonlinear equa
 
 | crate | version | Newton-Raphson | Quasi-Newton | Jacobian | Far from the root | Dimension |
 |-------|--------:|----------------|--------------|----------|-------------------|-----------|
-| `newton_rootfinder` | 0.12.0 | ✔️ | Broyden 1st/2nd, Greenstadt 1st/2nd (on the jacobian or its inverse), stationary Newton | analytical, finite difference | damping | static or dynamic |
+| `newton_rootfinder` | 0.13.0 | ✔️ | Broyden 1st/2nd, Greenstadt 1st/2nd (on the jacobian or its inverse), stationary Newton | analytical, finite difference | damping | static or dynamic |
 | peroxide::numerical | 0.43.1 | ✔️ (`newton`) | Broyden (`root`) | automatic differentiation; none for Broyden | ❌ | dynamic (`newton`), static (`root`) |
 | bacon_sci::roots | 0.16.2 | ✔️ | Broyden (`secant`, on the inverse) | analytical; finite difference to start `secant` | ❌ | static |
 | gomez | 0.5.1 | inside a trust region | ❌ | finite difference, at every iteration | trust region (dogleg, Levenberg-Marquardt), LIPO to find a starting point | dynamic |
