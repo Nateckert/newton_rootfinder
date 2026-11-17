@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [0.13.0] - 2026-11-16
+## [0.13.0] - 2026-11-17
 
 ### Added
 - A log of the resolutions in [JSON Lines](https://jsonlines.org/), one log for every resolution of a program:
@@ -26,13 +26,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   `errors::SolverInternalError` is no longer public.
 
 ### Removed
-- *Breaking change*: `RootFinder::activate_debug` and its text file, replaced by `RootFinder::log_to`.
-- *Breaking change*: the feature `additional_log_info` and its dependencies `chrono`, `whoami` and `rustc_version_runtime`:
-  a program writes such facts in the log with `Log::note`.
-
 The public API is reduced to what a user of the crate calls: a model, its parametrization, the solver, its errors,
 its log and the XML configuration. The machinery of a resolution is no longer exported.
 The code compiled for a resolution is unchanged.
+
+- *Breaking change*: `RootFinder::activate_debug` and its text file, replaced by `RootFinder::log_to`.
+- *Breaking change*: the feature `additional_log_info` and its dependencies `chrono`, `whoami` and `rustc_version_runtime`:
+  a program writes such facts in the log with `Log::note`.
 - *Breaking change*: `solver::JacobianMatrix`, `solver::evaluate_jacobian_from_analytical_function`,
   `solver::approximate_jacobian`, `solver::approximate_inv_jacobian` and
   `solver::compute_jacobian_from_finite_difference` are no longer public.
