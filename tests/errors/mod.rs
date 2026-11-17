@@ -1,4 +1,5 @@
 mod entry_state;
+mod inaccurate_jacobian;
 mod inaccurate_values;
 mod non_convergence;
 mod non_finite_residuals;
