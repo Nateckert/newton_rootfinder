@@ -253,13 +253,9 @@ where
             log.jacobian(self.iter, source, &self.jacobian);
         }
 
-        match successful_jac_computation {
-            Ok(())
-            | Err(errors::SolverInternalError::InvalidJacobianError(
-                ModelError::InaccurateValuesError(_),
-            )) => Ok(()),
-            Err(model_error) => Err(model_error),
-        }
+        // The finite differences recover from inaccurate values column by column:
+        // an error reaching here, inaccurate or not, leaves no jacobian to take a step with
+        successful_jac_computation
     }
 
     fn compute_newton_raphson_step<M>(

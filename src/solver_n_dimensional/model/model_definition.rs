@@ -127,6 +127,9 @@ where
     /// If this method is overriden, the solver will be able to use it to evaluate the jacobian, instead of using finite-difference.
     /// If overriden, the [Model::jacobian_provided] must also be overriden to return `true`.
     ///
+    /// An error ends the resolution with [crate::errors::SolverError::JacobianEvaluationError],
+    /// an [super::ModelError::InaccurateValuesError] too: it holds no jacobian to take a step with.
+    ///
     /// The default implementation returns a null value, as it will be not be used, the solver defaulting to finite-differences.
     fn get_jacobian(&mut self) -> Result<residuals::JacobianValues<D>, super::ModelError<Self, D>> {
         let left = super::super::omatrix_zeros_like_ovector(&self.get_iteratives());

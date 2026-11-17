@@ -61,6 +61,8 @@ The code compiled for a resolution is unchanged.
 
 ### Fixed
 - The Broyden and Greenstadt methods now update the jacobian, or its inverse, with the signed residuals instead of the absolute errors.
+- `RootFinder::solve` no longer panics when `Model::get_jacobian` returns an `InaccurateValuesError`:
+  the resolution ends with `SolverError::JacobianEvaluationError`.
 
 ## [0.12.0] - 2026-10-28
 

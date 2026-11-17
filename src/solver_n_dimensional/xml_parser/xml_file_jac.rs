@@ -63,7 +63,7 @@ use super::util::check_node_name_and_panic;
 /// - max_step_abs
 /// - max_step_rel
 ///
-/// Its childen will be the <iterative> node, each of them having an id starting at zero.
+/// Its children will be the \<iterative\> nodes, each of them having an id starting at zero.
 /// Each children will either take the default values if none are provided, or take any that are redefined for the given id.
 ///
 ///
@@ -87,7 +87,7 @@ use super::util::check_node_name_and_panic;
 /// - stopping_criteria
 /// - update_method
 ///
-/// Its childen will be the <residual> node, each of them having an id starting at zero.
+/// Its children will be the \<residual\> nodes, each of them having an id starting at zero.
 /// Each children will either take the default values if none are provided, or take any that are redefined for the given id.
 ///
 ///
